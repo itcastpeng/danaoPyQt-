@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="./qwebchannel.js"></script>
+
+    <script language="JavaScript">
+       window.onload = function () {
+           new QWebChannel(qt.webChannelTransport, function(channel){
+                bridge = channel.objects.bridge;
+                // alert(bridge.createTaskListValue)
+
+           });
+       };
+
+
+        function onShowMsgBox(){
+            if (bridge){
+                bridge.loginValue = '登录';
+            }
+        }
+
+        function onShowMsg(){
+            if (bridge){
+                // bridge.createTaskListValue = ''
+            }
+        }
+
+        function ShowMsgBox(){
+            if (bridge){
+                bridge.updateTaskListValue = '1';
+                new QWebChannel(qt.webChannelTransport, function(channel){
+                    obj = channel.objects.bridge;
+
+
+               });
+            }
+        }
+
+        function querenxiugai(){
+            if (bridge){
+                bridge.update_Data_value = "{'qiyong_status': True, 'task_name': '测试任务', 'task_jindu': 0, 'task_start_time': '03:03:03', 'task_status': '未查询', 'search_engine': ['1,4'], 'mohupipei': '撒旦发', 'zhixing': False, 'next_datetime': 1531422183240, 'keywords': '基本上附近VS吧'}"
+        }
+       }
+
+         function qingkongshuju(){
+            if (bridge){
+                bridge.emptyDataTaskDetail = '1';
+            }
+        }
+
+          function chakanxiangqing(){
+            if (bridge){
+                bridge.selectDataTaskDetail = '10';
+                 new QWebChannel(qt.webChannelTransport, function(channel) {
+                     obj = channel.objects.bridge;
+                     alert(obj.selectDataTaskDetail)
+                 });
+            }
+        }
+
+
+        function pachong(){
+            if (bridge){
+                bridge.pcTaskValue = '2';
+                 new QWebChannel(qt.webChannelTransport, function(channel) {
+                     obj = channel.objects.bridge;
+                     // alert(obj.pc_test)
+                 });
+            }
+        }
+
+        function pachongdingshi(){
+            if (bridge){
+                bridge.pcTaskTimingValue = '2,2018-07-12 17-08-01';
+                 new QWebChannel(qt.webChannelTransport, function(channel) {
+                     obj = channel.objects.bridge;
+                     // alert(obj.pc_test)
+                 });
+            }
+        }
+
+    </script>
+</head>
+
+<body>
+<form>
+    <label for="frame">user_name:</label>
+    <input type="text" name="frame" id="frame">
+    <br />
+
+    <div style="padding-top:10px ">
+        <input type="button" value="登录" onclick="onShowMsgBox()">
+    </div>
+
+
+    <div style="padding-top:10px ">
+        <input type="button" value="添加" onclick="onShowMsg()">
+    </div>
+
+     <div style="padding-top:10px ">
+        <input type="button" value="传递用户id" onclick="ShowMsgBox()">
+    </div>
+
+     <div style="padding-top:10px ">
+        <input type="button" value="确认修改" onclick="querenxiugai()">
+    </div>
+
+      <div style="padding-top:10px ">
+        <input type="button" value="清空详情数据 传递任务id" onclick="qingkongshuju()">
+    </div>
+
+     <div style="padding-top:10px ">
+        <input type="button" value="查看详情" onclick="chakanxiangqing()">
+    </div>
+
+     <div style="padding-top:10px ">
+        <input type="button" value="触发爬虫" onclick="pachong()">
+    </div>
+
+     <div style="padding-top:10px ">
+        <input type="button" value="触发爬虫定时任务" onclick="pachongdingshi()">
+    </div>
+</form>
+</body>
+</html>
