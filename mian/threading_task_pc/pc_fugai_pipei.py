@@ -33,7 +33,7 @@ class Baidu_Zhidao_yuming_pc():
         }
         self.zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword='{}')
         data_list = self.get_keywords()
-        # self.set_data(data_list)
+        self.set_data(data_list)
 
 
     def get_keywords(self):
@@ -66,9 +66,9 @@ class Baidu_Zhidao_yuming_pc():
             if self.domain in tiaojian_chaxun:
                 print('条件匹配=======')
                 data_list.append(int(rank_num))
-        print('data_list-------------->',data_list)
+        # print('data_list-------------->',data_list)
 
-        # return data_list
+        return data_list
 
 
 

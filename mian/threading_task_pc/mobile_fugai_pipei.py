@@ -1,6 +1,6 @@
 import requests, random, sqlite3
 from bs4 import BeautifulSoup
-
+import datetime
 
 
 class Baidu_Zhidao_yuming_mobile(object):
@@ -20,24 +20,23 @@ class Baidu_Zhidao_yuming_mobile(object):
         ret = requests.get(zhidao_url)
         self.random_time()
         soup_browser = BeautifulSoup(ret.text, 'lxml')
-        results = soup_browser.find('div', id='results')
-        self.random_time()
+        results = soup_browser.find('div', id='results').find_all('div', class_='result c-result')
         data_list = []
         for result in results:
+            print(result)
             # try:
-            if result['data-log']:
-                dict_data = eval(result['data-log'])
-                url_title = dict_data['mu']                    # 标题链接
-                if url_title:
-                    order = dict_data['order']                     # 排名
-                    pipei_tiaojian = result.get_text()
-                    # print(order, pipei_tiaojian)
-                    if self.domain in pipei_tiaojian:
-                        data_list.append(int(order))
-        print(data_list)
-        #     except Exception as e :
-        #         pass
-        # return data_list
+            #     if result['data-log']:
+            #         dict_data = eval(result['data-log'])
+            #         url_title = dict_data['mu']                    # 标题链接
+            #         if url_title:
+            #             order = dict_data['order']                     # 排名
+            #             pipei_tiaojian = result.get_text()
+            #             # print(order, pipei_tiaojian)
+            #             if self.domain in pipei_tiaojian:
+            #                 data_list.append(int(order))
+            # except Exception as e :
+            #     print(datetime.date.today())
+        return data_list
 
 
     def random_time(self):
