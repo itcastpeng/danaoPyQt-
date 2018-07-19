@@ -28,7 +28,7 @@ class Danao_Inter_Action(QObject):
         self.huoqu_task_id_detail = ''
         self.huoqu_shoulu_time_stamp = ''
         self.dangqian_chaxunshoulu_time = ''
-
+        self.panduan = ''
     # 占位
     def zhanwei_zhushou(self):
         pass
@@ -209,7 +209,7 @@ class Danao_Inter_Action(QObject):
                             data_insert = (tid, search_engine, lianjie, keyword, mohupipei, create_time)
                             sql = """insert into task_Detail (tid, search_engine, lianjie, keywords, mohupipei, create_time) values {data_insert};""".format(
                                 data_insert=data_insert)
-                        # print('sql------------> ',sql)
+                        print('sql------------> ',sql)
                         cursor.execute(sql)
             # print('结束')
             conn.commit()
@@ -326,11 +326,17 @@ class Danao_Inter_Action(QObject):
         cursor = conn.cursor()
         if select_task_detail:
             print('清空 {}任务列表id 的详情数据'.format(select_task_detail))
+            sql = """select id from task_Detail where tid = {}""".format(select_task_detail)
+            cursor.execute(sql)
+            for obj in cursor:
+                sql = """delete from task_Detail_Data where tid={}""".format(obj[0])
+                cursor = conn.cursor()
+                cursor.execute(sql)
             sql = """delete from task_Detail where tid = {};""".format(select_task_detail)
             cursor.execute(sql)
             print(sql)
-            conn.commit()
-            conn.close()
+        conn.commit()
+        conn.close()
 
     # 重点词监护 - 获取任务id
     def set_zhongdianci_select_id_select_task_detail_value(self, data):
@@ -384,6 +390,7 @@ class Danao_Inter_Action(QObject):
             cursor.execute(sql)
             for obj in cursor:
                 sql = """delete from task_Detail_Data where tid = {}""".format(obj[0])
+                cursor = conn.cursor()
                 cursor.execute(sql)
             sql = """delete from task_Detail where tid = {};""".format(data)
             cursor.execute(sql)
@@ -415,25 +422,25 @@ class Danao_Inter_Action(QObject):
                     detail_dataobjs = cursor.execute(sql)
                     data_detail_list = []
                     if detail_dataobjs:
+                        sanci_chaxun = {}
                         for detaildata_obj in detail_dataobjs:
                             detail_create = detaildata_obj[0]
                             detail_paiming = detaildata_obj[1]
                             detail_shoulu = detaildata_obj[2]
-                            headers_list.append(detail_create)
-                            data_detail_list.append({
-                                detail_create: {
+                            if detail_create not in headers_list:
+                                headers_list.append(detail_create)
+                            sanci_chaxun[detail_create] = {
                                     'detail_create': detail_create,
                                     'shoulu': detail_shoulu,
                                     'paiming': detail_paiming
-                                }
-                            })
+                                    }
                     data_list.append({
                         'id': obj[0],
                         'search_engine': obj[2],
                         'lianjie': obj[3],
                         'keywords': obj[4],
                         'mohupipei': obj[5],
-                        'sanci_chaxun': data_detail_list
+                        'sanci_chaxun': sanci_chaxun
                     })
                 exit_data_list = {
                     'data_list': data_list,
@@ -445,11 +452,11 @@ class Danao_Inter_Action(QObject):
     # 重点词监护 - 导出 excl 功能
     def set_save_select_results_task_excel_daochu(self, tid_data):
         print('tid_data-------------> ', tid_data)
+        self.panduan = False
         if tid_data:
             conn = sqlite3.connect('./my_db/my_sqlite.db')
             cursor = conn.cursor()
             now_date = datetime.date.today().strftime('%Y-%m-%d')
-            print('=====================')
             wb = Workbook()
             ws = wb.active
             ws.cell(row=1, column=1, value="重点关键词")
@@ -496,12 +503,10 @@ class Danao_Inter_Action(QObject):
             ws['A4'].alignment = Alignment(horizontal='center', vertical='center')
 
             sql = """select task_name from task_List where id = {};""".format(tid_data)
-            print('sql===============>', sql)
             task_names = cursor.execute(sql)
             task_name = ''
             for name in task_names:
                 task_name = name[0]
-
             sql = """select * from task_Detail where tid = {};""".format(tid_data)
             cursor.execute(sql)
             row = 5
@@ -516,7 +521,7 @@ class Danao_Inter_Action(QObject):
                     for obj_data in objs_data:
                         create_time = obj_data[4]
                         paiming = obj_data[1]
-                        print('paiming--------------> ', paiming)
+                        # print('paiming--------------> ', paiming)
                         ws.cell(row=3, column=column_p, value="{create_time}".format(create_time=create_time))
                         ws.cell(row=row, column=column_p, value="{paiming}".format(paiming=paiming))
                         column_p += 1
@@ -525,15 +530,20 @@ class Danao_Inter_Action(QObject):
                 ws.cell(row=row, column=3, value="{search_engine}".format(search_engine=obj[2]))
                 ws.cell(row=row, column=2, value="{lianjie}".format(lianjie=obj[3]))
                 row += 1
-
             root = Tk()
             root.withdraw()
             dirname = askdirectory(parent=root, initialdir="/", title='Pick a directory')
             if dirname:
                 file_name = dirname.replace('\\', '/') + '/' + '{}.xlsx'.format(task_name + '_' + now_date)
+                # file_name = './static/1.xlsx'
                 print(file_name)
                 wb.save(file_name)
-                print('完成')
+                self.panduan = True
+
+    # 重点词监护 - 导出excl返回参数 提示用户
+    def get_daochu_fanhui_tishi(self):
+        return self.panduan
+
 
     # 收录查询 - 筛选链接 调用多线程 保存数据库
     def set_shoulu_select_get_list_value(self, data):
@@ -674,7 +684,7 @@ class Danao_Inter_Action(QObject):
 
             root = Tk()
             root.withdraw()
-            ttk.Frame(root, padding="3 3 12 12")
+            # ttk.Frame(root, padding="3 3 12 12")
             dirname = askdirectory(parent=root, initialdir="/", title='Pick a directory')
             if dirname:
                 task_name = '测试导出收录excel'
@@ -684,6 +694,9 @@ class Danao_Inter_Action(QObject):
                 wb.save(file_name)
                 print('完成')
 
+    # 覆盖查询 - 筛选查询条件 调用多线程 保存到数据库
+    def set_fugai_select_get_list_value(self,data):
+        print(data)
 
 
 
@@ -736,7 +749,8 @@ class Danao_Inter_Action(QObject):
     viewThesubTasksDetail = pyqtProperty(str, fget=get_view_The_subtasks_detail,
         fset=set_task_id_view_The_subtasks_task)
     # 重点词监护 - 保存查询结果 导出excl表格
-    saveTheQueryResults = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_save_select_results_task_excel_daochu)
+    saveTheQueryResults = pyqtProperty(str, fget=get_daochu_fanhui_tishi, fset=set_save_select_results_task_excel_daochu)
+
     # 爬虫 用户修改下次执行时间 添加数据库
     # pcTaskTimingValue = pyqtProperty(str,fget=zhanwei_zhushou, fset=set_pc_task_timing_value)
     # 收录查询 - 筛选链接 查询 及 展示入库

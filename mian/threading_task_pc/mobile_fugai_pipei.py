@@ -17,7 +17,7 @@ class Baidu_Zhidao_yuming_mobile(object):
 
     def get_keyword(self):
         zhidao_url = self.zhidao_url.format(self.keyword)
-        print('请求链接 ------------ >',zhidao_url)
+        # print('请求链接 ------------ >',zhidao_url)
         ret = requests.get(zhidao_url)
         self.random_time()
         soup_browser = BeautifulSoup(ret.text, 'lxml')
@@ -59,7 +59,7 @@ class Baidu_Zhidao_yuming_mobile(object):
         if data_list == 'none':
             conn = sqlite3.connect('../my_db/my_sqlite.db')
             cursor = conn.cursor()
-            order = ''
+            order = 0
             shoulu = 0
             detail_id = self.detail_id
             date_time = datetime.datetime.today().strftime('%Y-%m-%d')
@@ -69,14 +69,14 @@ class Baidu_Zhidao_yuming_mobile(object):
             cursor.execute(sql)
 
         else:
-            print('thread_mobilemohupipei-----------> ',data_list)
+            # print('thread_mobilemohupipei-----------> ',data_list)
             conn = sqlite3.connect('../my_db/my_sqlite.db')
             cursor = conn.cursor()
             date_time = datetime.datetime.today().strftime('%Y-%m-%d')
             for data in data_list:
                 sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                     order=data['order'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-                print(sql)
+                # print(sql)
                 cursor = conn.cursor()
                 cursor.execute(sql)
 

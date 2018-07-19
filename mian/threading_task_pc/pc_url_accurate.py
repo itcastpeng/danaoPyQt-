@@ -32,6 +32,7 @@ headers = {
 
 
 def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None):
+    huoqu_shoulu_time_stamp = ''
     domain = domain.strip()
     url = 'https://www.baidu.com/s?wd={domain}'.format(domain=domain)
     # print('url -->', url)
@@ -77,7 +78,7 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
             else:
                 data = (domain, shoulu, huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
             sql = """insert into shoulu_Linshi_List (url, is_shoulu, time_stamp, title, search, kuaizhao_time) values {data};""".format(data=data)
-            # print(sql)
+            print(sql)
             cursor.execute(sql)
             conn.commit()
             conn.close()
@@ -131,7 +132,7 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
 
 class Baidu_Zhidao_URL_PC():
 
-    def __init__(self, detail_id, keyword, domain):
+    def __init__(self, detail_id,keyword, domain):
         self.keyword = keyword
         self.domain = domain
         self.detail_id = detail_id
@@ -144,7 +145,8 @@ class Baidu_Zhidao_URL_PC():
     def get_keywords(self):
         # print('请求链接--',self.zhidao_url.format(self.keyword))
         # 调用查询收录
-        shoulu = shoulu_chaxun(self.domain, shoulu_canshu=1)
+        search = ''
+        shoulu = shoulu_chaxun(self.domain,search, shoulu_canshu=1)
         ret = requests.get(self.zhidao_url.format(self.keyword), headers=self.headers)
         self.random_time()
         soup = BeautifulSoup(ret.text, 'lxml')
@@ -211,12 +213,13 @@ class Baidu_Zhidao_URL_PC():
         if data_list == 'none':
             conn = sqlite3.connect('../my_db/my_sqlite.db')
             cursor = conn.cursor()
-            order = ''
+            order = 0
             shoulu = 0
             detail_id = self.detail_id
             date_time = datetime.datetime.today().strftime('%Y-%m-%d')
             sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=order, shoulu=shoulu, detail_id=detail_id, date_time=date_time)
+            # print(sql)
             cursor = conn.cursor()
             cursor.execute(sql)
         else:

@@ -117,7 +117,7 @@ class Baidu_Zhidao_URL_MOBILE(object):
         self.zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
 
         data_list = self.get_keywords()
-        # self.set_data(data_list)
+        self.set_data(data_list)
 
     def get_keywords(self):
         self.random_time()
@@ -125,7 +125,8 @@ class Baidu_Zhidao_URL_MOBILE(object):
         headers = {
             'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
         url = self.zhidao_url.format(self.domain)
-        data_list = shoulu_chaxun(url,shoulu_canshu=1)
+        search = ''
+        data_list = shoulu_chaxun(url,search)
         # ret = requests.get(url, headers=headers)
         # soup = BeautifulSoup(ret.text, 'lxml')
         # data_list = []
@@ -169,7 +170,7 @@ class Baidu_Zhidao_URL_MOBILE(object):
                             })
                             # print('完成')
                             return data_list
-
+        return 'none'
 
     def random_time(self):
         return sleep(random.randint(1, 2))
@@ -178,7 +179,7 @@ class Baidu_Zhidao_URL_MOBILE(object):
         if data_list == 'none':
             conn = sqlite3.connect('../my_db/my_sqlite.db')
             cursor = conn.cursor()
-            order = ''
+            order = 0
             shoulu = 0
             detail_id = self.detail_id
             date_time = datetime.datetime.today().strftime('%Y-%m-%d')

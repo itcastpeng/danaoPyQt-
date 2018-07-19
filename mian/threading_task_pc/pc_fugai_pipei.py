@@ -2,7 +2,8 @@ import requests, random, sqlite3
 from bs4 import BeautifulSoup
 from time import sleep
 import datetime
-
+import chardet, time
+from urllib.request import urlopen
 pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 5.1; rv:6.0.2) Gecko/20100101 Firefox/6.0.2',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17',
@@ -27,16 +28,17 @@ pcRequestHeader = [
 class Baidu_Zhidao_yuming_pc():
 
 
-    def __init__(self,detail_id, keyword, domain):
+    def __init__(self,yinqing,detail_id, keyword, domain):
         self.keyword = keyword
         self.domain = domain
         self.detail_id = detail_id
+        self.yinqing = yinqing
         self.headers = {
             'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)],
         }
         self.zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword='{}')
         data_list = self.get_keywords()
-        # self.set_data(data_list)
+        self.set_data(data_list)
 
 
     def get_keywords(self):
@@ -54,27 +56,34 @@ class Baidu_Zhidao_yuming_pc():
             if not rank_num:
                 continue
             tiaojian_chaxun = div_tag.get_text()
-
-            # title_tag = div_tag.find('div', class_='c-tools')['data-tools']
-            # dict_title = eval(title_tag)
-            # str_title = dict_title['title']  # 标题
-            # url_title = dict_title['url']  # 标题链接
-            # div_13 = div_tag.find('div', class_='f13')
-            # a_tag = div_13.find('a', target='_blank').get_text()
-            # print('----------->',self.domain,tiaojian_chaxun)
-            # dict_data = eval(div_tag['data-click'])
-            # self.random_time()
-            print(tiaojian_chaxun)
+            # print(tiaojian_chaxun)
+            panduan_url = div_tag.find('h3',class_='t').find('a').attrs['href']
             if self.domain in tiaojian_chaxun:
-                # print('条件匹配=======')
-                data_list.append({
-                    'order':int(rank_num),
-                    'shoulu':1,
-                    'detail_id':self.detail_id
-                    })
+                ret_two = requests.get(panduan_url, headers=self.headers)
+                sleep(2)
+                # html = urlopen(panduan_url).read()
+                # encode_ret = chardet.detect(html)['encoding']
+                encode_ret = chardet.detect(ret_two.text.encode())['encoding']
+                if encode_ret == 'GB2312':
+                    ret_two.encoding = 'gbk'
+                else:
+                    ret_two.encoding = 'utf-8'
+                soup_two = BeautifulSoup(ret_two.text, 'lxml')
+                title = ''
+                if len(soup_two.find('title').get_text()) > 5 and soup_two.find('title').get_text():
+                    title = soup_two.find('title').get_text()
+                    # print('title===============>',title)
+                    data_list.append({
+                        'order':int(rank_num),
+                        'shoulu':1,
+                        'detail_id':self.detail_id,
+                        'url':ret_two.url,
+                        'yiniqng':self.yinqing,
+                        'title':title
+                        })
 
-        return data_list
-
+                    return data_list
+        return 'none'
 
 
     def random_time(self):
@@ -85,26 +94,26 @@ class Baidu_Zhidao_yuming_pc():
         if data_list == 'none':
             conn = sqlite3.connect('../my_db/my_sqlite.db')
             cursor = conn.cursor()
-            order = ''
+            order = 0
             shoulu = 0
             detail_id = self.detail_id
             date_time = datetime.datetime.today().strftime('%Y-%m-%d')
             sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=order, shoulu=shoulu, detail_id=detail_id, date_time=date_time)
-            print(sql)
+            # print(sql)
             cursor = conn.cursor()
-            # cursor.execute(sql)
+            cursor.execute(sql)
         else:
-            print('thread_pcmohupipei--------------> ',data_list)
+            # print('thread_pcmohupipei--------------> ',data_list)
             conn = sqlite3.connect('../my_db/my_sqlite.db')
             cursor = conn.cursor()
             date_time = datetime.datetime.today().strftime('%Y-%m-%d')
             for data in data_list:
                 sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                     order=data['order'],shoulu=data['shoulu'],detail_id=data['detail_id'],date_time=date_time)
-                print(sql)
+                # print(sql)
                 cursor = conn.cursor()
-                # cursor.execute(sql)
+                cursor.execute(sql)
 
         conn.commit()
         conn.close()
@@ -113,5 +122,6 @@ if __name__ == '__main__':
     keyword = '合众康桥'
     domain = '合众康桥'
     detail_id = 22
-    Baidu_Zhidao_yuming_pc(detail_id, keyword, domain)
+    yinqing = '1'
+    Baidu_Zhidao_yuming_pc(yinqing,detail_id, keyword, domain)
 

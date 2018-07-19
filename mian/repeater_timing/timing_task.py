@@ -48,8 +48,8 @@ class repeater_timing_task():
 
         self.pool = ThreadPool(5)
 
-        # self.dingshi_timer()
         self.get_task_list()
+        self.dingshi_timer()
         # if datas:
         #     self.function_pc_task()
 
@@ -66,10 +66,11 @@ class repeater_timing_task():
         for obj in objs:
             task_id = obj[0]
             task_next_datetime = obj[1]
-        print('task_id ======== > ',task_id, 'task_next_datetime========>',task_next_datetime)
-        sql = """update task_Detail set is_perform = 1 where tid = {};""".format(task_id)
-        print(sql)
-        cursor.execute(sql)
+        # print('task_id ======== > ',task_id, 'task_next_datetime========>',task_next_datetime)
+        if task_id:
+            sql = """update task_Detail set is_perform = 1 where tid = {};""".format(task_id)
+            print(sql)
+            cursor.execute(sql)
         conn.commit()
         conn.close()
 
@@ -82,13 +83,14 @@ class repeater_timing_task():
             self.timer_flag = True
         shijianchuo = time.time()
         now_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')
-        print('__file__ -->', __file__)
+        # print('__file__ -->', __file__)
         conn = sqlite3.connect('../my_db/my_sqlite.db')
         cursor = conn.cursor()
         sql = """select * from task_Detail where is_perform=1;"""
         is_run_flag = False     # 表示是否有任务要运行
         objs = cursor.execute(sql)
         for obj in objs:
+            print('obj[0]-------------------> ',obj[0])
             detail_id = obj[0]
             tid = obj[1]
             search_engine = obj[2]
@@ -110,10 +112,10 @@ class repeater_timing_task():
                 time_stamp_obj = int(time_stamp_obj)
                 if time_stamp_obj < int(shijianchuo):
                     is_run_flag = True
-
+            print(is_run_flag)
             if is_run_flag:
                 threading_task.func(detail_id, lianjie, keywords, search_engine, mohupipei, self.pool)
-                print('threading.active_count() -->', threading.active_count())
+                print('线程数量 threading.active_count() -->', threading.active_count())
 
         conn.commit()
         conn.close()
