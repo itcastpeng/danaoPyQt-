@@ -435,10 +435,10 @@ class Danao_Inter_Action(QObject):
                         'mohupipei': obj[5],
                         'sanci_chaxun': data_detail_list
                     })
-                exit_data_list.append({
+                exit_data_list = {
                     'data_list': data_list,
                     'headers_list': headers_list
-                })
+                }
             print('data_list-------------------->', json.dumps(exit_data_list))
             return json.dumps(exit_data_list)
 

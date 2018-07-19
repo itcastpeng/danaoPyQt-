@@ -36,7 +36,7 @@ class Baidu_Zhidao_yuming_pc():
         }
         self.zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword='{}')
         data_list = self.get_keywords()
-        self.set_data(data_list)
+        # self.set_data(data_list)
 
 
     def get_keywords(self):
