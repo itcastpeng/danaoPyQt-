@@ -81,6 +81,57 @@
             }
         }
 
+         function deleteDataTask(){
+            if (bridge){
+                bridge.deleteDataTask = '[8]   ';
+                 // new QWebChannel(qt.webChannelTransport, function(channel) {
+                 //     obj = channel.objects.bridge;
+                     // alert(obj.pc_test)
+                 // });
+            }
+        }
+
+         function viewThesubTasksDetail(){
+            if (bridge){
+                bridge.viewThesubTasksDetail = '15';
+                 // new QWebChannel(qt.webChannelTransport, function(channel) {
+                 //     obj = channel.objects.bridge;
+                 //     alert(obj.viewThesubTasksDetail)
+                 // });
+            }
+        }
+
+         function saveTheQueryResults(){
+            if (bridge){
+                bridge.saveTheQueryResults = '15';
+                 // new QWebChannel(qt.webChannelTransport, function(channel) {
+                 //     obj = channel.objects.bridge;
+                 //     alert(obj.viewThesubTasksDetail)
+                 // });
+            }
+        }
+         function setShouLuChaXun(){
+            if (bridge){
+                bridge.setShouLuChaXun = '1';
+
+                 new QWebChannel(qt.webChannelTransport, function(channel) {
+                     obj = channel.objects.bridge;
+                     // alert(obj.setShouLuChaXun)
+                 });
+            }
+        }
+
+         function setShouLuDaoChuExcel(){
+            if (bridge){
+                bridge.setShouLuDaoChuExcel = '1';
+
+                 // new QWebChannel(qt.webChannelTransport, function(channel) {
+                 //     obj = channel.objects.bridge;
+                     // alert(obj.setShouLuChaXun)
+                 // });
+            }
+        }
+
     </script>
 </head>
 
@@ -122,6 +173,23 @@
      <div style="padding-top:10px ">
         <input type="button" value="触发爬虫定时任务" onclick="pachongdingshi()">
     </div>
+
+    <div style="padding-top:10px ">
+        <input type="button" value="删除选中任务" onclick="deleteDataTask()">
+    </div>
+     <div style="padding-top:10px ">
+        <input type="button" value="查看子任务详情" onclick="viewThesubTasksDetail()">
+    </div>
+     <div style="padding-top:10px ">
+        <input type="button" value="导出excl表格 保存结果" onclick="saveTheQueryResults()">
+    </div>
+    <div style="padding-top:10px ">
+        <input type="button" value="收录查询" onclick="setShouLuChaXun()">
+    </div>
+    <div style="padding-top:10px ">
+        <input type="button" value="收录导出 excel" onclick="setShouLuDaoChuExcel()">
+    </div>
+
 </form>
 </body>
 </html>

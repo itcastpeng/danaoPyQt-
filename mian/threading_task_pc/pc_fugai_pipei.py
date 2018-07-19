@@ -1,6 +1,8 @@
 import requests, random, sqlite3
 from bs4 import BeautifulSoup
 from time import sleep
+import datetime
+
 pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 5.1; rv:6.0.2) Gecko/20100101 Firefox/6.0.2',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17',
@@ -25,9 +27,10 @@ pcRequestHeader = [
 class Baidu_Zhidao_yuming_pc():
 
 
-    def __init__(self,keyword,domain):
+    def __init__(self,detail_id, keyword, domain):
         self.keyword = keyword
         self.domain = domain
+        self.detail_id = detail_id
         self.headers = {
             'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)],
         }
@@ -38,7 +41,7 @@ class Baidu_Zhidao_yuming_pc():
 
     def get_keywords(self):
         self.random_time()
-        print('请求的链接-------------> ',self.zhidao_url.format(self.keyword))
+        # print('请求的链接-------------> ',self.zhidao_url.format(self.keyword))
         ret = requests.get(self.zhidao_url.format(self.keyword) ,headers=self.headers)
         soup = BeautifulSoup(ret.text, 'lxml')
         id_tag = soup.find('div', id='content_left')
@@ -51,7 +54,7 @@ class Baidu_Zhidao_yuming_pc():
             if not rank_num:
                 continue
             tiaojian_chaxun = div_tag.get_text()
-            print(tiaojian_chaxun)
+
             # title_tag = div_tag.find('div', class_='c-tools')['data-tools']
             # dict_title = eval(title_tag)
             # str_title = dict_title['title']  # 标题
@@ -61,12 +64,14 @@ class Baidu_Zhidao_yuming_pc():
             # print('----------->',self.domain,tiaojian_chaxun)
             # dict_data = eval(div_tag['data-click'])
             # self.random_time()
-
-            print(self.domain ,'----',tiaojian_chaxun)
+            print(tiaojian_chaxun)
             if self.domain in tiaojian_chaxun:
-                print('条件匹配=======')
-                data_list.append(int(rank_num))
-        # print('data_list-------------->',data_list)
+                # print('条件匹配=======')
+                data_list.append({
+                    'order':int(rank_num),
+                    'shoulu':1,
+                    'detail_id':self.detail_id
+                    })
 
         return data_list
 
@@ -77,12 +82,36 @@ class Baidu_Zhidao_yuming_pc():
 
 
     def set_data(self,data_list):
-        # conn = sqlite3.connect('my_sqlite.db')
-        # cursor = conn.cursor()
-        print('thread_pcmohupipei--------------> ',data_list)
+        if data_list == 'none':
+            conn = sqlite3.connect('../my_db/my_sqlite.db')
+            cursor = conn.cursor()
+            order = ''
+            shoulu = 0
+            detail_id = self.detail_id
+            date_time = datetime.datetime.today().strftime('%Y-%m-%d')
+            sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
+                order=order, shoulu=shoulu, detail_id=detail_id, date_time=date_time)
+            print(sql)
+            cursor = conn.cursor()
+            # cursor.execute(sql)
+        else:
+            print('thread_pcmohupipei--------------> ',data_list)
+            conn = sqlite3.connect('../my_db/my_sqlite.db')
+            cursor = conn.cursor()
+            date_time = datetime.datetime.today().strftime('%Y-%m-%d')
+            for data in data_list:
+                sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
+                    order=data['order'],shoulu=data['shoulu'],detail_id=data['detail_id'],date_time=date_time)
+                print(sql)
+                cursor = conn.cursor()
+                # cursor.execute(sql)
+
+        conn.commit()
+        conn.close()
 
 if __name__ == '__main__':
-    keyword = '北京男科哪家好'
-    domain = 'haoping.haod'
-    Baidu_Zhidao_yuming_pc(keyword, domain)
+    keyword = '合众康桥'
+    domain = '合众康桥'
+    detail_id = 22
+    Baidu_Zhidao_yuming_pc(detail_id, keyword, domain)
 

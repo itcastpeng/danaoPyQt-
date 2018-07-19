@@ -54,23 +54,6 @@ class repeater_timing_task():
         #     self.function_pc_task()
 
 
-    # 如果用户直接点击 则传参为 单个或多个任务id
-    # def function_pc_task(self):
-    #     print(self.datas)
-    #     conn = sqlite3.connect('./my_db/my_sqlite.db')
-    #     cursor = conn.cursor()
-    #     for data in self.datas.split(','):
-    #         sql = """select * from task_Detail where tid='{}';""".format(data)
-    #         cursor.execute(sql)
-    #         for obj in cursor:
-    #             tid = obj[1]
-    #             search_engine = obj[2]
-    #             lianjie = obj[3]
-    #             keywords = obj[4]
-    #             mohupipei = obj[5]
-    #             create_time = obj[6]
-    #             task_start_time = obj[7]
-
 
     def get_task_list(self):
         now_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')
@@ -129,7 +112,7 @@ class repeater_timing_task():
                     is_run_flag = True
 
             if is_run_flag:
-                threading_task.func(lianjie, keywords, search_engine, mohupipei, self.pool)
+                threading_task.func(detail_id, lianjie, keywords, search_engine, mohupipei, self.pool)
                 print('threading.active_count() -->', threading.active_count())
 
         conn.commit()
@@ -142,6 +125,23 @@ class repeater_timing_task():
                 time.sleep(1)
         self.timer_flag = False
 
+
+    # 如果用户直接点击 则传参为 单个或多个任务id
+    # def function_pc_task(self):
+    #     print(self.datas)
+    #     conn = sqlite3.connect('./my_db/my_sqlite.db')
+    #     cursor = conn.cursor()
+    #     for data in self.datas.split(','):
+    #         sql = """select * from task_Detail where tid='{}';""".format(data)
+    #         cursor.execute(sql)
+    #         for obj in cursor:
+    #             tid = obj[1]
+    #             search_engine = obj[2]
+    #             lianjie = obj[3]
+    #             keywords = obj[4]
+    #             mohupipei = obj[5]
+    #             create_time = obj[6]
+    #             task_start_time = obj[7]
 
 
     # def dingshi_timer(self):
