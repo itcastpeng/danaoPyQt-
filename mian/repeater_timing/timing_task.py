@@ -45,7 +45,6 @@ class repeater_timing_task():
         self.timer2 = QTimer()
         self.timer2.timeout.connect(self.get_task_list)
         self.timer2.start(2000)
-
         self.pool = ThreadPool(5)
 
         self.get_task_list()
@@ -87,10 +86,11 @@ class repeater_timing_task():
         conn = sqlite3.connect('../my_db/my_sqlite.db')
         cursor = conn.cursor()
         sql = """select * from task_Detail where is_perform=1;"""
+        print('sql -->', sql)
         is_run_flag = False     # 表示是否有任务要运行
         objs = cursor.execute(sql)
         for obj in objs:
-            print('obj[0]-------------------> ',obj[0])
+            print('关键词 ----------------- >',obj[4] ,'==',obj[0])
             detail_id = obj[0]
             tid = obj[1]
             search_engine = obj[2]
@@ -112,11 +112,8 @@ class repeater_timing_task():
                 time_stamp_obj = int(time_stamp_obj)
                 if time_stamp_obj < int(shijianchuo):
                     is_run_flag = True
-            print(is_run_flag)
             if is_run_flag:
                 threading_task.func(detail_id, lianjie, keywords, search_engine, mohupipei, self.pool)
-                print('线程数量 threading.active_count() -->', threading.active_count())
-
         conn.commit()
         conn.close()
 
@@ -126,7 +123,6 @@ class repeater_timing_task():
             else:
                 time.sleep(1)
         self.timer_flag = False
-
 
     # 如果用户直接点击 则传参为 单个或多个任务id
     # def function_pc_task(self):

@@ -17,6 +17,9 @@ from tkinter import *
 from tkinter.filedialog import askdirectory
 from mian.threading_task_pc import threading_task
 from time import sleep
+import tkinter.messagebox
+from mian.repeater_timing import timing_task
+
 
 
 # PyQt 与 Js 交互 类
@@ -28,7 +31,8 @@ class Danao_Inter_Action(QObject):
         self.huoqu_task_id_detail = ''
         self.huoqu_shoulu_time_stamp = ''
         self.dangqian_chaxunshoulu_time = ''
-        self.panduan = ''
+        self.panduan = '0'
+
     # 占位
     def zhanwei_zhushou(self):
         pass
@@ -119,18 +123,18 @@ class Danao_Inter_Action(QObject):
         # print('获取任务列表参数---------> ',data)
         if type(data) == str:
             json_data = json.loads(data)
-
+            print('json_data= ====================>',json_data)
             qiyong_status = json_data['qiyong_status']
-            if qiyong_status:
-                qiyong_status = 1
-            else:
-                qiyong_status = 0
             task_name = json_data['task_name']
             task_jindu = json_data['task_jindu']
             task_start_time = json_data['task_start_time']
             search_engine = ','.join(json_data['search_engine'])
             mohupipei = json_data['mohupipei']
             zhixing = json_data['zhixing']
+            if qiyong_status:
+                qiyong_status = 1
+            else:
+                qiyong_status = 0
             if zhixing:
                 zhixing = 1
             else:
@@ -159,7 +163,7 @@ class Danao_Inter_Action(QObject):
 
             keywords = json_data['keywords']
             values = (
-                qiyong_status, task_name, task_jindu, task_start_time,
+                qiyong_status,task_name, task_jindu, task_start_time,
                 search_engine, mohupipei, zhixing, next_datetime, keywords
             )
             sql = """insert into Task_List (qiyong_status, task_name, task_jindu, task_start_time, search_engine, mohupipei, zhixing, next_datetime, keywords) values {values};""".format(
@@ -195,12 +199,13 @@ class Danao_Inter_Action(QObject):
                     if keyword:
                         sql = ''
                         if 'http' in keyword:
-                            new_keyword = re.findall("(.*)http", keyword)[0]
+                            new_keyword = re.findall("(.*)http", keyword)[0].replace('\t','')
+                            print('new_keyword-------------> ',new_keyword)
                             lianjie_list = keyword.split(new_keyword)
                             lianjie = ''
                             for lianjie in lianjie_list:
                                 if lianjie:
-                                    lianjie = lianjie
+                                    lianjie = lianjie.replace('\t','')
                             data_insert = (tid, search_engine, lianjie, new_keyword, mohupipei, create_time)
                             sql = """insert into task_Detail (tid, search_engine, lianjie, keywords, mohupipei, create_time) values {data_insert};""".format(
                                 data_insert=data_insert)
@@ -210,8 +215,8 @@ class Danao_Inter_Action(QObject):
                             sql = """insert into task_Detail (tid, search_engine, lianjie, keywords, mohupipei, create_time) values {data_insert};""".format(
                                 data_insert=data_insert)
                         print('sql------------> ',sql)
+                        cursor = conn.cursor()
                         cursor.execute(sql)
-            # print('结束')
             conn.commit()
             conn.close()
 
@@ -286,35 +291,27 @@ class Danao_Inter_Action(QObject):
             now_date = '1900-01-01' + ' ' + str_now_date
             if type(update_data) == str:
                 json_update_data = json.loads(update_data)
+                print('json_update_data----------------------------------------> ',json_update_data)
                 id = json_update_data['id']
-                qiyong_status = json_update_data['qiyong_status']
                 task_name = json_update_data['task_name']
                 task_start_time = json_update_data['task_start_time']
-                search_engine = json_update_data['search_engine']
-                mohupipei = json_update_data['mohupipei']
-                task_jindu = json_update_data['task_jindu']
-                keywords = json_update_data['keywords']
                 task_start_time = datetime.datetime.strptime(task_start_time, '%H:%M:%S')
                 now_date = datetime.datetime.strptime(now_date, '%Y-%m-%d %H:%M:%S')
-
                 if now_date < task_start_time:
                     task_start_time = task_start_time.strftime('%H-%M-%S')
-                    #  如果当前时间小于 任务开始时间 那么 加一天
+                #     #  如果当前时间小于 任务开始时间 那么 加一天
                     add_one_day = (now_datetime_date + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
                     next_datetime = str(add_one_day) + ' ' + task_start_time
                 else:
                     task_start_time = task_start_time.strftime('%H-%M-%S')
                     next_datetime = str(now_datetime_date) + ' ' + task_start_time
                 print(next_datetime)
-                search_engine = ",".join(search_engine)
-                #
                 task_start_time = str(task_start_time)
-                print('-转成字符串=------> ', type(task_start_time), task_start_time)
-                sql = """update Task_List set qiyong_status='{qiyong_status}',task_name='{task_name}',task_jindu='{task_jindu}',task_start_time='{task_start_time}',search_engine='{search_engine}',mohupipei='{mohupipei}',keywords='{keywords}',next_datetime='{next_datetime}' where id={id};""".format(
-                    qiyong_status=qiyong_status, task_name=task_name, task_jindu=task_jindu,
+                sql = """update Task_List set task_name='{task_name}',task_start_time='{task_start_time}',next_datetime='{next_datetime}' where id={id};""".format(
+                    task_name=task_name,
                     task_start_time=task_start_time,
-                    search_engine=search_engine, mohupipei=mohupipei, keywords=keywords, next_datetime=next_datetime,
-                    id=id, )
+                    next_datetime=next_datetime,
+                    id=id)
                 print(sql)
                 cursor.execute(sql)
             conn.commit()
@@ -368,16 +365,20 @@ class Danao_Inter_Action(QObject):
         conn.close()
         return str(data_list)
 
-    # 重点词监护 - 爬虫 获取需要执行的任务id 调用定时器
+
+    # 重点词监护 - 爬虫 获取需要执行的任务id 调用定时器  立即监控
     def set_pc_task_value(self, datas):
         conn = sqlite3.connect('./my_db/my_sqlite.db')
         cursor = conn.cursor()
+        self.huoqu_shoulu_time_stamp = int(time.time())
+        self.dangqian_chaxunshoulu_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
         for data in datas.replace(',', '').replace('[', '').replace(']', ''):
             print(data, '--------------> ', type(data))
             sql = """update task_Detail set is_perform = 1 where tid = {};""".format(data)
             cursor.execute(sql)
         conn.commit()
         conn.close()
+
 
     # 重点词监护 - 删除单个或多个 任务
     def delete_or_batch_delete_task(self, delete_id):
@@ -451,12 +452,11 @@ class Danao_Inter_Action(QObject):
 
     # 重点词监护 - 导出 excl 功能
     def set_save_select_results_task_excel_daochu(self, tid_data):
-        print('tid_data-------------> ', tid_data)
-        self.panduan = False
         if tid_data:
+            # print('tid_data-------------> ', tid_data)
             conn = sqlite3.connect('./my_db/my_sqlite.db')
             cursor = conn.cursor()
-            now_date = datetime.date.today().strftime('%Y-%m-%d')
+            now_date = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
             wb = Workbook()
             ws = wb.active
             ws.cell(row=1, column=1, value="重点关键词")
@@ -504,15 +504,13 @@ class Danao_Inter_Action(QObject):
 
             sql = """select task_name from task_List where id = {};""".format(tid_data)
             task_names = cursor.execute(sql)
-            task_name = ''
-            for name in task_names:
-                task_name = name[0]
+            task_name = list(task_names)[0][0]
+
             sql = """select * from task_Detail where tid = {};""".format(tid_data)
             cursor.execute(sql)
             row = 5
             for obj in cursor:
                 tid = obj[0]
-                print('tid=================> ', tid)
                 sql = 'select * from task_Detail_Data where tid = {} order by create_time desc limit 3  ;'.format(tid)
                 cursor = conn.cursor()
                 objs_data = cursor.execute(sql)
@@ -531,18 +529,22 @@ class Danao_Inter_Action(QObject):
                 ws.cell(row=row, column=2, value="{lianjie}".format(lianjie=obj[3]))
                 row += 1
             root = Tk()
-            root.withdraw()
-            dirname = askdirectory(parent=root, initialdir="/", title='Pick a directory')
+            root.iconbitmap('./128.ico')
+            root.withdraw()  # 隐藏
+            dirname = askdirectory(parent=root, initialdir="/", title='选择导出路径 !')
+            print(dirname)
             if dirname:
-                file_name = dirname.replace('\\', '/') + '/' + '{}.xlsx'.format(task_name + '_' + now_date)
-                # file_name = './static/1.xlsx'
-                print(file_name)
-                wb.save(file_name)
-                self.panduan = True
-
-    # 重点词监护 - 导出excl返回参数 提示用户
-    def get_daochu_fanhui_tishi(self):
-        return self.panduan
+                if dirname == 'C:/':
+                    tkinter.messagebox.showerror('错误', '请选择路径 !')
+                    # tkinter.messagebox.showwarning('警告', '请选择路径 !')
+                else:
+                    file_name = dirname.replace('\\', '/') + '/' + '{}.xlsx'.format(task_name + '_' + now_date)
+                    wb.save(file_name)
+                    print(file_name)
+                    tkinter.messagebox.showinfo('提示', '生成完毕 !')
+            else:
+                print('点击取消')
+            root.destroy()  # 销毁
 
 
     # 收录查询 - 筛选链接 调用多线程 保存数据库
@@ -694,11 +696,10 @@ class Danao_Inter_Action(QObject):
                 wb.save(file_name)
                 print('完成')
 
+
     # 覆盖查询 - 筛选查询条件 调用多线程 保存到数据库
     def set_fugai_select_get_list_value(self,data):
         print(data)
-
-
 
 
 
@@ -749,7 +750,7 @@ class Danao_Inter_Action(QObject):
     viewThesubTasksDetail = pyqtProperty(str, fget=get_view_The_subtasks_detail,
         fset=set_task_id_view_The_subtasks_task)
     # 重点词监护 - 保存查询结果 导出excl表格
-    saveTheQueryResults = pyqtProperty(str, fget=get_daochu_fanhui_tishi, fset=set_save_select_results_task_excel_daochu)
+    saveTheQueryResults = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_save_select_results_task_excel_daochu)
 
     # 爬虫 用户修改下次执行时间 添加数据库
     # pcTaskTimingValue = pyqtProperty(str,fget=zhanwei_zhushou, fset=set_pc_task_timing_value)
@@ -757,6 +758,7 @@ class Danao_Inter_Action(QObject):
     setShouLuChaXun = pyqtProperty(str, fget=get_shoulu_zhanshi_list_value, fset=set_shoulu_select_get_list_value)
     # 收录查询 - 导出excel表格
     setShouLuDaoChuExcel = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_shoulu_save_select_result_value)
+
     # setShouLuChaXun = pyqtProperty(str, fget=get_shoulu_zhanshi_list_value, fset=set_shoulu_select_get_list_value)
 
 
@@ -934,7 +936,7 @@ class DaNao(object):
         view = QWebEngineView()
         # view.load(QUrl('https://www.cnblogs.com/wangshoul'))
         # view.load(QUrl('http://192.168.10.240:8080'))
-        view.load(QUrl('http://192.168.10.240:8081'))
+        view.load(QUrl('http://192.168.10.240:8080'))
         # view.load(QUrl('http://192.168.10.252:8080'))
         # view.load(QUrl('C:/pycharm zh/danaoPyQt/mian/web/index.html'))
 
