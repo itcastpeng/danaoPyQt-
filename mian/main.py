@@ -5,21 +5,14 @@ from PyQt5.QtCore import *
 from win32 import win32api
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDesktopWidget
-from multiprocessing import Queue
-from openpyxl import Workbook
-import sqlite3, os, sys, json, re, time, datetime
+import sqlite3, os, json, time, datetime
 from openpyxl.styles import Font, Alignment
-from openpyxl.utils.exceptions import IllegalCharacterError
-import openpyxl as openpyxl
 from openpyxl import Workbook
-from openpyxl.utils import get_column_letter
 from tkinter import *
 from tkinter.filedialog import askdirectory
 from mian.threading_task_pc import threading_task
-from time import sleep
 import tkinter.messagebox
-from mian.repeater_timing import timing_task
-from mian.threading_task_pc import database_create_data
+from mian.my_db import database_create_data
 
 
 # PyQt 与 Js 交互 类
@@ -295,8 +288,8 @@ class Danao_Inter_Action(QObject):
         if select_task_detail:
             print('清空 {}任务列表id 的详情数据'.format(select_task_detail))
             sql = """select id from task_Detail where tid = {}""".format(select_task_detail)
-            database_create_data.operDB(sql, 'delete')
-            for obj in cursor:
+            objs = database_create_data.operDB(sql, 'delete')
+            for obj in objs['data']:
                 sql_two = """delete from task_Detail_Data where tid={}""".format(obj[0])
                 database_create_data.operDB(sql_two, 'delete')
             sql_three = """delete from task_Detail where tid = {};""".format(select_task_detail)

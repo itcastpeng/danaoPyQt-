@@ -1,10 +1,10 @@
-import requests, random, sqlite3
+import requests, random
 from bs4 import BeautifulSoup
 from time import sleep
 import datetime
-import chardet, time
+import chardet
 from urllib.request import urlopen
-from mian.threading_task_pc import database_create_data
+from mian.my_db import database_create_data
 
 pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 5.1; rv:6.0.2) Gecko/20100101 Firefox/6.0.2',

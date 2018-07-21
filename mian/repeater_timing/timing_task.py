@@ -1,18 +1,11 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtWebEngineWidgets import *
-from PyQt5.QtWebChannel import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QDesktopWidget
-from multiprocessing import Queue
-import sqlite3, os, sys, json, re, time
+import sqlite3
 from PyQt5.QtCore import QTimer
 import datetime, time
 from mian.threading_task_pc import threading_task
 import threading
 import queue
 
-from mian.threading_task_pc import database_create_data
+from mian.my_db import database_create_data
 
 
 class ThreadPool(object):

@@ -1,8 +1,8 @@
-import requests, random, sqlite3
+import requests, random
 from bs4 import BeautifulSoup
 import datetime
 from time import sleep
-from mian.threading_task_pc import database_create_data
+from mian.my_db import database_create_data
 
 
 class Baidu_Zhidao_yuming_mobile(object):

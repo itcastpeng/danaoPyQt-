@@ -1,10 +1,11 @@
-import requests, random, sqlite3
+import requests, random
 from bs4 import BeautifulSoup
 from time import sleep
 import datetime
-import chardet, time
-from urllib.request import urlopen
-from mian.threading_task_pc import database_create_data
+import chardet
+from mian.my_db import database_create_data
+
+
 def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None):
     domain = domain.strip()
     headers = {
