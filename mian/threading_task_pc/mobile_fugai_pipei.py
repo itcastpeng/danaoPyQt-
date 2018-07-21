@@ -36,6 +36,7 @@ class Baidu_Zhidao_yuming_mobile(object):
         data_list = []
         order_list = []
         shoulu = 0
+        str_order = 0
         for data in content_list_order:
             if data['data-log']:
                 dict_data = eval(data['data-log'])
@@ -45,9 +46,10 @@ class Baidu_Zhidao_yuming_mobile(object):
                     pipei_tiaojian = data.get_text()
                     if self.domain in pipei_tiaojian:
                         order_list.append(int(order))
+                        str_order = ",".join(str(i)for i in order_list)
                         shoulu = 1
         data_list.append({
-            'order':order_list,
+            'order':str_order,
             'shoulu':shoulu,
             'detail_id':self.detail_id
         })
@@ -62,7 +64,7 @@ class Baidu_Zhidao_yuming_mobile(object):
             for data in data_list:
                 sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                     order=data['order'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-                database_create_data.func(sql)
+                database_create_data.operDB(sql, 'insert')
 
 # if __name__ == '__main__':
 #     keyword = '北京男科哪家好'

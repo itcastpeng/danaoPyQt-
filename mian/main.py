@@ -19,7 +19,7 @@ from mian.threading_task_pc import threading_task
 from time import sleep
 import tkinter.messagebox
 from mian.repeater_timing import timing_task
-
+from mian.threading_task_pc import database_create_data
 
 
 # PyQt 与 Js 交互 类
@@ -40,86 +40,74 @@ class Danao_Inter_Action(QObject):
     # 返回登陆参数
     def get_Loginvalue(self):
         # 查询数据库 返回用户信息
-        conn = sqlite3.connect('./my_db/my_sqlite.db')
-        cursor = conn.cursor()
         sql = """select * from Login_message;"""
-        cursor.execute(sql)
+        objs = database_create_data.operDB(sql, 'select')
         data = ''
-        for cow in cursor:
+        for cow in objs['data']:
             data = cow[1]
-        # print('-----------传登录参数========> ',data)
+        print('-----------传登录参数========> ',data)
         return data
 
     # 获取登录参数 保存数据库
     def set_Loginvalue(self, data):
         print('获得登录参数---->: %s' % data)
-        conn = sqlite3.connect('./my_db/my_sqlite.db')
-        cursor = conn.cursor()
-        # 判断有无数据库 没有创建插入用户信息 有创建信息
-        # db_path = os.path.exists('./my_db/my_sqlite.db')
         # 查询数据库 有数据更新 没数据创建
         sql = """select * from Login_message;"""
-        select_sql = cursor.execute(sql)
+        objs = database_create_data.operDB(sql, 'select')
         sql_data = ''
-        for sql_data in select_sql:
+        sql_two = ''
+        for sql_data in objs['data']:
             sql_data = sql_data
         if sql_data:
-            sql = """update Login_message set message='{data}' where id=1""".format(data=data)
+            sql_two = """update Login_message set message='{data}' where id=1""".format(data=data)
         else:
-            sql = """insert into Login_message values (1,'{data}')""".format(data=data)
-        # print('执行sql ---------- >',sql)
-        cursor.execute(sql)
-        conn.commit()
-        conn.close()
-        # print('当前数据库执行结束-------------')
+            sql_two = """insert into Login_message values (1,'{data}')""".format(data=data)
+        database_create_data.operDB(sql_two, 'update or insert')
+        print('当前数据库执行结束-------------')
 
     # 重点词监控 - 获取任务列表数据
     def get_zhongdianci_create_task_list_value(self):
-
-        conn = sqlite3.connect('./my_db/my_sqlite.db')
-        cursor = conn.cursor()
+        print('----------------')
         sql = """select * from task_List;"""
-        cursor.execute(sql)
-        data_list = []
-        for obj in cursor:
+        objs = database_create_data.operDB(sql, 'select')
+        if objs:
+            data_list = []
+            for obj in objs['data']:
 
-            qiyong_status = '未启用'
-            if obj[1]:
-                qiyong_status = '已启用'
+                qiyong_status = '未启用'
+                if obj[1]:
+                    qiyong_status = '已启用'
 
-            zhixing = False
-            if obj[8]:
-                zhixing = True
-            """  task_status         任务状态
-                                     1 未查询
-                                     2 查询中
-                                     3 已完成"""
-            task_status = '未查询'
-            if obj[5] == 2:
-                task_status = '查询中'
-            if obj[5] == 3:
-                task_status = '已完成'
-            data_list.append({
-                "id": obj[0],
-                "qiyong_status": qiyong_status,
-                "task_name": obj[2],
-                "task_jindu": obj[3],
-                "task_start_time": obj[4],
-                "task_status": task_status,
-                "search_engine": obj[6].split(','),
-                "mohupipei": obj[7],
-                "zhixing": obj[8],
-                "next_datetime": obj[9],
-                "keywords": obj[10]
-            })
+                zhixing = False
+                if obj[8]:
+                    zhixing = True
+                """  task_status         任务状态
+                                         1 未查询
+                                         2 查询中
+                                         3 已完成"""
+                task_status = '未查询'
+                if obj[5] == 2:
+                    task_status = '查询中'
+                if obj[5] == 3:
+                    task_status = '已完成'
+                data_list.append({
+                    "id": obj[0],
+                    "qiyong_status": qiyong_status,
+                    "task_name": obj[2],
+                    "task_jindu": obj[3],
+                    "task_start_time": obj[4],
+                    "task_status": task_status,
+                    "search_engine": obj[6].split(','),
+                    "mohupipei": obj[7],
+                    "zhixing": obj[8],
+                    "next_datetime": obj[9],
+                    "keywords": obj[10]
+                })
         # print('获取所有------------------> ', data_list)
         return json.dumps(data_list)
 
     # 重点词监控 - 增加任务列表
     def set_zhongdianci_create_value(self, data):
-        # print('增加任务- ----------------- 》 ')
-        conn = sqlite3.connect('./my_db/my_sqlite.db')
-        cursor = conn.cursor()
         # print('获取任务列表参数---------> ',data)
         if type(data) == str:
             json_data = json.loads(data)
@@ -169,7 +157,7 @@ class Danao_Inter_Action(QObject):
             sql = """insert into Task_List (qiyong_status, task_name, task_jindu, task_start_time, search_engine, mohupipei, zhixing, next_datetime, keywords) values {values};""".format(
                 values=values)
             # print('sql--------------> ', sql)
-            cursor.execute(sql)
+            database_create_data.operDB(sql, 'insert')
             """search_engine
             需要查询的搜索引擎
                1 百度
@@ -180,11 +168,9 @@ class Danao_Inter_Action(QObject):
                6 手机360
                7 神马"""
 
-            sql = """select id from Task_List where task_name='{}';""".format(task_name)
-            cursor.execute(sql)
-            # print('sql ========= > ',sql)
-            tid = [i for i in cursor][0][0]
-
+            sql_two = """select id from Task_List where task_name='{}';""".format(task_name)
+            objs = database_create_data.operDB(sql_two, 'select')
+            tid = [i for i in objs['data']][0][0]
             keyword_list = keywords.split('\n')
             search_engine_list = search_engine.split(',')
             data_list = []
@@ -197,7 +183,7 @@ class Danao_Inter_Action(QObject):
             for search_engine in search_engine_list:
                 for keyword in data_list:
                     if keyword:
-                        sql = ''
+                        sql_three = ''
                         if 'http' in keyword:
                             new_keyword = re.findall("(.*)http", keyword)[0].replace('\t','')
                             print('new_keyword-------------> ',new_keyword)
@@ -207,18 +193,14 @@ class Danao_Inter_Action(QObject):
                                 if lianjie:
                                     lianjie = lianjie.replace('\t','')
                             data_insert = (tid, search_engine, lianjie, new_keyword, mohupipei, create_time)
-                            sql = """insert into task_Detail (tid, search_engine, lianjie, keywords, mohupipei, create_time) values {data_insert};""".format(
+                            sql_three = """insert into task_Detail (tid, search_engine, lianjie, keywords, mohupipei, create_time) values {data_insert};""".format(
                                 data_insert=data_insert)
                         else:
                             lianjie = ''
                             data_insert = (tid, search_engine, lianjie, keyword, mohupipei, create_time)
-                            sql = """insert into task_Detail (tid, search_engine, lianjie, keywords, mohupipei, create_time) values {data_insert};""".format(
+                            sql_three = """insert into task_Detail (tid, search_engine, lianjie, keywords, mohupipei, create_time) values {data_insert};""".format(
                                 data_insert=data_insert)
-                        print('sql------------> ',sql)
-                        cursor = conn.cursor()
-                        cursor.execute(sql)
-            conn.commit()
-            conn.close()
+                        database_create_data.operDB(sql_three, 'insert')
 
     # 重点词监控 - 获取修改任务列表id
     def set_zhongdianci_update_task_list_value(self, data):
@@ -227,13 +209,11 @@ class Danao_Inter_Action(QObject):
 
     # 重点词监控 - 返回该id任务列表数据
     def get_zhongdianci_update_task_list_data_value(self):
-        conn = sqlite3.connect('./my_db/my_sqlite.db')
-        cursor = conn.cursor()
         if self.zhongdianci_update:
             sql = """select * from Task_List where id = {};""".format(int(self.zhongdianci_update))
             # print(o_id, task_name, task_status, task_start_time, qiyong_status, search_engine, task_jindu, zhixing)
-            cursor.execute(sql)
-            for obj in cursor:
+            objs = database_create_data.operDB(sql, 'select')
+            for obj in objs['data']:
                 qiyong_status = '未启用'
                 if obj[1]:
                     qiyong_status = '已启用'
@@ -265,16 +245,12 @@ class Danao_Inter_Action(QObject):
                     "next_datetime": obj[9],
                     "keywords": obj[10]
                 }
-            conn.commit()
-            conn.close()
             # print('返回原数据 id为{}的数据-------------> '.format(self.zhongdianci_update), data_list)
             return json.dumps(data_list)
 
     # 重点词监护 - 修改任务列表数据
     def set_zhongdianci_update_data_value(self, update_data):
         if self.zhongdianci_update and update_data:
-            conn = sqlite3.connect('./my_db/my_sqlite.db')
-            cursor = conn.cursor()
             """{
             "id":1,
             "qiyong_status":1,
@@ -312,28 +288,19 @@ class Danao_Inter_Action(QObject):
                     task_start_time=task_start_time,
                     next_datetime=next_datetime,
                     id=id)
-                print(sql)
-                cursor.execute(sql)
-            conn.commit()
-            conn.close()
+                database_create_data.operDB(sql, 'update')
 
     # 重点词监护 - 清空为该id的任务 - 的详情数据
     def set_zhongdianci_select_id_task_detail_value(self, select_task_detail):
-        conn = sqlite3.connect('./my_db/my_sqlite.db')
-        cursor = conn.cursor()
         if select_task_detail:
             print('清空 {}任务列表id 的详情数据'.format(select_task_detail))
             sql = """select id from task_Detail where tid = {}""".format(select_task_detail)
-            cursor.execute(sql)
+            database_create_data.operDB(sql, 'delete')
             for obj in cursor:
-                sql = """delete from task_Detail_Data where tid={}""".format(obj[0])
-                cursor = conn.cursor()
-                cursor.execute(sql)
-            sql = """delete from task_Detail where tid = {};""".format(select_task_detail)
-            cursor.execute(sql)
-            print(sql)
-        conn.commit()
-        conn.close()
+                sql_two = """delete from task_Detail_Data where tid={}""".format(obj[0])
+                database_create_data.operDB(sql_two, 'delete')
+            sql_three = """delete from task_Detail where tid = {};""".format(select_task_detail)
+            database_create_data.operDB(sql_three, 'delete')
 
     # 重点词监护 - 获取任务id
     def set_zhongdianci_select_id_select_task_detail_value(self, data):
@@ -341,17 +308,13 @@ class Danao_Inter_Action(QObject):
 
     # 重点词监护 - 查询该任务的详情
     def get_zhongdianci_select_id_select_task_detail_value(self):
-        # print('zhongdianci_select_task_detail -------- >',self.zhongdianci_select_task_detail)
-        conn = sqlite3.connect('./my_db/my_sqlite.db')
-        cursor = conn.cursor()
         data_list = []
         if self.zhongdianci_select_task_detail:
             print('----------------')
             sql = """select * from task_Detail where tid={};""".format(self.zhongdianci_select_task_detail)
-            print(sql)
-            cursor.execute(sql)
+            objs = database_create_data.operDB(sql, 'select')
             print('执行到这了========')
-            for obj in cursor:
+            for obj in objs['data']:
                 data_list.append({
                     "id": obj[0],
                     "tid": obj[1],
@@ -361,70 +324,52 @@ class Danao_Inter_Action(QObject):
                     "mohupipei": obj[5],
                     "create_time": obj[6],
                 })
-        conn.commit()
-        conn.close()
         return str(data_list)
-
 
     # 重点词监护 - 爬虫 获取需要执行的任务id 调用定时器  立即监控
     def set_pc_task_value(self, datas):
-        conn = sqlite3.connect('./my_db/my_sqlite.db')
-        cursor = conn.cursor()
         self.huoqu_shoulu_time_stamp = int(time.time())
         self.dangqian_chaxunshoulu_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
         for data in datas.replace(',', '').replace('[', '').replace(']', ''):
             print(data, '--------------> ', type(data))
             sql = """update task_Detail set is_perform = 1 where tid = {};""".format(data)
-            cursor.execute(sql)
-        conn.commit()
-        conn.close()
-
+            database_create_data.operDB(sql, 'update')
 
     # 重点词监护 - 删除单个或多个 任务
     def delete_or_batch_delete_task(self, delete_id):
-        print('delete_id================>', delete_id)
         json_id = json.loads(delete_id)
-        conn = sqlite3.connect('./my_db/my_sqlite.db')
-        cursor = conn.cursor()
         for data in json_id:
             sql = """select id from task_Detail where tid = {}""".format(data)
-            cursor.execute(sql)
-            for obj in cursor:
-                sql = """delete from task_Detail_Data where tid = {}""".format(obj[0])
-                cursor = conn.cursor()
-                cursor.execute(sql)
-            sql = """delete from task_Detail where tid = {};""".format(data)
-            cursor.execute(sql)
-            sql = """delete from task_List where id ={}""".format(data)
-            cursor.execute(sql)
-        conn.commit()
-        conn.close()
+            objs = database_create_data.operDB(sql, 'select')
+            for obj in objs['data']:
+                sql_two = """delete from task_Detail_Data where tid = {}""".format(obj[0])
+                database_create_data.operDB(sql_two, 'delete')
+            sql_three = """delete from task_Detail where tid = {};""".format(data)
+            database_create_data.operDB(sql_three, 'delete')
+            sql_four = """delete from task_List where id ={}""".format(data)
+            database_create_data.operDB(sql_four, 'delete')
 
-    # 重点词监护 - 查看子任务 获取id
+    # 重点词监护 - 获取展示详情获取子任务id
     def set_task_id_view_The_subtasks_task(self, data):
         self.huoqu_task_id_detail = data
 
-    # 重点词监护 - 查看子任务 - 详情任务
+    # 重点词监护 - 展示详情任务子任务
     def get_view_The_subtasks_detail(self):
         if self.huoqu_task_id_detail:
-            conn = sqlite3.connect('./my_db/my_sqlite.db')
-            cursor = conn.cursor()
-            # print('self.huoqu_task_id_detail ---------- > ', self.huoqu_task_id_detail)
             sql = """select * from task_Detail where tid = {};""".format(self.huoqu_task_id_detail)
             data_list = []
             headers_list = []
             exit_data_list = []
             # print('huoqu_task_id_detail ========= > ',huoqu_task_id_detail)
-            objs = cursor.execute(sql)
+            objs = database_create_data.operDB(sql, 'select')
             if objs:
-                for obj in objs:
-                    sql = """select create_time, paiming, is_shoulu from task_Detail_Data where tid = {} order by create_time desc limit 3""".format(obj[0])
-                    cursor = conn.cursor()
-                    detail_dataobjs = cursor.execute(sql)
+                for obj in objs['data']:
+                    sql_two = """select create_time, paiming, is_shoulu from task_Detail_Data where tid = {} order by create_time desc limit 3""".format(obj[0])
+                    objs_two = database_create_data.operDB(sql_two, 'select')
                     data_detail_list = []
-                    if detail_dataobjs:
+                    if objs_two:
                         sanci_chaxun = {}
-                        for detaildata_obj in detail_dataobjs:
+                        for detaildata_obj in objs_two['data']:
                             detail_create = detaildata_obj[0]
                             detail_paiming = detaildata_obj[1]
                             detail_shoulu = detaildata_obj[2]
@@ -453,9 +398,6 @@ class Danao_Inter_Action(QObject):
     # 重点词监护 - 导出 excl 功能
     def set_save_select_results_task_excel_daochu(self, tid_data):
         if tid_data:
-            # print('tid_data-------------> ', tid_data)
-            conn = sqlite3.connect('./my_db/my_sqlite.db')
-            cursor = conn.cursor()
             now_date = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
             wb = Workbook()
             ws = wb.active
@@ -503,20 +445,18 @@ class Danao_Inter_Action(QObject):
             ws['A4'].alignment = Alignment(horizontal='center', vertical='center')
 
             sql = """select task_name from task_List where id = {};""".format(tid_data)
-            task_names = cursor.execute(sql)
-            task_name = list(task_names)[0][0]
-
-            sql = """select * from task_Detail where tid = {};""".format(tid_data)
-            cursor.execute(sql)
+            objs = database_create_data.operDB(sql, 'select')
+            task_name = objs['data'][0][0]
+            sql_two = """select * from task_Detail where tid = {};""".format(tid_data)
+            objs_two = database_create_data.operDB(sql_two, 'select')
             row = 5
-            for obj in cursor:
+            for obj in objs_two['data']:
                 tid = obj[0]
                 sql = 'select * from task_Detail_Data where tid = {} order by create_time desc limit 3  ;'.format(tid)
-                cursor = conn.cursor()
-                objs_data = cursor.execute(sql)
-                if objs_data:
+                objs = database_create_data.operDB(sql, 'select')
+                if objs:
                     column_p = 4
-                    for obj_data in objs_data:
+                    for obj_data in objs['data']:
                         create_time = obj_data[4]
                         paiming = obj_data[1]
                         # print('paiming--------------> ', paiming)

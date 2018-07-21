@@ -64,7 +64,7 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
             data = (domain, shoulu, huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
         sql = """insert into shoulu_Linshi_List (url, is_shoulu, time_stamp, title, search,kuaizhao_time) values {data};""".format(data=data)
         # print(sql)
-        database_create_data.func(sql)
+        database_create_data.operDB(sql, 'insert')
 
     return data_list
 #
@@ -133,7 +133,7 @@ class Baidu_Zhidao_URL_MOBILE(object):
         # 查询关键词 匹配链接
         self.random_time()
         url = self.zhidao_url.format(self.keyword)
-        print('搜索关键词 链接--------> ', url)
+        # print('搜索关键词 链接--------> ', url)
         ret_two = requests.get(url, headers=headers)
         # print(url)
         soup_two = BeautifulSoup(ret_two.text, 'lxml')
@@ -185,6 +185,8 @@ class Baidu_Zhidao_URL_MOBILE(object):
             sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
             database_create_data.func(sql)
+
+        database_create_data.operDB(sql, 'insert')
 
 
 # if __name__ == '__main__':

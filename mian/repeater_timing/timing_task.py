@@ -12,6 +12,8 @@ from mian.threading_task_pc import threading_task
 import threading
 import queue
 
+from mian.threading_task_pc import database_create_data
+
 
 class ThreadPool(object):
 
@@ -58,18 +60,19 @@ class repeater_timing_task():
         now_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')
         conn = sqlite3.connect('../my_db/my_sqlite.db')
         cursor = conn.cursor()
-        sql = """select  id,next_datetime from task_List where next_datetime <='{}' limit 0,1;""".format(now_date)
+        sql = """select  id,next_datetime from task_List where next_datetime <='{}' and qiyong_status = 1 limit 0,1;""".format(now_date)
+        print(sql)
         objs = cursor.execute(sql)
-        task_id = ''
-        task_next_datetime = ''
-        for obj in objs:
-            task_id = obj[0]
-            task_next_datetime = obj[1]
-        # print('task_id ======== > ',task_id, 'task_next_datetime========>',task_next_datetime)
-        if task_id:
-            sql = """update task_Detail set is_perform = 1 where tid = {};""".format(task_id)
-            print(sql)
-            cursor.execute(sql)
+        obj = list(objs)
+        if obj:
+            # print('obj ================= > ',obj)
+            task_id = obj[0][0]
+            task_next_datetime = obj[0][1]
+            if task_id:
+                sql = """update task_Detail set is_perform = 1 where tid = {};""".format(task_id)
+                print(sql)
+                # cursor.execute(sql)
+                database_create_data.operDB(sql, 'update')
         conn.commit()
         conn.close()
 
@@ -82,40 +85,48 @@ class repeater_timing_task():
             self.timer_flag = True
         shijianchuo = time.time()
         now_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')
-        # print('__file__ -->', __file__)
         conn = sqlite3.connect('../my_db/my_sqlite.db')
         cursor = conn.cursor()
         sql = """select * from task_Detail where is_perform=1;"""
         print('sql -->', sql)
         is_run_flag = False     # 表示是否有任务要运行
-        objs = cursor.execute(sql)
-        for obj in objs:
-            print('关键词 ----------------- >',obj[4] ,'==',obj[0])
-            detail_id = obj[0]
-            tid = obj[1]
-            search_engine = obj[2]
-            lianjie = obj[3]
-            keywords = obj[4]
-            mohupipei = obj[5]
-            create_time = obj[6]
-            task_start_time = obj[7]
-            time_stamp_obj = obj[8]
-            if not time_stamp_obj:
-                time_stamp = int(shijianchuo) + 30
-                sql = """update task_Detail set time_stamp ='{time_stamp}' where id = {detail_id};""".format(
-                    time_stamp=time_stamp, detail_id=detail_id)
-                cursor = conn.cursor()
-                cursor.execute(sql)
-                is_run_flag = True
-
-            else:
-                time_stamp_obj = int(time_stamp_obj)
-                if time_stamp_obj < int(shijianchuo):
-                    is_run_flag = True
-            if is_run_flag:
-                threading_task.func(detail_id, lianjie, keywords, search_engine, mohupipei, self.pool)
+        # objs = cursor.execute(sql)
+        # objs_list = list(objs)
+        objs_list = database_create_data.operDB(sql, 'select')
         conn.commit()
         conn.close()
+        if objs_list:
+            print('objs_list============> ',objs_list)
+            for obj in objs_list['data']:
+                # print('关键词 ----------------- >',obj[4] ,'==',obj[0])
+                detail_id = obj[0]
+                # print('detail_id ----------- >' ,detail_id)
+                tid = obj[1]
+                search_engine = obj[2]
+                lianjie = obj[3]
+                keywords = obj[4]
+                mohupipei = obj[5]
+                create_time = obj[6]
+                task_start_time = obj[7]
+                time_stamp_obj = obj[8]
+                if not time_stamp_obj:
+                    time_stamp = int(shijianchuo) + 30
+                    sql = """update task_Detail set time_stamp ='{time_stamp}' where id = {detail_id};""".format(
+                        time_stamp=time_stamp, detail_id=detail_id)
+                    database_create_data.operDB(sql, 'update')
+                    is_run_flag = True
+                    # conn = sqlite3.connect('../my_db/my_sqlite.db')
+                    # cursor = conn.cursor()
+                    # cursor.execute(sql)
+                    # conn.commit()
+                    # conn.close()
+
+                else:
+                    time_stamp_obj = int(time_stamp_obj)
+                    if time_stamp_obj < int(shijianchuo):
+                        is_run_flag = True
+                if is_run_flag:
+                    threading_task.func(detail_id, lianjie, keywords, search_engine, mohupipei, self.pool)
 
         while True:
             if threading.active_count() == 1:
@@ -140,8 +151,8 @@ class repeater_timing_task():
     #             mohupipei = obj[5]
     #             create_time = obj[6]
     #             task_start_time = obj[7]
-
-
+    #
+    #
     # def dingshi_timer(self):
     #     print('====================')
     #     now_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')

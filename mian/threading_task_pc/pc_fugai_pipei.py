@@ -54,6 +54,7 @@ class Baidu_Zhidao_yuming_pc():
         title = ''
         shoulu = 0
         order_list = []
+        str_order = 0
         for div_tag in div_tags:
             self.random_time()
             rank_num = div_tag.attrs.get('id')
@@ -78,9 +79,10 @@ class Baidu_Zhidao_yuming_pc():
                 if len(soup_two.find('title').get_text()) > 5 and soup_two.find('title').get_text():
                     title = soup_two.find('title').get_text()
                     order_list.append(int(rank_num))
+                    str_order = ",".join(str(i) for i in order_list)
                     shoulu = 1
         data_list.append({
-            'order': order_list,
+            'order': str_order,
             'shoulu': shoulu,
             'detail_id': self.detail_id,
             'url': ret_two_url,
@@ -101,13 +103,13 @@ class Baidu_Zhidao_yuming_pc():
         for data in data_list:
             sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'],shoulu=data['shoulu'],detail_id=data['detail_id'],date_time=date_time)
-            database_create_data.func(sql)
+            database_create_data.operDB(sql, 'insert')
 
 
-if __name__ == '__main__':
-    keyword = '合众康桥'
-    domain = '合众康桥'
-    detail_id = 22
-    yinqing = '1'
-    Baidu_Zhidao_yuming_pc(yinqing,detail_id, keyword, domain)
-
+# if __name__ == '__main__':
+#     keyword = '合众康桥'
+#     domain = '合众康桥'
+#     detail_id = 22
+#     yinqing = '1'
+#     Baidu_Zhidao_yuming_pc(yinqing,detail_id, keyword, domain)
+#

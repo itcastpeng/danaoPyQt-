@@ -50,7 +50,7 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
                 kuaizhao_time =div_tags.find('span', class_='newTimeFactor_before_abs').get_text().strip().replace('-','').replace('年','-').replace('月','-').replace('日','').strip()
             if yuming in domain:
                 panduan_url = div_tags.find('a').attrs['href']
-                print('======================',panduan_url)
+                # print('======================',panduan_url)
                 sleep(1)
                 try:
                     ret_two = requests.get(panduan_url, headers=headers)
@@ -76,13 +76,14 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
                 else:
                     data = (domain, shoulu, huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
                 sql = """insert into shoulu_Linshi_List (url, is_shoulu, time_stamp, title, search, kuaizhao_time) values {data};""".format(data=data)
-                database_create_data.func(sql)
+                database_create_data.operDB(sql, 'insert')
     return shoulu
 
 
 class Baidu_Zhidao_URL_PC():
 
     def __init__(self, detail_id,keyword, domain):
+        self.data_base_list = []
         self.keyword = keyword
         self.domain = domain
         self.detail_id = detail_id
@@ -92,7 +93,6 @@ class Baidu_Zhidao_URL_PC():
         data_list = self.get_keywords()
         self.set_data(data_list)
 
-
     def get_keywords(self):
         # 调用查询收录
         search = ''
@@ -101,31 +101,32 @@ class Baidu_Zhidao_URL_PC():
         ret = requests.get(self.zhidao_url.format(self.keyword), headers=self.headers)
         self.random_time()
         soup = BeautifulSoup(ret.text, 'lxml')
-        id_tag = soup.find('div', id='content_left')
-        if id_tag:
-            div_tags = id_tag.find_all('div', class_='result c-container ')
-            data_list = []
-            for div_tag in div_tags:
-                div_13 = div_tag.find('div', class_='f13')
-                yuming = ''
-                if div_13:
-                    yuming = div_13.find('a', target="_blank").get_text()[:-4]
-                    if yuming in self.domain:
-                        rank_num = div_tag.attrs.get('id')  # 排名
-                        abstract = div_tag.find('div', class_='c-abstract').get_text()  # 文本内容
-                        title_tag = div_tag.find('div', class_='c-tools')['data-tools']
-                        dict_title = eval(title_tag)
-                        str_title = dict_title['title']  # 标题
-                        url_title = dict_title['url']  # 标题链接
-                        self.random_time()
-                        ret_two = requests.get(url_title, headers=self.headers)
-                        if self.domain == ret_two.url:
-                            data_list.append({
-                                'order':int(rank_num),
-                                'shoulu': shoulu,
-                                'detail_id':self.detail_id
-                            })
-                            return data_list
+        # id_tag = soup.find('div', id='content_left')
+        # if id_tag:
+        div_tags = soup.find_all('div', class_='result c-container ')
+        data_list = []
+        for div_tag in div_tags:
+            div_13 = div_tag.find('div', class_='f13')
+            yuming = ''
+            if div_13 and div_13.find('a', target="_blank"):
+                yuming = div_13.find('a', target="_blank").get_text()[:-4]
+                # print('yuming============> ',yuming)
+                if yuming in self.domain:
+                    rank_num = div_tag.attrs.get('id')  # 排名
+                    abstract = div_tag.find('div', class_='c-abstract').get_text()  # 文本内容
+                    title_tag = div_tag.find('div', class_='c-tools')['data-tools']
+                    dict_title = eval(title_tag)
+                    str_title = dict_title['title']  # 标题
+                    url_title = dict_title['url']  # 标题链接
+                    self.random_time()
+                    ret_two = requests.get(url_title, headers=self.headers)
+                    if self.domain == ret_two.url:
+                        data_list.append({
+                            'order':int(rank_num),
+                            'shoulu': shoulu,
+                            'detail_id':self.detail_id
+                        })
+                        return data_list
 
         data_list = [{
             'order': 0,
@@ -140,14 +141,17 @@ class Baidu_Zhidao_URL_PC():
 
 
     def set_data(self, data_list):
-        print(data_list)
+        # print(data_list)
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
         for data in data_list:
             sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-
-        database_create_data.func(sql)
-
+        date_p = {
+            'sql':sql,
+            'id':data_list[0]['detail_id']
+        }
+        # database_create_data.func(date_p)
+        database_create_data.operDB(sql, 'insert')
 
 # if __name__ == '__main__':
 #     keyword = '徐州市交通医院精神科靠谱吗？国家公立“医联体”联盟单位'
