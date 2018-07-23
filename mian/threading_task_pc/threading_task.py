@@ -20,17 +20,15 @@ def thread_mobileurl(detail_id, keywords, domain, pool,):
     pool.add_thread()
 
 
-def thread_pcmohupipei(yinqing,detail_id, keywords, domain, pool,):
-    # sleep(5)
+def thread_pcmohupipei(yinqing, keywords, domain, detail_id, pool,):
     # print('进入线程--thread_pcmohupipei--> ',' pc端 无链接',keywords, domain)
-    pc_fugai_pipei.Baidu_Zhidao_yuming_pc(yinqing,detail_id, keywords, domain)
+    pc_fugai_pipei.Baidu_Zhidao_yuming_pc(yinqing, keywords, domain, detail_id)
     pool.add_thread()
 
 
-def thread_mobilemohupipei(detail_id, keywords, domain, pool,):
-    # sleep(5)
+def thread_mobilemohupipei( keywords, domain,detail_id, pool,):
     # print('进入线程--thread_mobilemohupipei--> ','移动端 无链接',keywords, domain)
-    mobile_fugai_pipei.Baidu_Zhidao_yuming_mobile(detail_id,keywords, domain)
+    mobile_fugai_pipei.Baidu_Zhidao_yuming_mobile(keywords, domain, detail_id)
     pool.add_thread()
 
 
@@ -85,29 +83,40 @@ class Thread_shoulu_Pool(object):
 
 shoulu_pool = Thread_shoulu_Pool(5)
 shoulu_canshu = 1
-def shoulu_pc(search,lianjie, huoqu_shoulu_time_stamp):
+def shoulu_pc(search,lianjie, huoqu_gonggong_time_stamp):
     # print('lianjie======--------------> ',lianjie)
-    pc_url_accurate.shoulu_chaxun(lianjie,search,huoqu_shoulu_time_stamp,shoulu_canshu)
+    pc_url_accurate.shoulu_chaxun(lianjie,search,huoqu_gonggong_time_stamp,shoulu_canshu)
     shoulu_pool.add_thread()
 
-def shoulu_mobile(search,lianjie,huoqu_shoulu_time_stamp):
+def shoulu_mobile(search,lianjie,huoqu_gonggong_time_stamp):
     # print('lianjie------=-==-=-=-=-=>',lianjie)
-    mobile_url_accurate.shoulu_chaxun(lianjie,search,huoqu_shoulu_time_stamp,shoulu_canshu)
+    mobile_url_accurate.shoulu_chaxun(lianjie,search,huoqu_gonggong_time_stamp,shoulu_canshu)
+    shoulu_pool.add_thread()
+
+def fugai_pc(tid, yinqing, keyword, mohu_pipri, huoqu_gonggong_time_stamp):
+    pc_fugai_pipei.Baidu_Zhidao_yuming_pc(tid, yinqing, keyword, mohu_pipri,huoqu_gonggong_time_stamp,fugai_chaxun=1)
+    shoulu_pool.add_thread()
+
+def fugai_mobile(tid, yinqing,keyword, mohu_pipri,huoqu_gonggong_time_stamp):
+    mobile_fugai_pipei.Baidu_Zhidao_yuming_mobile(tid, yinqing,keyword, mohu_pipri,huoqu_gonggong_time_stamp,fugai_chaxun=1)
     shoulu_pool.add_thread()
 
 # 运行程序 - 收录查询
-def func_shoulu_chaxun(yinqing,lianjie,huoqu_shoulu_time_stamp):
-    # print('lianjie=========> ',lianjie, type(lianjie))
+def func_shoulu_fugai_chaxun(yinqing, keyword, lianjie, mohu_pipri, tid, huoqu_gonggong_time_stamp):
     thread_shoulu_obj = shoulu_pool.get_thread()
-    if yinqing == '1':
-        shoulu_pc_obj = thread_shoulu_obj(target=shoulu_pc, args=(yinqing,lianjie,huoqu_shoulu_time_stamp))
-        shoulu_pc_obj.start()
+    if lianjie:
+        if yinqing == '1':
+            shoulu_pc_obj = thread_shoulu_obj(target=shoulu_pc, args=(yinqing,lianjie,huoqu_gonggong_time_stamp))
+            shoulu_pc_obj.start()
+        else:
+            thread_mobile_url = thread_shoulu_obj(target=shoulu_mobile, args=(yinqing,lianjie,huoqu_gonggong_time_stamp))
+            thread_mobile_url.start()
     else:
-        thread_mobile_url = thread_shoulu_obj(target=shoulu_mobile, args=(yinqing,lianjie,huoqu_shoulu_time_stamp))
-        thread_mobile_url.start()
+        if yinqing == '1':
+            shoulu_pc_obj = thread_shoulu_obj(target=fugai_pc, args=(tid, yinqing, keyword, mohu_pipri, huoqu_gonggong_time_stamp))
+            shoulu_pc_obj.start()
+        else:
+            thread_mobile_url = thread_shoulu_obj(target=fugai_mobile, args=(tid, yinqing, keyword, mohu_pipri, huoqu_gonggong_time_stamp))
+            thread_mobile_url.start()
 
-# if __name__ == '__main__':
-#     yinqing = '1'
-#     lianjie = "http://yyk.39.net/beijing/hospitals/nanke/"
-#     huoqu_shoulu_time_stamp = '51616156'
-#     func_shoulu_chaxun(yinqing, lianjie,huoqu_shoulu_time_stamp)
+

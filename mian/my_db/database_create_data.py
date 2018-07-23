@@ -1,6 +1,5 @@
-import requests, random, sqlite3
+import requests, random, sqlite3, os
 from time import sleep
-import os, time, threading
 
 lock_file = './my_db/my_sqlite3.lock'
 db_file = './my_db/my_sqlite.db'

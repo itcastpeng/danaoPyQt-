@@ -14,7 +14,7 @@ from mian.threading_task_pc import threading_task
 import tkinter.messagebox
 from mian.my_db import database_create_data
 
-
+from time import sleep
 # PyQt 与 Js 交互 类
 class Danao_Inter_Action(QObject):
     def __init__(self):
@@ -25,7 +25,9 @@ class Danao_Inter_Action(QObject):
         self.huoqu_shoulu_time_stamp = ''
         self.dangqian_chaxunshoulu_time = ''
         self.panduan = '0'
-
+        self.huoqu_fugai_time_stamp = ''
+        self.dangqian_chaxunfugai_time = ''
+        self.huoqu_fugai_xiangqing = ''
     # 占位
     def zhanwei_zhushou(self):
         pass
@@ -38,7 +40,7 @@ class Danao_Inter_Action(QObject):
         data = ''
         for cow in objs['data']:
             data = cow[1]
-        print('-----------传登录参数========> ',data)
+        # print('-----------传登录参数========> ',data)
         return data
 
     # 获取登录参数 保存数据库
@@ -56,11 +58,10 @@ class Danao_Inter_Action(QObject):
         else:
             sql_two = """insert into Login_message values (1,'{data}')""".format(data=data)
         database_create_data.operDB(sql_two, 'update or insert')
-        print('当前数据库执行结束-------------')
+        # print('当前数据库执行结束-------------')
 
     # 重点词监控 - 获取任务列表数据
     def get_zhongdianci_create_task_list_value(self):
-        print('----------------')
         sql = """select * from task_List;"""
         objs = database_create_data.operDB(sql, 'select')
         if objs:
@@ -385,7 +386,7 @@ class Danao_Inter_Action(QObject):
                     'data_list': data_list,
                     'headers_list': headers_list
                 }
-            print('data_list-------------------->', json.dumps(exit_data_list))
+            # print('data_list-------------------->', json.dumps(exit_data_list))
             return json.dumps(exit_data_list)
 
     # 重点词监护 - 导出 excl 功能
@@ -482,63 +483,26 @@ class Danao_Inter_Action(QObject):
 
     # 收录查询 - 筛选链接 调用多线程 保存数据库
     def set_shoulu_select_get_list_value(self, data):
-        if data:
-            data_list = [
-            'http://www.iiijk.com/cjxw/04-74547.html',
-            'http://news.100yiyao.com/detail/193538290.html          ',
-            'http://news.qiuyi.cn/html/2017/fuke_1205/63968.html     ',
-            'http://at.025ct.com/dt/2017/1204/514781.html            ',
-            'http://www.jianzhijia.com/hyzx/jkjd/79379.html          ',
-            'http://news.39.net/a/171204/5901183.html                ',
-            'http://news.39.net/a/171204/5901194.html                ',
-            'http://news.360xh.com/201712/04/37416.html              ',
-            'http://www.iiijk.com/cjxw/04-74550.html                 ',
-            'http://www.jianzhijia.com/hyzx/jkjd/79381.html          ',
-            'http://news.qiuyi.cn/html/2017/zhengxing_1204/63922.html',
-            'http://news.39.net/a/171204/5902419.html                ',
-            'http://www.jianzhijia.com/hyzx/jkjd/79383.html          ',
-            'http://news.360xh.com/201712/04/37402.html              ',
-            'http://www.sohu.com/a/208330800_544906                  ',
-            'http://www.iiijk.com/cjxw/04-74552.html                 ',
-            'http://www.iiijk.com/cjxw/04-74551.html                 ',
-            'http://focus.smxe.cn/20171204/148402.shtml              ',
-            'http://news.360xh.com/201712/04/37408.html              ',
-            'http://news.39.net/a/171204/5902423.html                ',
-            'http://www.jianzhijia.com/hyzx/jkjd/79385.html          ',
-            'http://news.360xh.com/201712/04/37409.html              ',
-            'http://news.360xh.com/201712/04/37410.html              ',
-            'http://news.100yiyao.com/detail/193538295.html          ',
-            'http://www.jianzhijia.com/hyzx/jkjd/79387.html          ',
-            'http://news.100yiyao.com/detail/193538308.html          ',
-            'http://news.360xh.com/201712/04/37411.html              ',
-            'http://news.39.net/a/171204/5902507.html                ',
-            'http://news.360xh.com/201712/04/37412.html              ',
-            'http://www.jianzhijia.com/hyzx/jkjd/79388.html          ',
-            'http://news.39.net/a/171204/5902519.html                ',
-            'http://news.360xh.com/201712/04/37414.html              ',
-            'http://www.jianzhijia.com/hyzx/jkjd/79389.html          ',
-            'http://news.cx368.com/news/gd/2017/1204/69128.html      ',]
-            print('开始遍历')
-            self.huoqu_shoulu_time_stamp = int(time.time())
-            self.dangqian_chaxunshoulu_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
-            p = 0
-            for url in data_list:
-                yinqing = '1'
-                threading_task.func_shoulu_chaxun(yinqing, url, self.huoqu_shoulu_time_stamp)
-            print('多线程 结束')
+        self.huoqu_shoulu_time_stamp = int(time.time())
+        self.dangqian_chaxunshoulu_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
+        data_dict = json.loads(data)
+        mohu_pipei = ''
+        if data_dict['searchEngineModel'] and data_dict['editor_content']:
+            for search in data_dict['searchEngineModel']:
+                for url_data in data_dict['editor_content'].split('\n'):
+                    if 'http' in url_data:
+                        lianjie = url_data.strip().replace('\t', '')
+                        print(search , '==========', lianjie , '========', mohu_pipei, '=========', self.huoqu_shoulu_time_stamp)
+                        threading_task.func_shoulu_fugai_chaxun(str(search), lianjie, mohu_pipei, self.huoqu_shoulu_time_stamp)
 
     # 收录查询 - 查询数据库 展示
     def get_shoulu_zhanshi_list_value(self):
-        # sleep(3)
         if self.huoqu_shoulu_time_stamp:
-            conn = sqlite3.connect('./my_db/my_sqlite.db')
-            cursor = conn.cursor()
-            # print('huoqu_shoulu_time_stamp ============>', self.huoqu_shoulu_time_stamp)
             sql = """select url,is_shoulu from shoulu_Linshi_List where {time_stamp};""".format(
                 time_stamp=self.huoqu_shoulu_time_stamp)
-            cursor.execute(sql)
+            objs = database_create_data.operDB(sql, 'select')
             data_list = []
-            for obj in cursor:
+            for obj in objs['data']:
                 url = obj[0]
                 is_shoulu = obj[1]
                 data_list.append({
@@ -552,14 +516,11 @@ class Danao_Inter_Action(QObject):
     def set_shoulu_save_select_result_value(self, data):
         # if self.huoqu_shoulu_time_stamp:
         if 1+1==2:
-            # huoqu_shoulu_time_stamp = '1531981854'
-            conn = sqlite3.connect('./my_db/my_sqlite.db')
-            cursor = conn.cursor()
             now_date = datetime.date.today().strftime('%Y-%m-%d')
             sql = """select url,is_shoulu,title,search,kuaizhao_time from shoulu_Linshi_List where {time_stamp};""".format(
                 time_stamp=self.huoqu_shoulu_time_stamp)
                 # time_stamp=huoqu_shoulu_time_stamp)
-            cursor.execute(sql)
+            objs = database_create_data.operDB(sql, 'select')
             wb = Workbook()
             ws = wb.active
             ws.cell(row=1, column=1, value="收录查询")
@@ -599,7 +560,7 @@ class Danao_Inter_Action(QObject):
             row = 7
             chaxun_time = self.dangqian_chaxunshoulu_time
             ws.cell(row=2, column=5, value="{chaxun_time}".format(chaxun_time=chaxun_time))
-            for obj in cursor:
+            for obj in objs['data']:
                 is_shoulu = ''
                 search = ''
                 if obj[1] == '1':
@@ -632,7 +593,71 @@ class Danao_Inter_Action(QObject):
 
     # 覆盖查询 - 筛选查询条件 调用多线程 保存到数据库
     def set_fugai_select_get_list_value(self,data):
-        print(data)
+        print('data--------->',data)
+        json_data = json.loads(data)
+        if json_data['editor_content'] and json_data['searchEngineModel'] and json_data['fugai_tiaojian']:
+            self.huoqu_fugai_time_stamp = int(time.time())
+            self.dangqian_chaxunfugai_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
+            tiaojian_list = []
+            for tiaojian in json_data['fugai_tiaojian'].split('|'):
+                if not tiaojian.isspace():
+                    tiaojian = tiaojian.strip().replace('\n', '')
+
+                    if tiaojian not in tiaojian_list:
+                        tiaojian_list.append(tiaojian)
+            for search in json_data['searchEngineModel']:
+                for tiaojian in tiaojian_list:
+                    for keyword in json_data['editor_content'].split('\n'):
+                        if keyword:
+                            lianjie = ''
+                            sql = """insert into fugai_Linshi_List (keyword, paiming_detail, search_engine, title, title_url, sousuo_guize, time_stamp) values ('{keyword}', '', '{search_engine}', '', '', '{sousuo_guize}', '{time_stamp}');""".format(
+                            keyword=keyword,search_engine=search,sousuo_guize=tiaojian,time_stamp=self.huoqu_fugai_time_stamp)
+                            database_create_data.operDB(sql, 'insert')
+                            sql_two = """select id from fugai_Linshi_List where keyword = '{keyword}' and search_engine = '{search}' and time_stamp = '{huoqu_fugai_time_stamp}';""".format(keyword=keyword,search=search,huoqu_fugai_time_stamp=self.huoqu_fugai_time_stamp)
+                            objs = database_create_data.operDB(sql_two, 'select')
+                            tid = objs['data'][0][0]
+                            threading_task.func_shoulu_fugai_chaxun(str(search), keyword, lianjie, tiaojian, tid, self.huoqu_fugai_time_stamp)
+
+    def set_fugai_chaxun_xiangqing(self,data):
+        self.huoqu_fugai_xiangqing = data
+
+    # 覆盖查询 - 获取时间戳 返回展示数据
+    def get_fugai_zhanshi_list_value(self):
+        if self.huoqu_fugai_time_stamp:
+            sql = """select * from fugai_Linshi_List where {time_stamp}""".format(time_stamp=self.huoqu_fugai_time_stamp)
+            objs = database_create_data.operDB(sql, 'select')
+            data_list = []
+            for obj in objs['data']:
+                id = obj[0]
+                keyword = obj[1]
+                paiming = obj[2]
+                search = obj[3]
+                chaxun_status = obj[9]
+                data_list.append({
+                    'id':id,
+                    'keyword':keyword,
+                    'paiming':paiming,
+                    'search':search,
+                    'chaxun_status':chaxun_status
+                })
+            return json.dumps(data_list)
+
+        if self.huoqu_fugai_xiangqing:
+            sql = """select * from fugai_Linshi_List where tid = {}""".format(self.huoqu_fugai_xiangqing)
+            objs = database_create_data.operDB(sql, 'select')
+            data_list = []
+            for obj in objs['data']:
+                data_list.append({
+                    'title':obj[4],
+                    'order':obj[2],
+                    'chaxun_tiaojian':obj[6],
+                    'title_url':obj[5]
+                })
+            return json.dumps(data_list)
+
+    def get_fugai_save_select_result_value(self):
+        pass
+
 
 
 
@@ -685,14 +710,17 @@ class Danao_Inter_Action(QObject):
     # 重点词监护 - 保存查询结果 导出excl表格
     saveTheQueryResults = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_save_select_results_task_excel_daochu)
 
-    # 爬虫 用户修改下次执行时间 添加数据库
+    # 爬虫 用户修改下次执行时间 添加数据库k
     # pcTaskTimingValue = pyqtProperty(str,fget=zhanwei_zhushou, fset=set_pc_task_timing_value)
     # 收录查询 - 筛选链接 查询 及 展示入库
-    setShouLuChaXun = pyqtProperty(str, fget=get_shoulu_zhanshi_list_value, fset=set_shoulu_select_get_list_value)
+    ShouLuChaXun = pyqtProperty(str, fget=get_shoulu_zhanshi_list_value, fset=set_shoulu_select_get_list_value)
     # 收录查询 - 导出excel表格
     setShouLuDaoChuExcel = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_shoulu_save_select_result_value)
 
-    # setShouLuChaXun = pyqtProperty(str, fget=get_shoulu_zhanshi_list_value, fset=set_shoulu_select_get_list_value)
+    # 覆盖查询 - 筛选关键词 查询入库及展示
+    fugaiChaXun = pyqtProperty(str, fget=get_fugai_zhanshi_list_value, fset=set_fugai_select_get_list_value)
+    # 覆盖查询 - 点击查看详情
+    fuGaiChaXunDtaiel = pyqtProperty(str, fget=get_fugai_zhanshi_list_value, fset=set_fugai_chaxun_xiangqing)
 
 
 # PyQt 架构 与 数据库初始化 类
@@ -705,33 +733,31 @@ class DaNao(object):
     def initDB(self):
         # 判断路径
         my_db_path = os.path.join('my_db')
+        database_lock_path = './my_db/my_sqlite3.lock'
+        if os.path.exists(database_lock_path):
+            os.remove(database_lock_path)
         if my_db_path:
-            conn = sqlite3.connect('./my_db/my_sqlite.db')
-            cursor = conn.cursor()
             # 查询sqlite所有表  查询表是否存在 不在创建
             sql = """select name from sqlite_master  where type = 'table' order by name;"""
-            result = cursor.execute(sql)
-            data_list = []
-            for obj in result:
+            objs = database_create_data.operDB(sql, 'select')
+            sqlite_dbs = []
+            for obj in objs['data']:
                 db_obj = obj[0]
-                data_list.append(db_obj)
-            print('数据库的所有表名-=-=-==-=-=-=--=-===-=-=> ', data_list)
+                sqlite_dbs.append(db_obj)
+            print('数据库的所有表名-=-=-==-=-=-=--=-===-=-=> ', sqlite_dbs)
 
             # 判断登录 信息表
-            if 'Login_Message' not in data_list:
+            if 'Login_Message' not in sqlite_dbs:
                 print('没有Login_Message表 ------- 创建Login_Message表')
-                conn = sqlite3.connect('./my_db/my_sqlite.db')
-                cursor = conn.cursor()
                 sql = """
                       create table Login_Message (
                       id integer primary key autoincrement,
                       message text not null
                       )"""
-                cursor.execute(sql)
-                # print('执行sql ---------->',sql)
+                database_create_data.operDB(Login_Message, 'create')
 
             # 判断 任务列表
-            if 'task_List' not in data_list:
+            if 'task_List' not in sqlite_dbs:
                 print('没有Task_List表 ------- 创建Task_List表')
 
                 """
@@ -760,7 +786,7 @@ class DaNao(object):
                 
                 """
 
-                sql = """CREATE TABLE task_List (
+                Task_List_sql = """CREATE TABLE task_List (
                      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                      "qiyong_status" INTEGER,
                      "task_name" TEXT,
@@ -773,10 +799,10 @@ class DaNao(object):
                      "next_datetime" TEXT,
                      "keywords" TEXT
                    );"""
-                cursor.execute(sql)
+                database_create_data.operDB(Task_List_sql, 'create')
 
             # 判断 任务详情
-            if 'task_Detail' not in data_list:
+            if 'task_Detail' not in sqlite_dbs:
                 print('没有Task_Detail表 ------- 创建Task_Detail表')
 
                 """   id 
@@ -791,8 +817,7 @@ class DaNao(object):
                       is_perform           是否执行
                       
                 """
-
-                sql = """CREATE TABLE task_Detail (
+                Task_Detail_sql = """CREATE TABLE task_Detail (
                       "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                       "tid" INTEGER,
                       "search_engine" TEXT,
@@ -805,12 +830,19 @@ class DaNao(object):
                       "is_perform" TEXT,
                       CONSTRAINT "task_detail_tid" FOREIGN KEY ("tid") REFERENCES "Task_List" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
                     );"""
-                cursor.execute(sql)
+                database_create_data.operDB(Task_Detail_sql, 'create')
 
             # 判断 关键词详情数据
-            if 'task_Detail_Data' not in data_list:
+            if 'task_Detail_Data' not in sqlite_dbs:
                 print('没有task_Detail_Data ------- 创建task_Detail_Data')
-                sql = """CREATE TABLE task_Detail_Data (
+                """   
+                    id 
+                    paiming              排名
+                    is_shoulu            收录
+                    tid                  父id详情表
+                    create_time          创建时间
+                """
+                task_Detail_Data_sql = """CREATE TABLE task_Detail_Data (
                       "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
                       "paiming" integer,
                       "is_shoulu" integer,
@@ -818,12 +850,21 @@ class DaNao(object):
                       "create_time" TEXT,
                       CONSTRAINT "task_Detail_Data_tid" FOREIGN KEY ("tid") REFERENCES "task_Detail" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
                     );"""
-                cursor.execute(sql)
+                database_create_data.operDB(task_Detail_Data_sql, 'create')
 
             # 判断 收录临时 表
-            if 'shoulu_Linshi_List' not in data_list:
+            if 'shoulu_Linshi_List' not in sqlite_dbs:
                 print('没有shoulu_Linshi_List表  创建shoulu_Linshi_List表')
-                sql = """CREATE TABLE shoulu_Linshi_List (
+                """   
+                                    id 
+                                    url              链接
+                                    is_shoulu        收录
+                                    time_stamp       时间戳 为了更准确的展示出当前查询的所有数据
+                                    title            创建时间
+                                    search           引擎
+                                    kuaizhao_time    百度快照
+                                """
+                shoulu_Linshi_List_sql = """CREATE TABLE shoulu_Linshi_List (
                         "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         "url" TEXT,
                         "is_shoulu" TEXT,
@@ -832,7 +873,27 @@ class DaNao(object):
                         "search" integer,
                         "kuaizhao_time" TEXT
                     );"""
-                cursor.execute(sql)
+                database_create_data.operDB(shoulu_Linshi_List_sql, 'create')
+
+
+            if 'fugai_Linshi_List' not in sqlite_dbs:
+                print('没有fugai_Linshi_List表 ,创建fugai_Linshi_List表')
+                fugai_Linshi_List_sql = """
+                    CREATE TABLE fugai_Linshi_List (
+                      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                      "keyword" TEXT,
+                      "paiming_detail" TEXT,
+                      "search_engine" TEXT,
+                      "title" TEXT,
+                      "title_url" TEXT,
+                      "sousuo_guize" TEXT,
+                      "time_stamp" TEXT,
+                       "tid" INTEGER,
+                       "chaxun_status" integer
+                    );
+                """
+                database_create_data.operDB(fugai_Linshi_List_sql, 'create')
+
 
             # 判断 搜索引擎表
             # if 'searchEngineList' not in data_list:
@@ -845,9 +906,6 @@ class DaNao(object):
             #     cursor.execute(sql)
 
             # 关闭链接
-
-            conn.commit()
-            conn.close()
 
     # 主体 函数
     def main_body(self):
@@ -881,7 +939,6 @@ class DaNao(object):
         qr.moveCenter(cp)
         # 移动应用程序窗口的左上角到qr矩形的左上角，从而使应用程序窗口显示在屏幕的中心
         view.move(qr.topLeft())
-
         # 创建一个 QWebChannel 对象, 用来传递 PyQt的参数到 Js
         channel = QWebChannel()
         myObj = Danao_Inter_Action()
@@ -898,3 +955,4 @@ class DaNao(object):
 
 if __name__ == '__main__':
     obj = DaNao()
+

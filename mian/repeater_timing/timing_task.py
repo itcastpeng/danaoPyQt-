@@ -48,7 +48,6 @@ class repeater_timing_task():
         #     self.function_pc_task()
 
 
-
     def get_task_list(self):
         now_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')
         conn = sqlite3.connect('../my_db/my_sqlite.db')
@@ -58,20 +57,17 @@ class repeater_timing_task():
         objs = cursor.execute(sql)
         obj = list(objs)
         if obj:
-            # print('obj ================= > ',obj)
             task_id = obj[0][0]
             task_next_datetime = obj[0][1]
             if task_id:
                 sql = """update task_Detail set is_perform = 1 where tid = {};""".format(task_id)
                 print(sql)
-                # cursor.execute(sql)
                 database_create_data.operDB(sql, 'update')
         conn.commit()
         conn.close()
 
 
     def dingshi_timer(self):
-        # print("======================> threading.active_count()", threading.active_count())
         if self.timer_flag:
             return
         else:
@@ -83,17 +79,13 @@ class repeater_timing_task():
         sql = """select * from task_Detail where is_perform=1;"""
         print('sql -->', sql)
         is_run_flag = False     # 表示是否有任务要运行
-        # objs = cursor.execute(sql)
-        # objs_list = list(objs)
         objs_list = database_create_data.operDB(sql, 'select')
         conn.commit()
         conn.close()
         if objs_list:
             print('objs_list============> ',objs_list)
             for obj in objs_list['data']:
-                # print('关键词 ----------------- >',obj[4] ,'==',obj[0])
                 detail_id = obj[0]
-                # print('detail_id ----------- >' ,detail_id)
                 tid = obj[1]
                 search_engine = obj[2]
                 lianjie = obj[3]
@@ -108,11 +100,6 @@ class repeater_timing_task():
                         time_stamp=time_stamp, detail_id=detail_id)
                     database_create_data.operDB(sql, 'update')
                     is_run_flag = True
-                    # conn = sqlite3.connect('../my_db/my_sqlite.db')
-                    # cursor = conn.cursor()
-                    # cursor.execute(sql)
-                    # conn.commit()
-                    # conn.close()
 
                 else:
                     time_stamp_obj = int(time_stamp_obj)
@@ -127,6 +114,11 @@ class repeater_timing_task():
             else:
                 time.sleep(1)
         self.timer_flag = False
+
+
+
+if __name__ == '__main__':
+    repeater_timing_task()
 
     # 如果用户直接点击 则传参为 单个或多个任务id
     # def function_pc_task(self):
@@ -212,6 +204,3 @@ class repeater_timing_task():
     #                 cursor.execute(sql)
     #     conn.commit()
     #     conn.close()
-if __name__ == '__main__':
-
-    repeater_timing_task()

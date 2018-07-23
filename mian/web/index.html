@@ -132,6 +132,27 @@
             }
         }
 
+         function fugaiChaXun(){
+            if (bridge){
+                bridge.fugaiChaXun = '{"editor_content":"合众康桥","searchEngineModel":["4","1"],"fugai_tiaojian":"合众康桥"}';
+
+                 new QWebChannel(qt.webChannelTransport, function(channel) {
+                     obj = channel.objects.bridge;
+                     alert(obj.setShouLuChaXun)
+                 });
+            }
+        }
+        function fuGaiChaXunDtaiel(){
+            if (bridge){
+                bridge.fuGaiChaXunDtaiel = '218';
+
+                 new QWebChannel(qt.webChannelTransport, function(channel) {
+                     obj = channel.objects.bridge;
+                     // alert(obj.setShouLuChaXun)
+                 });
+            }
+        }
+
     </script>
 </head>
 
@@ -189,7 +210,12 @@
     <div style="padding-top:10px ">
         <input type="button" value="收录导出 excel" onclick="setShouLuDaoChuExcel()">
     </div>
-
+    <div style="padding-top:10px ">
+        <input type="button" value="查看覆盖参数" onclick="fugaiChaXun()">
+    </div>
+     <div style="padding-top:10px ">
+        <input type="button" value="查看覆盖详情" onclick="fuGaiChaXunDtaiel()">
+    </div>
 </form>
 </body>
 </html>
