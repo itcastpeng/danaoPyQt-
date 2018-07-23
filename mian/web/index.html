@@ -103,7 +103,7 @@
 
          function saveTheQueryResults(){
             if (bridge){
-                bridge.saveTheQueryResults = '29';
+                bridge.saveTheQueryResults = '6';
                  // new QWebChannel(qt.webChannelTransport, function(channel) {
                  //     obj = channel.objects.bridge;
                  //     alert(obj.viewThesubTasksDetail)
@@ -152,6 +152,18 @@
                  });
             }
         }
+        function setFuGaiDaoChuExcel(){
+            if (bridge){
+                bridge.setFuGaiDaoChuExcel = '1';
+
+                 // new QWebChannel(qt.webChannelTransport, function(channel) {
+                 //     obj = channel.objects.bridge;
+                     // alert(obj.setShouLuChaXun)
+                 // });
+            }
+        }
+
+
 
     </script>
 </head>
@@ -216,6 +228,12 @@
      <div style="padding-top:10px ">
         <input type="button" value="查看覆盖详情" onclick="fuGaiChaXunDtaiel()">
     </div>
+    <div style="padding-top:10px ">
+        <input type="button" value="覆盖导出excel " onclick="setFuGaiDaoChuExcel()">
+    </div>
+
+
+
 </form>
 </body>
 </html>

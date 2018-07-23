@@ -27,8 +27,9 @@ class Danao_Inter_Action(QObject):
         self.panduan = '0'
         self.huoqu_fugai_time_stamp = ''
         self.dangqian_chaxunfugai_time = ''
-        self.huoqu_fugai_xiangqing = ''
-    # 占位
+        self.huoqu_fugai_xiangqing_or_page = ''
+
+    # 占位 助手
     def zhanwei_zhushou(self):
         pass
 
@@ -463,11 +464,12 @@ class Danao_Inter_Action(QObject):
                 ws.cell(row=row, column=2, value="{lianjie}".format(lianjie=obj[3]))
                 row += 1
             root = Tk()
-            root.iconbitmap('./128.ico')
             root.withdraw()  # 隐藏
+            root.iconbitmap('./128.ico')
             dirname = askdirectory(parent=root, initialdir="/", title='选择导出路径 !')
             print(dirname)
             if dirname:
+                print('==================================')
                 if dirname == 'C:/':
                     tkinter.messagebox.showerror('错误', '请选择路径 !')
                     # tkinter.messagebox.showwarning('警告', '请选择路径 !')
@@ -516,7 +518,7 @@ class Danao_Inter_Action(QObject):
     def set_shoulu_save_select_result_value(self, data):
         # if self.huoqu_shoulu_time_stamp:
         if 1+1==2:
-            now_date = datetime.date.today().strftime('%Y-%m-%d')
+            now_date = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
             sql = """select url,is_shoulu,title,search,kuaizhao_time from shoulu_Linshi_List where {time_stamp};""".format(
                 time_stamp=self.huoqu_shoulu_time_stamp)
                 # time_stamp=huoqu_shoulu_time_stamp)
@@ -618,13 +620,17 @@ class Danao_Inter_Action(QObject):
                             tid = objs['data'][0][0]
                             threading_task.func_shoulu_fugai_chaxun(str(search), keyword, lianjie, tiaojian, tid, self.huoqu_fugai_time_stamp)
 
+    # 覆盖查询 - 接收参数id 查询详情
     def set_fugai_chaxun_xiangqing(self,data):
-        self.huoqu_fugai_xiangqing = data
+        if data:
+            json_data = json.loads(data)
+            self.huoqu_fugai_xiangqing_or_page = json_data
 
-    # 覆盖查询 - 获取时间戳 返回展示数据
+    # 覆盖查询 - 获取时间戳 返回展示所有数据 详情数据 页码数据
     def get_fugai_zhanshi_list_value(self):
         if self.huoqu_fugai_time_stamp:
-            sql = """select * from fugai_Linshi_List where {time_stamp}""".format(time_stamp=self.huoqu_fugai_time_stamp)
+            print('====================返回查询信息')
+            sql = """select * from fugai_Linshi_List where {time_stamp} limit 0,10;""".format(time_stamp=self.huoqu_fugai_time_stamp)
             objs = database_create_data.operDB(sql, 'select')
             data_list = []
             for obj in objs['data']:
@@ -642,21 +648,172 @@ class Danao_Inter_Action(QObject):
                 })
             return json.dumps(data_list)
 
-        if self.huoqu_fugai_xiangqing:
-            sql = """select * from fugai_Linshi_List where tid = {}""".format(self.huoqu_fugai_xiangqing)
-            objs = database_create_data.operDB(sql, 'select')
+        if self.huoqu_fugai_xiangqing_or_page:
             data_list = []
-            for obj in objs['data']:
-                data_list.append({
-                    'title':obj[4],
-                    'order':obj[2],
-                    'chaxun_tiaojian':obj[6],
-                    'title_url':obj[5]
-                })
+            if self.huoqu_fugai_xiangqing_or_page['getType'] == 'detail':
+                print('覆盖返回详情数据')
+                sql = """select * from fugai_Linshi_List where tid = {}""".format(self.huoqu_fugai_xiangqing)
+                objs = database_create_data.operDB(sql, 'select')
+                for obj in objs['data']:
+                    data_list.append({
+                        'title':obj[4],
+                        'order':obj[2],
+                        'chaxun_tiaojian':obj[6],
+                        'title_url':obj[5]
+                    })
+            else:
+                pass
+
             return json.dumps(data_list)
 
-    def get_fugai_save_select_result_value(self):
-        pass
+
+    # 查询覆盖 - 生成 excel 表格
+    def set_fugai_save_select_result_value(self,data):
+        # if self.huoqu_fugai_time_stamp:
+        if 1 + 1 == 2:
+            wb = Workbook()
+            ws = wb.active
+            ws.title = '关键词覆盖查询'
+            ws.cell(row=1, column=1, value="关键词覆盖查询")
+            ws.cell(row=2, column=3, value="查询时间:")
+            ws.cell(row=8, column=1, value="关键词")
+            ws.cell(row=8, column=2, value="排名个数")
+            ws.cell(row=8, column=3, value="排名情况")
+            ws.cell(row=8, column=4, value="搜索引擎")
+            ft1 = Font(name='宋体', size=22)
+            a1 = ws['A1']
+            a1.font = ft1
+
+            # # 合并单元格        开始行      结束行       用哪列          占用哪列
+            ws.merge_cells(start_row=1, end_row=1, start_column=1, end_column=4)
+            ws.merge_cells(start_row=2, end_row=7, start_column=1, end_column=1)
+            ws.merge_cells(start_row=2, end_row=7, start_column=2, end_column=2)
+            ws.merge_cells(start_row=2, end_row=7, start_column=3, end_column=3)
+            ws.merge_cells(start_row=2, end_row=7, start_column=4, end_column=4)
+            # ws.merge_cells(start_row=2, end_row=5, start_column=5, end_column=5)
+
+            # print('设置列宽')
+            ws.column_dimensions['A'].width = 35
+            ws.column_dimensions['B'].width = 13
+            ws.column_dimensions['C'].width = 30
+            ws.column_dimensions['D'].width = 30
+
+            # # print('设置行高')
+            ws.row_dimensions[1].height = 28
+
+            # # print('文本居中')
+            ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
+            ws['C2'].alignment = Alignment(horizontal='right', vertical='center')
+            ws['A8'].alignment = Alignment(horizontal='center', vertical='center')
+            ws['B8'].alignment = Alignment(horizontal='center', vertical='center')
+            ws['C8'].alignment = Alignment(horizontal='center', vertical='center')
+            ws['D8'].alignment = Alignment(horizontal='center', vertical='center')
+            ws['D2'].alignment = Alignment(horizontal='left', vertical='center')
+
+
+
+            ws2 = wb.create_sheet('sheet2')
+            ws2.title = '关键词覆盖查询详情'
+            ws2.cell(row=1, column=1, value="关键词覆盖查询详情")
+            ws2.cell(row=2, column=4, value="查询时间:")
+            ws2.cell(row=3, column=1, value="关键词")
+            ws2.cell(row=3, column=2, value="名次")
+            ws2.cell(row=3, column=3, value="标题")
+            ws2.cell(row=3, column=4, value="链接")
+            ws2.cell(row=3, column=5, value="规则")
+            ws2.cell(row=3, column=6, value="搜索引擎")
+            ft1 = Font(name='宋体', size=22)
+            a1 = ws2['A1']
+            a1.font = ft1
+
+            # # 合并单元格        开始行      结束行       开始列          结束列
+            ws2.merge_cells(start_row=1, end_row=1, start_column=1, end_column=6)
+            ws2.merge_cells(start_row=2, end_row=2, start_column=4, end_column=5)
+
+            # # print('设置列宽')
+            ws2.column_dimensions['A'].width = 35
+            ws2.column_dimensions['B'].width = 15
+            ws2.column_dimensions['C'].width = 60
+            ws2.column_dimensions['D'].width = 30
+            ws2.column_dimensions['E'].width = 13
+            ws2.column_dimensions['F'].width = 20
+            #
+            # # print('设置行高')
+            ws2.row_dimensions[1].height = 80
+            ws2.row_dimensions[2].height = 30
+            #
+            # # print('文本居中')
+            ws2['A1'].alignment = Alignment(horizontal='center', vertical='center')
+            ws2['A3'].alignment = Alignment(horizontal='center', vertical='center')
+            ws2['B3'].alignment = Alignment(horizontal='center', vertical='center')
+            ws2['C3'].alignment = Alignment(horizontal='center', vertical='center')
+            ws2['D3'].alignment = Alignment(horizontal='center', vertical='center')
+            ws2['E3'].alignment = Alignment(horizontal='center', vertical='center')
+            ws2['F3'].alignment = Alignment(horizontal='center', vertical='center')
+            ws2['C2'].alignment = Alignment(horizontal='center', vertical='center')
+            ws2['D2'].alignment = Alignment(horizontal='right', vertical='center')
+            ws2['F2'].alignment = Alignment(horizontal='left', vertical='center')
+
+
+            chaxun_time = self.huoqu_fugai_time_stamp  # 查询时间
+            chaxun_time = '0000-00-00'
+            huoqu_fugai_time_stamp = '1532262177'
+            now_date = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
+            ws.cell(row=2, column=4, value="{chaxun_time}".format(chaxun_time=chaxun_time))
+            ws2.cell(row=2, column=6, value="{chaxun_time}".format(chaxun_time=chaxun_time))
+            sql = """select id,keyword,paiming_detail,search_engine from fugai_Linshi_List where time_stamp={time_stamp};""".format(
+                # time_stamp=self.huoqu_fugai_time_stamp)
+                time_stamp=huoqu_fugai_time_stamp)
+            objs = database_create_data.operDB(sql, 'select')
+            row = 9
+            row_two = 4
+            for obj in objs['data']:
+                if obj[3] == 1:
+                    search = '百度'
+                else:
+                    search = '手机百度'
+                paiming_detail = obj[2].split(',')
+                paming_num = 0
+                for paiming in paiming_detail:
+                    paming_num += 1
+                ws.cell(row=row, column=1, value="{keyword}".format(keyword=obj[1]))
+                ws.cell(row=row, column=2, value="{paming_num}".format(paming_num=paming_num))
+                ws.cell(row=row, column=3, value="{paiming_detail}".format(paiming_detail=obj[2]))
+                ws.cell(row=row, column=4, value="{search}".format(search=search))
+                row += 1
+                sql_two = """select * from fugai_Linshi_List where tid = '{}';""".format(obj[0])
+                objs_two = database_create_data.operDB(sql_two, 'select')
+                for obj_two in objs_two['data']:
+                    if obj_two[3] == 1:
+                        search = '百度'
+                    else:
+                        search = '手机百度'
+                    ws2.cell(row=row_two, column=1, value="{keyword}".format(keyword=obj_two[1]))
+                    ws2.cell(row=row_two, column=2, value="{paiming}".format(paiming=obj_two[2]))
+                    ws2.cell(row=row_two, column=3, value="{title}".format(title=obj_two[4]))
+                    ws2.cell(row=row_two, column=4, value="{title_url}".format(title_url=obj_two[5]))
+                    ws2.cell(row=row_two, column=5, value="{guize}".format(guize=obj_two[6]))
+                    ws2.cell(row=row_two, column=6, value="{search}".format(search=obj_two[7]))
+                    row_two += 1
+
+            root = Tk()
+            root.iconbitmap('./128.ico')
+            root.withdraw()  # 隐藏
+            dirname = askdirectory(parent=root, initialdir="/", title='选择导出路径 !')
+            if dirname:
+                if dirname == 'C:/':
+                    tkinter.messagebox.showerror('错误', '请选择路径 !')
+                    # tkinter.messagebox.showwarning('警告', '请选择路径 !')
+                else:
+                    print('进入')
+                    task_name = '覆盖查询'
+                    file_name = dirname.replace('\\', '/') + '/' + '{}.xlsx'.format(task_name + '_' + now_date)
+                    print('file_name=============>',file_name)
+                    wb.save(file_name)
+                    tkinter.messagebox.showinfo('提示', '生成完毕 !')
+            else:
+                print('点击取消')
+            root.destroy()  # 销毁
 
 
 
@@ -720,7 +877,9 @@ class Danao_Inter_Action(QObject):
     # 覆盖查询 - 筛选关键词 查询入库及展示
     fugaiChaXun = pyqtProperty(str, fget=get_fugai_zhanshi_list_value, fset=set_fugai_select_get_list_value)
     # 覆盖查询 - 点击查看详情
-    fuGaiChaXunDtaiel = pyqtProperty(str, fget=get_fugai_zhanshi_list_value, fset=set_fugai_chaxun_xiangqing)
+    fuGaiChaXunDtaielOrPage = pyqtProperty(str, fget=get_fugai_zhanshi_list_value, fset=set_fugai_chaxun_xiangqing)
+    # 覆盖查询 - 导出excel表格
+    setFuGaiDaoChuExcel = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_fugai_save_select_result_value)
 
 
 # PyQt 架构 与 数据库初始化 类
