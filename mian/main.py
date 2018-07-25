@@ -424,9 +424,9 @@ class Danao_Inter_Action(QObject):
                         'keywords': obj[4],
                         'mohupipei': obj[5],
                         'sanci_chaxun': sanci_chaxun,
-                        'count_page':count
                     })
                 exit_data_list = {
+                    'count_page': count,
                     'data_list': data_list,
                     'headers_list': headers_list
                 }
