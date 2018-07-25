@@ -16,12 +16,14 @@ from mian.repeater_timing import timing_task
 import sqlite3, os, json, time, datetime, tkinter.messagebox, threading
 from multiprocessing import Process
 
+
+
 # PyQt 与 Js 交互 类
 class Danao_Inter_Action(QObject):
     def __init__(self):
         super(Danao_Inter_Action, self).__init__()
-        # process = Process(target=timing_task.run)
-        # process.start()
+        self.process = Process(target=timing_task.run)
+        self.process.start()
         self.zhongdianci_update = ''
         self.zhongdianci_select_task_detail = ''
         self.huoqu_task_id_detail = ''
@@ -39,13 +41,10 @@ class Danao_Inter_Action(QObject):
     # 返回登陆参数
     def get_Loginvalue(self):
         # 查询数据库 返回用户信息
-        sql = """select * from Login_message;"""
+        sql = """select message from Login_message;"""
         objs = database_create_data.operDB(sql, 'select')
-        data = ''
-        for cow in objs['data']:
-            data = cow[1]
-        # print('-----------传登录参数========> ',data)
-        return data
+        # print('传递登录参数-------------> ',objs['data'][0][0])
+        return objs['data'][0][0]
 
     # 获取登录参数 保存数据库
     def set_Loginvalue(self, data):
@@ -80,9 +79,11 @@ class Danao_Inter_Action(QObject):
                 wancheng_obj = int(objs_three['data'][0][0])
                 baifenbi = wancheng_obj/count_obj * 100
                 qiyong_status = '未启用'
+                if wancheng_obj == count_obj:
+                    sql = """update task_List set task_status='1', zhixing = '0' where id='{}'""".format(id)
+                    database_create_data.operDB(sql, 'update')
                 if obj[1]:
                     qiyong_status = '已启用'
-
                 zhixing = False
                 if obj[8]:
                     zhixing = True
@@ -292,7 +293,7 @@ class Danao_Inter_Action(QObject):
                 else:
                     task_start_time_date = task_start_time_date.strftime('%H:%M:%S')
                     next_datetime = str(now_datetime_date) + ' ' + task_start_time_date
-                print(next_datetime)
+                # print(next_datetime)
                 task_start_time_date = str(task_start_time_date)
                 sql = """update Task_List set task_name='{task_name}', task_start_time='{task_start_time}', next_datetime='{next_datetime}', qiyong_status='{qiyong_status}' where id={id};""".format(
                     task_name=task_name,
@@ -344,7 +345,6 @@ class Danao_Inter_Action(QObject):
         self.dangqian_chaxunshoulu_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
         json_data = json.loads(datas)
         for data in json_data:
-            print('data ----------> ',data)
             timing_task.get_task_list(data)
 
     # 重点词监护 - 删除单个或多个 任务
@@ -365,16 +365,39 @@ class Danao_Inter_Action(QObject):
     def set_task_id_view_The_subtasks_task(self, data):
         self.huoqu_task_id_detail = data
 
+    # 重点词监护 - 分页
+    def set_huoqu_page_detail_value(self,data):
+        self.zhongdianci_page_detail = data
+        print(data)
+
+
     # 重点词监护 - 展示详情任务子任务
     def get_view_The_subtasks_detail(self):
         if self.huoqu_task_id_detail:
-            sql = """select * from task_Detail where tid = {};""".format(self.huoqu_task_id_detail)
-            # sql = """select * from task_Detail as A, task_Detail_Data as B where A.id=B.tid and A.tid={} limit 10;""".format(self.huoqu_task_id_detail)
+            sql_page = ''
+            sql_count = """select count(id) from task_Detail where tid = '{}' """.format(self.huoqu_task_id_detail)
+            print('sql_count============> ',sql_count)
+            # if self.zhongdianci_page_detail:
+            if 1+1 == 2:
+                p = 2
+                start_page = p * 10
+                stop_page =  start_page + 10
+                print('start_page , stop_page=-------------> ',start_page , stop_page)
+                sql_page = """select * from task_Detail where tid = {huoqu_task_id_detail} limit '{start_page}', '{stop_page}';""".format(
+                    huoqu_task_id_detail=self.huoqu_task_id_detail,
+                    start_page=start_page,
+                    stop_page=stop_page
+                )
+            else:
+                sql_page = """select * from task_Detail where tid = {} limit 10;""".format(self.huoqu_task_id_detail)
+                # sql = """select * from task_Detail as A, task_Detail_Data as B where A.id=B.tid and A.tid={} limit 10;""".format(self.huoqu_task_id_detail)
             data_list = []
             headers_list = []
             exit_data_list = []
-            objs = database_create_data.operDB(sql, 'select')
-
+            sql_count = database_create_data.operDB(sql_count, 'select')
+            objs = database_create_data.operDB(sql_page, 'select')
+            count = sql_count['data']
+            print('count -------------> ',count[0][0])
             if objs:
                 for obj in objs['data']:
                     sql_two = """select create_time, paiming, is_shoulu from task_Detail_Data where tid = {} order by create_time desc limit 3""".format(obj[0])
@@ -399,7 +422,8 @@ class Danao_Inter_Action(QObject):
                         'lianjie': obj[3],
                         'keywords': obj[4],
                         'mohupipei': obj[5],
-                        'sanci_chaxun': sanci_chaxun
+                        'sanci_chaxun': sanci_chaxun,
+                        'count_page':count
                     })
                 exit_data_list = {
                     'data_list': data_list,
@@ -485,7 +509,7 @@ class Danao_Inter_Action(QObject):
             root.withdraw()  # 隐藏
             root.iconbitmap('./128.ico')
             dirname = askdirectory(parent=root, initialdir="/", title='选择导出路径 !')
-            print(dirname)
+            # print(dirname)
             if dirname:
                 print('==================================')
                 if dirname == 'C:/':
@@ -494,7 +518,7 @@ class Danao_Inter_Action(QObject):
                 else:
                     file_name = dirname.replace('\\', '/') + '/' + '{}.xlsx'.format(task_name + '_' + now_date)
                     wb.save(file_name)
-                    print(file_name)
+                    # print(file_name)
                     tkinter.messagebox.showinfo('提示', '生成完毕 !')
             else:
                 print('点击取消')
@@ -512,8 +536,12 @@ class Danao_Inter_Action(QObject):
                 for url_data in data_dict['editor_content'].split('\n'):
                     if 'http' in url_data:
                         lianjie = url_data.strip().replace('\t', '')
-                        print(search , '==========', lianjie , '========', mohu_pipei, '=========', self.huoqu_shoulu_time_stamp)
                         threading_task.func_shoulu_fugai_chaxun(str(search), keyword, lianjie, mohu_pipei, tid, self.huoqu_shoulu_time_stamp)
+
+    # 分页处理
+    def set_shoulu_chauxn_page_value(self, data):
+        # 传参供 get_shoulu_zhanshi_list_value 使用
+        print(data)
 
     # 收录查询 - 查询数据库 展示
     def get_shoulu_zhanshi_list_value(self):
@@ -529,7 +557,6 @@ class Danao_Inter_Action(QObject):
                     'url': url,
                     'is_shoulu': is_shoulu
                 })
-            print(data_list)
             return json.dumps(data_list)
 
     # 收录查询 - 查询数据库 导出excel表格
@@ -604,9 +631,9 @@ class Danao_Inter_Action(QObject):
             dirname = askdirectory(parent=root, initialdir="/", title='Pick a directory')
             if dirname:
                 task_name = '测试导出收录excel'
-                print('===================', dirname)
+                # print('===================', dirname)
                 file_name = dirname.replace('\\', '/') + '/' + '{}.xlsx'.format(task_name + '_' + now_date)
-                print(file_name)
+                # print(file_name)
                 wb.save(file_name)
                 print('完成')
 
@@ -683,7 +710,7 @@ class Danao_Inter_Action(QObject):
                     })
             else:
                 pass
-            print(json.dumps(data_list))
+            # print(json.dumps(data_list))
             return json.dumps(data_list)
 
     # 查询覆盖 - 生成 excel 表格
@@ -827,7 +854,7 @@ class Danao_Inter_Action(QObject):
                     print('进入')
                     task_name = '覆盖查询'
                     file_name = dirname.replace('\\', '/') + '/' + '{}.xlsx'.format(task_name + '_' + now_date)
-                    print('file_name=============>',file_name)
+                    # print('file_name=============>',file_name)
                     wb.save(file_name)
                     tkinter.messagebox.showinfo('提示', '生成完毕 !')
             else:
@@ -854,6 +881,8 @@ class Danao_Inter_Action(QObject):
     pcTaskValue = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_pc_task_value)
     # 重点词监护 - 删除单个或多个 任务
     deleteDataTask = pyqtProperty(str, fget=zhanwei_zhushou, fset=delete_or_batch_delete_task)
+    # 重点词监护 - 详情分页
+    detailPage = pyqtProperty(str, fget=get_view_The_subtasks_detail, fset=set_huoqu_page_detail_value)
     # 重点词监护 - 查看该任务所有详情 及关键词
     viewThesubTasksDetail = pyqtProperty(str, fget=get_view_The_subtasks_detail,
         fset=set_task_id_view_The_subtasks_task)
@@ -863,6 +892,8 @@ class Danao_Inter_Action(QObject):
 
     # 收录查询 - 筛选链接 查询 及 展示入库
     ShouLuChaXun = pyqtProperty(str, fget=get_shoulu_zhanshi_list_value, fset=set_shoulu_select_get_list_value)
+    # 收录查询 - 详情分页查询
+    # ShouLuChaXun = pyqtProperty(str, fget=get_shoulu_zhanshi_list_value, fset=set_shoulu_select_get_list_value)
     # 收录查询 - 导出excel表格
     setShouLuDaoChuExcel = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_shoulu_save_select_result_value)
 

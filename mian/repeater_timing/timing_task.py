@@ -34,37 +34,36 @@ class ThreadPool(object):
 pool = ThreadPool(5)
 # 定时器一
 def get_task_list(data=None):
-    # print('----------------进入---------------')
     xiaoyu_dengyu_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')
     start_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
     task_id = ''
     sql = ''
     if data:
-        print('立即监控 ---- 修改执行 修改任务状态')
-        update_status_sql = """update task_List set task_status = '0' where id = '{}'""".format(data)
+        update_status_sql = """update task_List set task_status = '0', zhixing = '1' where id = '{}'""".format(data)
         database_create_data.operDB(update_status_sql, 'update')
-        sql = """select id,next_datetime from task_List where qiyong_status = 1;""".format(data)
-        print(sql)
+        sql = """select id,next_datetime from task_List where qiyong_status = '1' and id = '{}';""".format(data)
     else:
-        sql = """select  id,next_datetime from task_List where next_datetime <='{xiaoyu_dengyu_date}' and qiyong_status = '1' limit 1;""".format(
+        sql = """select id,next_datetime from task_List where next_datetime <='{xiaoyu_dengyu_date}' and qiyong_status = '1' limit 1;""".format(
         xiaoyu_dengyu_date=xiaoyu_dengyu_date)
     objs = database_create_data.operDB(sql, 'select')
     if objs['data']:
-        task_id = objs['data'][0][0]
+        data = objs['data'][0][0]
         next_time = objs['data'][0][1]
         next_datetime = datetime.datetime.strptime(next_time, '%Y-%m-%d %H:%M:%S')
         if next_datetime.strftime('%Y-%m-%d') <= datetime.datetime.today().strftime('%Y-%m-%d'):
             # 修改下一次执行时间
             next_datetime_addoneday = (next_datetime + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
-            next_sql = """update task_List set next_datetime = '{next_datetime}' where id = '{id}';""".format(next_datetime=next_datetime_addoneday,id=task_id)
+            next_sql = """update task_List set next_datetime = '{next_datetime}' where id = '{id}';""".format(next_datetime=next_datetime_addoneday,id=data)
             database_create_data.operDB(next_sql, 'update')
         # 修改 任务详情为 启用
-        sql_status = """update task_Detail set is_perform = '1', task_start_time = '{time}' where tid = '{task_id}';""".format(time=start_time,task_id=task_id)
+        sql_status = """update task_Detail set is_perform = '1', task_start_time = '{time}' where tid = '{task_id}';""".format(time=start_time,task_id=data)
         database_create_data.operDB(sql_status, 'update')
+
 
 timer_flag = False
 # 定时器二
 def dingshi_timer():
+    # print('进入---------dingshi_timer')
     global timer_flag
     if timer_flag:
         return
@@ -75,7 +74,6 @@ def dingshi_timer():
     sql = """select * from task_Detail where is_perform=1;"""
     is_run_flag = False     # 表示是否有任务要运行
     objs_list = database_create_data.operDB(sql, 'select')
-    tid = ''
     if objs_list['data']:
         for obj in objs_list['data']:
             detail_id = obj[0]
@@ -98,14 +96,15 @@ def dingshi_timer():
                 if time_stamp_obj < int(shijianchuo):
                     is_run_flag = True
             if is_run_flag:
+                # print('进入线程--------------------')
                 threading_task.func(detail_id, lianjie, keywords, search_engine, mohupipei, pool)
+
     # 所有线程执行完毕 只剩主线程 则退出
     while True:
         # if threading.active_count() == 1:
         if ThreadPool().queue1.empty():
-            if tid:
-                sql = """update task_List set task_status='1' where id='{}'""".format(tid)
-                database_create_data.operDB(sql, 'update')
+            # sql = """update task_List set task_status='1', zhixing = '0' where id='{}'""".format(tid)
+            # database_create_data.operDB(sql, 'update')
             break
         else:
             time.sleep(1)

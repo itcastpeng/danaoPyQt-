@@ -154,7 +154,7 @@ class Baidu_Zhidao_yuming_mobile(object):
                 database_create_data.operDB(insert_sql, 'insert')
                 update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
                 database_create_data.operDB(update_sql, 'update')
-                print('mobile ==fugai')
+                # print('mobile ==fugai')
 
 
 # if __name__ == '__main__':

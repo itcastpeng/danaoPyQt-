@@ -24,7 +24,7 @@ def thread_mobileurl(detail_id, keywords, domain, pool,):
 def thread_pcmohupipei(yinqing,detail_id, keywords, domain, pool,):
     # print('进入线程--thread_pcmohupipei--> ',' pc端 无链接',keywords, domain)
     tid = ''
-    print('detail_id=================> ',detail_id)
+    # print('detail_id=================> ',detail_id)
     pc_fugai_pipei.Baidu_Zhidao_yuming_pc(tid, yinqing, keywords, domain, detail_id)
     pool.add_thread()
 
@@ -39,7 +39,7 @@ def thread_mobilemohupipei(search_engine, keywords, domain,detail_id, pool,):
 # 启动程序 - 重点词监控
 def func(detail_id, lianjie, keywords, search_engine, mohupipei, pool,):
     # 去线程池里那一个线程，如果有，则池子里拿，如果没有，等直到有人归还线程到线程池
-    print('当前线程数量 --------=========================>',threading.active_count())
+    # print('当前线程数量 --------=========================>',threading.active_count())
     thread_obj = pool.get_thread()
     if lianjie:
         if search_engine == '4':

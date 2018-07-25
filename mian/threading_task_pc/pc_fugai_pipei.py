@@ -30,7 +30,7 @@ class Baidu_Zhidao_yuming_pc():
 
 
     def __init__(self,tid, yinqing, keyword, domain, detail_id=None,huoqu_gonggong_time_stamp=None,fugai_chaxun=None):
-        print('----------------------》',detail_id)
+        # print('----------------------》',detail_id)
         self.tid = tid
         self.keyword = keyword
         self.domain = domain
@@ -128,7 +128,7 @@ class Baidu_Zhidao_yuming_pc():
 
                 update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
                 database_create_data.operDB(update_sql, 'update')
-                print('pc --- 覆盖', self.detail_id)
+                # print('pc --- 覆盖', self.detail_id)
 
 
 

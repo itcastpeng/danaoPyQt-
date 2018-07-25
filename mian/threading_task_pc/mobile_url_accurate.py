@@ -193,7 +193,7 @@ class Baidu_Zhidao_URL_MOBILE(object):
             database_create_data.operDB(insert_sql, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
             database_create_data.operDB(update_sql, 'update')
-            print('mobile --- url')
+            # print('mobile --- url')
 
 # if __name__ == '__main__':
 #     keyword = '沈阳中泰肛肠医院怎么样？患者都在说好！'
