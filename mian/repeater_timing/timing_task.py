@@ -96,7 +96,7 @@ def dingshi_timer():
                 if time_stamp_obj < int(shijianchuo):
                     is_run_flag = True
             if is_run_flag:
-                # print('进入线程--------------------')
+                print('进入线程--------------------')
                 threading_task.func(detail_id, lianjie, keywords, search_engine, mohupipei, pool)
 
     # 所有线程执行完毕 只剩主线程 则退出
