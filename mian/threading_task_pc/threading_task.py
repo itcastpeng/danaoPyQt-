@@ -4,9 +4,6 @@ from mian.threading_task_pc import mobile_fugai_pipei, mobile_url_accurate, pc_u
 from time import sleep
 import threading
 import queue
-from gevent import monkey
-monkey.patch_socket()
-import gevent
 
 # 重点词监控 - 多线程部署
 def thread_pcurl(detail_id, keywords, domain, pool,):

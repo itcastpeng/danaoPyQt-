@@ -378,26 +378,27 @@ class Danao_Inter_Action(QObject):
             sql_count = """select count(id) from task_Detail where tid = '{}' """.format(self.huoqu_task_id_detail)
             print('sql_count============> ',sql_count)
             # if self.zhongdianci_page_detail:
-            if 1+1 == 2:
-                p = 2
+            if 1+1 != 2:
+                p = 1
                 start_page = p * 10
-                stop_page =  start_page + 10
+                tiaoshu =  10
                 print('start_page , stop_page=-------------> ',start_page , stop_page)
-                sql_page = """select * from task_Detail where tid = {huoqu_task_id_detail} limit '{start_page}', '{stop_page}';""".format(
+                #  分页                                                                           开始行数         条数
+                sql_page = """select * from task_Detail where tid = {huoqu_task_id_detail} limit '{start_page}', '{tiaoshu}';""".format(
                     huoqu_task_id_detail=self.huoqu_task_id_detail,
                     start_page=start_page,
-                    stop_page=stop_page
+                    tiaoshu=tiaoshu
                 )
             else:
                 sql_page = """select * from task_Detail where tid = {} limit 10;""".format(self.huoqu_task_id_detail)
                 # sql = """select * from task_Detail as A, task_Detail_Data as B where A.id=B.tid and A.tid={} limit 10;""".format(self.huoqu_task_id_detail)
+            print(sql_page)
             data_list = []
             headers_list = []
             exit_data_list = []
             sql_count = database_create_data.operDB(sql_count, 'select')
             objs = database_create_data.operDB(sql_page, 'select')
-            count = sql_count['data']
-            print('count -------------> ',count[0][0])
+            count = sql_count['data'][0][0]
             if objs:
                 for obj in objs['data']:
                     sql_two = """select create_time, paiming, is_shoulu from task_Detail_Data where tid = {} order by create_time desc limit 3""".format(obj[0])
@@ -429,7 +430,7 @@ class Danao_Inter_Action(QObject):
                     'data_list': data_list,
                     'headers_list': headers_list
                 }
-            # print('data_list-------------------->', json.dumps(exit_data_list))
+            print('data_list-------------------->', json.dumps(exit_data_list))
             return json.dumps(exit_data_list)
 
     # 重点词监护 - 导出 excl 功能
