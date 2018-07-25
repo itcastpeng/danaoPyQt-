@@ -529,7 +529,9 @@ class Danao_Inter_Action(QObject):
         self.huoqu_shoulu_time_stamp = int(time.time())
         self.dangqian_chaxunshoulu_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
         data_dict = json.loads(data)
-        mohu_pipei, keyword, tid = '','',''
+        mohu_pipei = ''
+        keyword = ''
+        tid = ''
         if data_dict['searchEngineModel'] and data_dict['editor_content']:
             for search in data_dict['searchEngineModel']:
                 for url_data in data_dict['editor_content'].split('\n'):
@@ -544,6 +546,9 @@ class Danao_Inter_Action(QObject):
     # 收录查询 - 查询数据库 展示
     def get_shoulu_zhanshi_list_value(self):
         if self.huoqu_shoulu_time_stamp:
+            if self.shoulu_chaxun_page:
+                print('=========================')
+                sql = """"""
                 if int(self.shoulu_chaxun_page) == 1:
                     start_page = 0
                 else:

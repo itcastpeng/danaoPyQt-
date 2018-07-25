@@ -106,6 +106,7 @@ def fugai_mobile(tid, yinqing,keyword, mohu_pipri,huoqu_gonggong_time_stamp):
 
 # 运行程序 - 收录查询
 def func_shoulu_fugai_chaxun(yinqing, keyword, lianjie, mohu_pipri, tid, huoqu_gonggong_time_stamp):
+    print('进入线程')
     thread_shoulu_obj = gonggong_pool.get_thread()
     if lianjie:
         if yinqing == '1':
