@@ -375,7 +375,7 @@ class Danao_Inter_Action(QObject):
     def get_view_The_subtasks_detail(self):
         if self.huoqu_task_id_detail:
             sql_page = ''
-            sql_count = """select count(id) from task_Detail where tid = '{}' """.format(self.huoqu_task_id_detail)
+            sql_count = """select task_name,count(id) from task_Detail where tid = '{}' """.format(self.huoqu_task_id_detail)
             print('sql_count============> ',sql_count)
             # if self.zhongdianci_page_detail:
             if 1+1 != 2:
@@ -398,7 +398,8 @@ class Danao_Inter_Action(QObject):
             exit_data_list = []
             sql_count = database_create_data.operDB(sql_count, 'select')
             objs = database_create_data.operDB(sql_page, 'select')
-            count = sql_count['data'][0][0]
+            task_name = sql_count['data'][0][0]
+            count= sql_count['data'][0][1]
             if objs:
                 for obj in objs['data']:
                     sql_two = """select create_time, paiming, is_shoulu from task_Detail_Data where tid = {} order by create_time desc limit 3""".format(obj[0])
@@ -426,6 +427,7 @@ class Danao_Inter_Action(QObject):
                         'sanci_chaxun': sanci_chaxun,
                     })
                 exit_data_list = {
+                    'task_name':task_name,
                     'count_page': count,
                     'data_list': data_list,
                     'headers_list': headers_list
