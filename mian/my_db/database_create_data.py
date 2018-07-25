@@ -15,7 +15,7 @@ def operDB(sql, oper='select'):
                 f.write('1')
                 conn = sqlite3.connect(db_file)
                 cursor = conn.cursor()
-                print('数据库操作=====================> ',sql)
+                # print('数据库操作=====================> ',sql)
                 result_data = cursor.execute(sql)
                 if oper == 'select':
                     result_obj['data'] = list(result_data)

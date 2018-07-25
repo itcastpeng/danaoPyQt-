@@ -65,14 +65,14 @@ class Baidu_Zhidao_yuming_mobile(object):
         self.zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
         self.headers = {'User-Agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
 
-        print('进入 手机端 ')
+        # print('进入 手机端 ')
         data_list = self.get_keyword()
         self.set_data(data_list)
 
 
     def get_keyword(self):
         zhidao_url = self.zhidao_url.format(self.keyword)
-        print('请求链接 ------------ >',zhidao_url)
+        # print('请求链接 ------------ >',zhidao_url)
         ret = requests.get(zhidao_url)
         self.random_time()
         soup_browser = BeautifulSoup(ret.text, 'lxml')
@@ -94,7 +94,7 @@ class Baidu_Zhidao_yuming_mobile(object):
             if data['data-log']:
                 dict_data = eval(data['data-log'])
                 url_title = dict_data['mu']                    # 标题链接
-                print(url_title)
+                # print(url_title)
                 if url_title:
                     order = dict_data['order']                     # 排名
                     pipei_tiaojian = data.get_text()
@@ -102,7 +102,7 @@ class Baidu_Zhidao_yuming_mobile(object):
                         order_list.append(int(order))
                         str_order = ",".join(str(i)for i in order_list)
                         shoulu = 1
-                        print('url_title----------> ',url_title)
+                        # print('url_title----------> ',url_title)
                         try:
                             ret_two = requests.get(url_title, headers=self.headers)
                             if ret_two:
@@ -144,16 +144,17 @@ class Baidu_Zhidao_yuming_mobile(object):
                 sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', title='{title}', title_url='{title_url}', chaxun_status='1' where id = {tid};""".format(
                     paiming_detail=data['paiming_detail'], title=data['title'], title_url=data['title_url'],
                     tid=str(self.tid))
-                print(sql_two)
+                # print(sql_two)
                 database_create_data.operDB(sql_two, 'insert')
         else:
             date_time = datetime.datetime.today().strftime('%Y-%m-%d')
             for data in data_list:
-                sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
+                insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
                     order=data['paiming_detail'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-                database_create_data.operDB(sql, 'insert')
-
-
+                database_create_data.operDB(insert_sql, 'insert')
+                update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
+                database_create_data.operDB(update_sql, 'update')
+                print('mobile ==fugai')
 
 
 # if __name__ == '__main__':

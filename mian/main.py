@@ -5,20 +5,23 @@ from PyQt5.QtCore import *
 from win32 import win32api
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDesktopWidget
-import sqlite3, os, json, time, datetime
 from openpyxl.styles import Font, Alignment
 from openpyxl import Workbook
 from tkinter import *
 from tkinter.filedialog import askdirectory
 from mian.threading_task_pc import threading_task
-import tkinter.messagebox
 from mian.my_db import database_create_data
-
 from time import sleep
+from mian.repeater_timing import timing_task
+import sqlite3, os, json, time, datetime, tkinter.messagebox, threading
+from multiprocessing import Process
+
 # PyQt 与 Js 交互 类
 class Danao_Inter_Action(QObject):
     def __init__(self):
         super(Danao_Inter_Action, self).__init__()
+        # process = Process(target=timing_task.run)
+        # process.start()
         self.zhongdianci_update = ''
         self.zhongdianci_select_task_detail = ''
         self.huoqu_task_id_detail = ''
@@ -68,7 +71,14 @@ class Danao_Inter_Action(QObject):
         if objs:
             data_list = []
             for obj in objs['data']:
-
+                id = obj[0]
+                sql_two = """select count(id) from task_Detail where tid = '{}';""".format(id)
+                objs_two = database_create_data.operDB(sql_two, 'select')
+                count_obj = int(objs_two['data'][0][0])
+                sql_three = """select count(id) from task_Detail where tid = '{}' and is_perform = '0';""".format(id)
+                objs_three = database_create_data.operDB(sql_three, 'select')
+                wancheng_obj = int(objs_three['data'][0][0])
+                baifenbi = wancheng_obj/count_obj * 100
                 qiyong_status = '未启用'
                 if obj[1]:
                     qiyong_status = '已启用'
@@ -81,12 +91,12 @@ class Danao_Inter_Action(QObject):
                                          2 查询中
                                          3 已完成"""
                 task_status = '未查询'
-                if obj[5] == 2:
+                if obj[5] == 0:
                     task_status = '查询中'
-                if obj[5] == 3:
+                if obj[5] == 1:
                     task_status = '已完成'
                 data_list.append({
-                    "id": obj[0],
+                    "id": id,
                     "qiyong_status": qiyong_status,
                     "task_name": obj[2],
                     "task_jindu": obj[3],
@@ -96,7 +106,8 @@ class Danao_Inter_Action(QObject):
                     "mohupipei": obj[7],
                     "zhixing": obj[8],
                     "next_datetime": obj[9],
-                    "keywords": obj[10]
+                    "keywords": obj[10],
+                    'task_jindu':int(baifenbi),
                 })
         # print('获取所有------------------> ', data_list)
         return json.dumps(data_list)
@@ -108,6 +119,7 @@ class Danao_Inter_Action(QObject):
             json_data = json.loads(data)
             print('json_data= ====================>',json_data)
             qiyong_status = json_data['qiyong_status']
+            print('qiyong_status-------------------=====================>',qiyong_status)
             task_name = json_data['task_name']
             task_jindu = json_data['task_jindu']
             task_start_time = json_data['task_start_time']
@@ -140,7 +152,7 @@ class Danao_Inter_Action(QObject):
                 next_datetime = str(add_one_day) + ' ' + task_start_time
             else:
                 # print('当前时间大于开始时间')
-                task_start_time = task_start_time.strftime('%H-%M-%S')
+                task_start_time = task_start_time.strftime('%H:%M:%S')
                 # print('task_start_time------->',task_start_time)
                 next_datetime = str(now_datetime_date) + ' ' + task_start_time
 
@@ -197,12 +209,12 @@ class Danao_Inter_Action(QObject):
                                 data_insert=data_insert)
                         database_create_data.operDB(sql_three, 'insert')
 
-    # 重点词监控 - 获取修改任务列表id
+    # 重点词监控 - 查询修改前数据 获取修改任务列表id
     def set_zhongdianci_update_task_list_value(self, data):
         print('获取修改任务列表id ----------- > ', data)
         self.zhongdianci_update = data
 
-    # 重点词监控 - 返回该id任务列表数据
+    # 重点词监控 - 查询修改前数据 返回该id任务列表数据
     def get_zhongdianci_update_task_list_data_value(self):
         if self.zhongdianci_update:
             sql = """select * from Task_List where id = {};""".format(int(self.zhongdianci_update))
@@ -262,27 +274,32 @@ class Danao_Inter_Action(QObject):
             now_date = '1900-01-01' + ' ' + str_now_date
             if type(update_data) == str:
                 json_update_data = json.loads(update_data)
-                print('json_update_data----------------------------------------> ',json_update_data)
                 id = json_update_data['id']
                 task_name = json_update_data['task_name']
                 task_start_time = json_update_data['task_start_time']
-                task_start_time = datetime.datetime.strptime(task_start_time, '%H:%M:%S')
-                now_date = datetime.datetime.strptime(now_date, '%Y-%m-%d %H:%M:%S')
-                if now_date < task_start_time:
-                    task_start_time = task_start_time.strftime('%H-%M-%S')
-                #     #  如果当前时间小于 任务开始时间 那么 加一天
-                    add_one_day = (now_datetime_date + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-                    next_datetime = str(add_one_day) + ' ' + task_start_time
+                qiyong_status = json_update_data['qiyong_status']
+                if qiyong_status:
+                    qiyong_status = '1'
                 else:
-                    task_start_time = task_start_time.strftime('%H-%M-%S')
-                    next_datetime = str(now_datetime_date) + ' ' + task_start_time
+                    qiyong_status = '0'
+                task_start_time_date = datetime.datetime.strptime(task_start_time, '%H:%M:%S')
+                now_date = datetime.datetime.strptime(now_date, '%Y-%m-%d %H:%M:%S')
+                if now_date < task_start_time_date:
+                    task_start_time_date = task_start_time_date.strftime('%H:%M:%S')
+                    #如果当前时间小于 任务开始时间 那么 加一天
+                    add_one_day = (now_datetime_date + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+                    next_datetime = str(add_one_day) + ' ' + task_start_time_date
+                else:
+                    task_start_time_date = task_start_time_date.strftime('%H:%M:%S')
+                    next_datetime = str(now_datetime_date) + ' ' + task_start_time_date
                 print(next_datetime)
-                task_start_time = str(task_start_time)
-                sql = """update Task_List set task_name='{task_name}',task_start_time='{task_start_time}',next_datetime='{next_datetime}' where id={id};""".format(
+                task_start_time_date = str(task_start_time_date)
+                sql = """update Task_List set task_name='{task_name}', task_start_time='{task_start_time}', next_datetime='{next_datetime}', qiyong_status='{qiyong_status}' where id={id};""".format(
                     task_name=task_name,
-                    task_start_time=task_start_time,
+                    task_start_time=task_start_time_date,
                     next_datetime=next_datetime,
-                    id=id)
+                    id=id,
+                    qiyong_status=qiyong_status)
                 database_create_data.operDB(sql, 'update')
 
     # 重点词监护 - 清空为该id的任务 - 的详情数据
@@ -290,7 +307,7 @@ class Danao_Inter_Action(QObject):
         if select_task_detail:
             print('清空 {}任务列表id 的详情数据'.format(select_task_detail))
             sql = """select id from task_Detail where tid = {}""".format(select_task_detail)
-            objs = database_create_data.operDB(sql, 'delete')
+            objs = database_create_data.operDB(sql, 'select')
             for obj in objs['data']:
                 sql_two = """delete from task_Detail_Data where tid={}""".format(obj[0])
                 database_create_data.operDB(sql_two, 'delete')
@@ -321,14 +338,14 @@ class Danao_Inter_Action(QObject):
                 })
         return str(data_list)
 
-    # 重点词监护 - 爬虫 获取需要执行的任务id 调用定时器  立即监控
+    # 重点词监护 - 立即监控 获取需要执行的任务id 调用定时器
     def set_pc_task_value(self, datas):
         self.huoqu_shoulu_time_stamp = int(time.time())
         self.dangqian_chaxunshoulu_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
-        for data in datas.replace(',', '').replace('[', '').replace(']', ''):
-            print(data, '--------------> ', type(data))
-            sql = """update task_Detail set is_perform = 1 where tid = {};""".format(data)
-            database_create_data.operDB(sql, 'update')
+        json_data = json.loads(datas)
+        for data in json_data:
+            print('data ----------> ',data)
+            timing_task.get_task_list(data)
 
     # 重点词监护 - 删除单个或多个 任务
     def delete_or_batch_delete_task(self, delete_id):
@@ -352,11 +369,12 @@ class Danao_Inter_Action(QObject):
     def get_view_The_subtasks_detail(self):
         if self.huoqu_task_id_detail:
             sql = """select * from task_Detail where tid = {};""".format(self.huoqu_task_id_detail)
+            # sql = """select * from task_Detail as A, task_Detail_Data as B where A.id=B.tid and A.tid={} limit 10;""".format(self.huoqu_task_id_detail)
             data_list = []
             headers_list = []
             exit_data_list = []
-            # print('huoqu_task_id_detail ========= > ',huoqu_task_id_detail)
             objs = database_create_data.operDB(sql, 'select')
+
             if objs:
                 for obj in objs['data']:
                     sql_two = """select create_time, paiming, is_shoulu from task_Detail_Data where tid = {} order by create_time desc limit 3""".format(obj[0])
@@ -488,19 +506,19 @@ class Danao_Inter_Action(QObject):
         self.huoqu_shoulu_time_stamp = int(time.time())
         self.dangqian_chaxunshoulu_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
         data_dict = json.loads(data)
-        mohu_pipei = ''
+        mohu_pipei, keyword, tid = '','',''
         if data_dict['searchEngineModel'] and data_dict['editor_content']:
             for search in data_dict['searchEngineModel']:
                 for url_data in data_dict['editor_content'].split('\n'):
                     if 'http' in url_data:
                         lianjie = url_data.strip().replace('\t', '')
                         print(search , '==========', lianjie , '========', mohu_pipei, '=========', self.huoqu_shoulu_time_stamp)
-                        threading_task.func_shoulu_fugai_chaxun(str(search), lianjie, mohu_pipei, self.huoqu_shoulu_time_stamp)
+                        threading_task.func_shoulu_fugai_chaxun(str(search), keyword, lianjie, mohu_pipei, tid, self.huoqu_shoulu_time_stamp)
 
     # 收录查询 - 查询数据库 展示
     def get_shoulu_zhanshi_list_value(self):
         if self.huoqu_shoulu_time_stamp:
-            sql = """select url,is_shoulu from shoulu_Linshi_List where {time_stamp};""".format(
+            sql = """select url,is_shoulu from shoulu_Linshi_List where {time_stamp} limit 10;""".format(
                 time_stamp=self.huoqu_shoulu_time_stamp)
             objs = database_create_data.operDB(sql, 'select')
             data_list = []
@@ -629,8 +647,8 @@ class Danao_Inter_Action(QObject):
     # 覆盖查询 - 获取时间戳 返回展示所有数据 详情数据 页码数据
     def get_fugai_zhanshi_list_value(self):
         if self.huoqu_fugai_time_stamp:
-            print('====================返回查询信息')
-            sql = """select * from fugai_Linshi_List where {time_stamp} limit 0,10;""".format(time_stamp=self.huoqu_fugai_time_stamp)
+            # print('====================返回查询信息')
+            sql = """select * from fugai_Linshi_List where {time_stamp} limit 10;""".format(time_stamp=self.huoqu_fugai_time_stamp)
             objs = database_create_data.operDB(sql, 'select')
             data_list = []
             for obj in objs['data']:
@@ -648,24 +666,25 @@ class Danao_Inter_Action(QObject):
                 })
             return json.dumps(data_list)
 
+    def get_fugai_fanhui_detail_or_page_data(self):
         if self.huoqu_fugai_xiangqing_or_page:
+            print('asdasdasdasd==========================> ', self.huoqu_fugai_xiangqing_or_page)
             data_list = []
-            if self.huoqu_fugai_xiangqing_or_page['getType'] == 'detail':
+            if self.huoqu_fugai_xiangqing_or_page['getType'] == 'page':
                 print('覆盖返回详情数据')
                 sql = """select * from fugai_Linshi_List where tid = {}""".format(self.huoqu_fugai_xiangqing)
                 objs = database_create_data.operDB(sql, 'select')
                 for obj in objs['data']:
                     data_list.append({
-                        'title':obj[4],
-                        'order':obj[2],
-                        'chaxun_tiaojian':obj[6],
-                        'title_url':obj[5]
+                        'title': obj[4],
+                        'order': obj[2],
+                        'chaxun_tiaojian': obj[6],
+                        'title_url': obj[5]
                     })
             else:
                 pass
-
+            print(json.dumps(data_list))
             return json.dumps(data_list)
-
 
     # 查询覆盖 - 生成 excel 表格
     def set_fugai_save_select_result_value(self,data):
@@ -817,37 +836,11 @@ class Danao_Inter_Action(QObject):
 
 
 
-
-    # # 爬虫 用户修改下次执行时间 添加数据库
-    # def set_pc_task_timing_value(self,data):
-    #     create_time = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
-    #     if data:
-    #         data = data.split(',')
-    #         conn = sqlite3.connect('./my_db/my_sqlite.db')
-    #         cursor = conn.cursor()
-    #         task_id = data[0]
-    #         task_next_time = data[1]
-    #         sql = """select next_datetime from task_List where id='{}';""".format(task_id)
-    #         cursor.execute(sql)
-    #         task_obj = ''
-    #         for obj in cursor:
-    #             if obj[0]:
-    #                 task_obj = obj[0]
-    #         print('task_next_time------------> ',task_next_time)
-    #         sql = """update task_List set next_datetime='{task_next_time}' where id='{task_id}';""".format(task_next_time=task_next_time,task_id=task_id)
-    #         print(sql)
-    #         cursor.execute(sql)
-    #         # # 即刻执行
-    #         # if task_next_time == create_time:
-    #         #     repeater_timing_task(data)
-    #     conn.commit()
-    #     conn.close()
-
     loginValue = pyqtProperty(str, fget=get_Loginvalue, fset=set_Loginvalue)
     # 重点词监护 - 增加任务
     createTaskListValue = pyqtProperty(str, fget=get_zhongdianci_create_task_list_value,
         fset=set_zhongdianci_create_value)
-    # 重点词监护 - 传递id 查询该id任务列表
+    # 重点词监护 - 查询修改前数据 传递id 查询该id任务列表
     updateTaskListValue = pyqtProperty(str, fget=get_zhongdianci_update_task_list_data_value,
         fset=set_zhongdianci_update_task_list_value)
     # 重点词监护 - 使用↑id 修改任务列表
@@ -857,27 +850,27 @@ class Danao_Inter_Action(QObject):
     # 重点词监护 - 获取id 查询该id详情
     selectDataTaskDetail = pyqtProperty(str, fget=get_zhongdianci_select_id_select_task_detail_value,
         fset=set_zhongdianci_select_id_select_task_detail_value)
-    # 重点词监护 - 爬虫 - 获取id 分辨 移动或pc端
+    # 重点词监护 - 立即监控 - 获取id 分辨 移动或pc端
     pcTaskValue = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_pc_task_value)
     # 重点词监护 - 删除单个或多个 任务
     deleteDataTask = pyqtProperty(str, fget=zhanwei_zhushou, fset=delete_or_batch_delete_task)
-    # 重点词监护 - 查看所有子任务 任务详情
+    # 重点词监护 - 查看该任务所有详情 及关键词
     viewThesubTasksDetail = pyqtProperty(str, fget=get_view_The_subtasks_detail,
         fset=set_task_id_view_The_subtasks_task)
     # 重点词监护 - 保存查询结果 导出excl表格
     saveTheQueryResults = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_save_select_results_task_excel_daochu)
 
-    # 爬虫 用户修改下次执行时间 添加数据库k
-    # pcTaskTimingValue = pyqtProperty(str,fget=zhanwei_zhushou, fset=set_pc_task_timing_value)
+
     # 收录查询 - 筛选链接 查询 及 展示入库
     ShouLuChaXun = pyqtProperty(str, fget=get_shoulu_zhanshi_list_value, fset=set_shoulu_select_get_list_value)
     # 收录查询 - 导出excel表格
     setShouLuDaoChuExcel = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_shoulu_save_select_result_value)
 
+
     # 覆盖查询 - 筛选关键词 查询入库及展示
     fugaiChaXun = pyqtProperty(str, fget=get_fugai_zhanshi_list_value, fset=set_fugai_select_get_list_value)
     # 覆盖查询 - 点击查看详情
-    fuGaiChaXunDtaielOrPage = pyqtProperty(str, fget=get_fugai_zhanshi_list_value, fset=set_fugai_chaxun_xiangqing)
+    fuGaiChaXunDtaielOrPage = pyqtProperty(str, fget=get_fugai_fanhui_detail_or_page_data, fset=set_fugai_chaxun_xiangqing)
     # 覆盖查询 - 导出excel表格
     setFuGaiDaoChuExcel = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_fugai_save_select_result_value)
 
@@ -974,7 +967,6 @@ class DaNao(object):
                       task_start_time      任务执行时间
                       time_stamp           时间戳
                       is_perform           是否执行
-                      
                 """
                 Task_Detail_sql = """CREATE TABLE task_Detail (
                       "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

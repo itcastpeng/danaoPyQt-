@@ -30,7 +30,7 @@ class Baidu_Zhidao_yuming_pc():
 
 
     def __init__(self,tid, yinqing, keyword, domain, detail_id=None,huoqu_gonggong_time_stamp=None,fugai_chaxun=None):
-        print('tid-------------> ',tid)
+        print('----------------------》',detail_id)
         self.tid = tid
         self.keyword = keyword
         self.domain = domain
@@ -38,18 +38,20 @@ class Baidu_Zhidao_yuming_pc():
         self.yinqing = yinqing
         self.fugai_chaxun = fugai_chaxun
         self.huoqu_gonggong_time_stamp = huoqu_gonggong_time_stamp
+
+
         self.headers = {
             'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)],
         }
         self.zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword='{}')
-        print('进入 pc 端')
+        # print('进入 pc 端')
         data_list = self.get_keywords()
         self.set_data(data_list)
 
 
     def get_keywords(self):
         self.random_time()
-        print('请求的链接-------------> ',self.zhidao_url.format(self.keyword))
+        # print('请求的链接-------------> ',self.zhidao_url.format(self.keyword))
         ret = requests.get(self.zhidao_url.format(self.keyword) ,headers=self.headers)
         soup = BeautifulSoup(ret.text, 'lxml')
         div_tags = soup.find_all('div', class_='result c-container ')
@@ -65,7 +67,7 @@ class Baidu_Zhidao_yuming_pc():
                 continue
             tiaojian_chaxun = div_tag.get_text()
             panduan_url = div_tag.find('h3',class_='t').find('a').attrs['href']
-            print('domainm =============> ',self.domain)
+            # print('domainm =============> ',self.domain)
             if self.domain in tiaojian_chaxun:
                 ret_two = requests.get(panduan_url, headers=self.headers)
                 ret_two_url = ret_two.url
@@ -115,16 +117,18 @@ class Baidu_Zhidao_yuming_pc():
                 search_engine = '1'
                 sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', title='{title}', title_url='{title_url}', chaxun_status='1' where id = {tid};""".format(
                     paiming_detail=data['paiming_detail'],title=data['title'],title_url=data['title_url'],tid=str(self.tid))
-                print(sql_two)
+                # print(sql_two)
                 database_create_data.operDB(sql_two, 'insert')
         else:
             date_time = datetime.datetime.today().strftime('%Y-%m-%d')
             for data in data_list:
-                sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
+                insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
                     order=data['paiming_detail'],shoulu=data['shoulu'],detail_id=data['detail_id'],date_time=date_time)
-                database_create_data.operDB(sql, 'insert')
+                database_create_data.operDB(insert_sql, 'insert')
 
-
+                update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
+                database_create_data.operDB(update_sql, 'update')
+                print('pc --- 覆盖', self.detail_id)
 
 
 

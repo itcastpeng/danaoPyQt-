@@ -11,8 +11,13 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
     headers = {
         'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
     url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'.format(domain)
-    # print(url)
-    ret = requests.get(domain, headers=headers)
+    ret = ''
+    if shoulu_canshu:
+        ret = requests.get(url, headers=headers)
+    else:
+        ret = requests.get(domain, headers=headers)
+    # print('url--------------> ',url)
+    # print(ret.url)
     soup = BeautifulSoup(ret.text, 'lxml')
     data_list = []
     title = ''
@@ -68,7 +73,7 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
         database_create_data.operDB(sql, 'insert')
 
     return data_list
-#
+
 url_list = [
 'http://www.iiijk.com/cjxw/04-74547.html',
 'http://news.100yiyao.com/detail/193538290.html          ',
@@ -119,7 +124,7 @@ class Baidu_Zhidao_URL_MOBILE(object):
         self.zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
 
         data_list = self.get_keywords()
-        print('data_list============> ',data_list)
+        # print('data_list============> ',data_list)
         self.set_data(data_list)
 
     def get_keywords(self):
@@ -154,7 +159,7 @@ class Baidu_Zhidao_URL_MOBILE(object):
                     str_data = eval(content_order['data-log'])
                     if str_data['mu']:
                         if str_data['mu'] == data_url['url']:
-                            print(str_data['mu'],' ==================== ',data_url['url'])
+                            # print(str_data['mu'],' ==================== ',data_url['url'])
                             paiming_order = str_data['order']
 
                             data_list_content.append({
@@ -162,7 +167,7 @@ class Baidu_Zhidao_URL_MOBILE(object):
                                 'shoulu': data_url['shoulu'],
                                 'detail_id': self.detail_id
                             })
-                            print('有')
+                            # print('有')
                             return data_list_content
         data_list_content = [{
             'order': 0,
@@ -170,7 +175,7 @@ class Baidu_Zhidao_URL_MOBILE(object):
             'detail_id': self.detail_id
         }]
 
-        print('无')
+        # print('无')
         return data_list_content
 
 
@@ -180,15 +185,15 @@ class Baidu_Zhidao_URL_MOBILE(object):
 
 
     def set_data(self, data_list):
-        print('thread_mobileurl ------------- > ', data_list)
+        # print('thread_mobileurl ------------- > ', data_list)
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
         for data in data_list:
-            sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
+            insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-            database_create_data.func(sql)
-
-        database_create_data.operDB(sql, 'insert')
-
+            database_create_data.operDB(insert_sql, 'insert')
+            update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
+            database_create_data.operDB(update_sql, 'update')
+            print('mobile --- url')
 
 # if __name__ == '__main__':
 #     keyword = '沈阳中泰肛肠医院怎么样？患者都在说好！'

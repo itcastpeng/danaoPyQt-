@@ -144,14 +144,14 @@ class Baidu_Zhidao_URL_PC():
         # print(data_list)
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
         for data in data_list:
-            sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
+            insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-        date_p = {
-            'sql':sql,
-            'id':data_list[0]['detail_id']
-        }
-        # database_create_data.func(date_p)
-        database_create_data.operDB(sql, 'insert')
+            database_create_data.operDB(insert_sql, 'insert')
+            update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
+            database_create_data.operDB(update_sql, 'update')
+
+
+
 
 # if __name__ == '__main__':
 #     keyword = '徐州市交通医院精神科靠谱吗？国家公立“医联体”联盟单位'
