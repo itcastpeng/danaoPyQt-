@@ -7,17 +7,16 @@ from mian.my_db import database_create_data
 
 
 def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None):
+    print('传递的参数--------> ', domain, '引擎', search, '公共', huoqu_shoulu_time_stamp, '收录参数', shoulu_canshu)
     domain = domain.strip()
     headers = {
         'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
-    url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'.format(domain)
+    zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'.format(domain)
     ret = ''
     if shoulu_canshu:
-        ret = requests.get(url, headers=headers)
+        ret = requests.get(zhidao_url, headers=headers)
     else:
         ret = requests.get(domain, headers=headers)
-    # print('url--------------> ',url)
-    # print(ret.url)
     soup = BeautifulSoup(ret.text, 'lxml')
     data_list = []
     title = ''
@@ -25,28 +24,27 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
     shoulu = 0
     if '抱歉，没有找到' in soup.find('div', id='results').find('div', class_='c-container').get_text():
         data_list.append({'shoulu':shoulu, 'url':'none'})
-        # print('无 数 据')
+        print('无 数 据')
     else:
+        print('==================',domain)
         shoulu = 1
         sleep(1)
         div_tags = soup.find('div', class_='results').find_all('div', class_='result c-result')[0]
         dict_data = eval(div_tags['data-log'])
-        pipri_url = dict_data['mu']
-        # print(pipri_url)
-
-
-        data_list.append({'url':pipri_url,'shoulu':shoulu})
-        if 'http' or 'https' in pipri_url and pipri_url:
-            # print('==================',domain)
+        pipei_url = dict_data['mu']
+        data_list.append({'url':pipei_url,'shoulu':shoulu})
+        if 'http' or 'https' in pipei_url and pipei_url:
+            print('=======================================================')
             ret_two = ''
             try:
-                ret_two = requests.get(pipri_url, headers=headers)
+                ret_two = requests.get(pipei_url, headers=headers)
             except Exception as e:
                 pass
             sleep(1)
             # html = urlopen(dict_data['mu']).read()
             # html = urlopen(domain).read()
             # encode_ret = chardet.detect(html)['encoding']
+            print('=--=-----------')
             if ret_two:
                 encode_ret = chardet.detect(ret_two.text.encode())['encoding']
                 if encode_ret == 'GB2312':
@@ -61,59 +59,65 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
                 if soup_two.find('h2'):
                     if len(soup_two.find('h2').get_text()) > 5:
                         title = soup_two.find('h2').get_text().strip().replace('\r\n','')
-            # print(title)
     if shoulu_canshu:
-        data = ''
-        if shoulu == 1:
-            data = (domain,shoulu,huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
-        else:
-            data = (domain, shoulu, huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
-        sql = """insert into shoulu_Linshi_List (url, is_shoulu, time_stamp, title, search,kuaizhao_time) values {data};""".format(data=data)
-        # print(sql)
-        database_create_data.operDB(sql, 'insert')
+        # data = ''
+        # if shoulu == 1:
+        #     data = (domain,shoulu,huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
+        # else:
+        #     data = (domain, shoulu, huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
+        # sql = """insert into shoulu_Linshi_List (url, is_shoulu, time_stamp, title, search,kuaizhao_time) values {data};""".format(data=data)
+        # print('sql-=----------------> ',sql)
+        sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}';""".format(
+            shoulu=shoulu,
+            title=title,
+            kuaizhao=kuaizhao_time
+        )
+        print('sql--------------> ',sql )
+        database_create_data.operDB(sql, 'update')
+    else:
+        return data_list
 
-    return data_list
-
-url_list = [
-'http://www.iiijk.com/cjxw/04-74547.html',
-'http://news.100yiyao.com/detail/193538290.html          ',
-'http://news.qiuyi.cn/html/2017/fuke_1205/63968.html     ',
-'http://at.025ct.com/dt/2017/1204/514781.html            ',
-'http://www.jianzhijia.com/hyzx/jkjd/79379.html          ',
-'http://news.39.net/a/171204/5901183.html                ',
-'http://news.39.net/a/171204/5901194.html                ',
-'http://news.360xh.com/201712/04/37416.html              ',
-'http://www.iiijk.com/cjxw/04-74550.html                 ',
-'http://www.jianzhijia.com/hyzx/jkjd/79381.html          ',
-'http://news.qiuyi.cn/html/2017/zhengxing_1204/63922.html',
-'http://news.39.net/a/171204/5902419.html                ',
-'http://www.jianzhijia.com/hyzx/jkjd/79383.html          ',
-'http://news.360xh.com/201712/04/37402.html              ',
-'http://www.sohu.com/a/208330800_544906                  ',
-'http://www.iiijk.com/cjxw/04-74552.html                 ',
-'http://www.iiijk.com/cjxw/04-74551.html                 ',
-'http://focus.smxe.cn/20171204/148402.shtml              ',
-'http://news.360xh.com/201712/04/37408.html              ',
-'http://news.39.net/a/171204/5902423.html                ',
-'http://www.jianzhijia.com/hyzx/jkjd/79385.html          ',
-'http://news.360xh.com/201712/04/37409.html              ',
-'http://news.360xh.com/201712/04/37410.html              ',
-'http://news.100yiyao.com/detail/193538295.html          ',
-'http://www.jianzhijia.com/hyzx/jkjd/79387.html          ',
-'http://news.100yiyao.com/detail/193538308.html          ',
-'http://news.360xh.com/201712/04/37411.html              ',
-'http://news.39.net/a/171204/5902507.html                ',
-'http://news.360xh.com/201712/04/37412.html              ',
-'http://www.jianzhijia.com/hyzx/jkjd/79388.html          ',
-'http://news.39.net/a/171204/5902519.html                ',
-'http://news.360xh.com/201712/04/37414.html              ',
-'http://www.jianzhijia.com/hyzx/jkjd/79389.html          ',
-'http://news.cx368.com/news/gd/2017/1204/69128.html      ',]
+# url_list = [
+# 'http://www.iiijk.com/cjxw/04-74547.html',
+# 'http://news.100yiyao.com/detail/193538290.html          ',
+# 'http://news.qiuyi.cn/html/2017/fuke_1205/63968.html     ',
+# 'http://at.025ct.com/dt/2017/1204/514781.html            ',
+# 'http://www.jianzhijia.com/hyzx/jkjd/79379.html          ',
+# 'http://news.39.net/a/171204/5901183.html                ',
+# 'http://news.39.net/a/171204/5901194.html                ',
+# 'http://news.360xh.com/201712/04/37416.html              ',
+# 'http://www.iiijk.com/cjxw/04-74550.html                 ',
+# 'http://www.jianzhijia.com/hyzx/jkjd/79381.html          ',
+# 'http://news.qiuyi.cn/html/2017/zhengxing_1204/63922.html',
+# 'http://news.39.net/a/171204/5902419.html                ',
+# 'http://www.jianzhijia.com/hyzx/jkjd/79383.html          ',
+# 'http://news.360xh.com/201712/04/37402.html              ',
+# 'http://www.sohu.com/a/208330800_544906                  ',
+# 'http://www.iiijk.com/cjxw/04-74552.html                 ',
+# 'http://www.iiijk.com/cjxw/04-74551.html                 ',
+# 'http://focus.smxe.cn/20171204/148402.shtml              ',
+# 'http://news.360xh.com/201712/04/37408.html              ',
+# 'http://news.39.net/a/171204/5902423.html                ',
+# 'http://www.jianzhijia.com/hyzx/jkjd/79385.html          ',
+# 'http://news.360xh.com/201712/04/37409.html              ',
+# 'http://news.360xh.com/201712/04/37410.html              ',
+# 'http://news.100yiyao.com/detail/193538295.html          ',
+# 'http://www.jianzhijia.com/hyzx/jkjd/79387.html          ',
+# 'http://news.100yiyao.com/detail/193538308.html          ',
+# 'http://news.360xh.com/201712/04/37411.html              ',
+# 'http://news.39.net/a/171204/5902507.html                ',
+# 'http://news.360xh.com/201712/04/37412.html              ',
+# 'http://www.jianzhijia.com/hyzx/jkjd/79388.html          ',
+# 'http://news.39.net/a/171204/5902519.html                ',
+# 'http://news.360xh.com/201712/04/37414.html              ',
+# 'http://www.jianzhijia.com/hyzx/jkjd/79389.html          ',
+# 'http://news.cx368.com/news/gd/2017/1204/69128.html      ',]
 # for url in url_list:
 #     huoqu_shoulu_time_stamp = '测试mobiel'
 #     shoulu_canshu = 1
 #     search = '4'
-#     shoulu_chaxun(url,search,huoqu_shoulu_time_stamp,shoulu_canshu)
+#     print(url)
+    # shoulu_chaxun(url,search,huoqu_shoulu_time_stamp,shoulu_canshu)
 
 class Baidu_Zhidao_URL_MOBILE(object):
 

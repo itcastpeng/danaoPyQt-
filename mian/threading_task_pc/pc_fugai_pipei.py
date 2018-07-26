@@ -29,15 +29,16 @@ pcRequestHeader = [
 class Baidu_Zhidao_yuming_pc():
 
 
-    def __init__(self,tid, yinqing, keyword, domain, detail_id=None,huoqu_gonggong_time_stamp=None,fugai_chaxun=None):
+    def __init__(self,tid, yinqing, keyword, domain, detail_id=None,huoqu_fugai_time_stamp=None,fugai_canshu=None):
+        print('进入pc端----------爬虫','detail_id-->',detail_id,'父id-->',tid, '引擎--> ',yinqing, '关键词--> ',keyword, '搜索条件--> ',domain, '时间戳--->', huoqu_fugai_time_stamp, '覆盖参数--> ',fugai_canshu)
         # print('----------------------》',detail_id)
         self.tid = tid
         self.keyword = keyword
         self.domain = domain
         self.detail_id = detail_id
         self.yinqing = yinqing
-        self.fugai_chaxun = fugai_chaxun
-        self.huoqu_gonggong_time_stamp = huoqu_gonggong_time_stamp
+        self.fugai_canshu = fugai_canshu
+        self.huoqu_fugai_time_stamp = huoqu_fugai_time_stamp
 
 
         self.headers = {
@@ -84,12 +85,13 @@ class Baidu_Zhidao_yuming_pc():
                     order_list.append(int(rank_num))
                     str_order = ",".join(str(i) for i in order_list)
                     shoulu = 1
-                    if self.fugai_chaxun:
+                    if self.fugai_canshu:
                         search_engine = '1'
                         sql = """insert into fugai_Linshi_List (keyword, paiming_detail, search_engine, title, title_url, sousuo_guize, time_stamp, tid) values ('{keyword}', '{paiming_detail}', '{search_engine}', '{title}', '{title_url}', '{sousuo_guize}', '{time_stamp}','{tid}');""".format(
                             keyword=self.keyword, paiming_detail=rank_num, search_engine=search_engine,
                             title=title, title_url=ret_two_url, sousuo_guize=self.domain,
                             time_stamp=None,tid=str(self.tid))
+                        print('sql--------> ', sql)
                         database_create_data.operDB(sql, 'insert')
 
         # print('order-----> ',str_order, shoulu,detail_id,ret_two_url,yinqing,title,self.huoqu_gonggong_time_stamp)
@@ -100,7 +102,7 @@ class Baidu_Zhidao_yuming_pc():
             'title_url': ret_two_url,
             'yiniqng': self.yinqing,
             'title': title,
-            'time_stamp':self.huoqu_gonggong_time_stamp,
+            'time_stamp':self.huoqu_fugai_time_stamp,
             'sousuo_guize':self.domain,
             'keyword':self.keyword
         })
@@ -112,7 +114,8 @@ class Baidu_Zhidao_yuming_pc():
 
 
     def set_data(self,data_list):
-        if self.fugai_chaxun:
+        if self.fugai_canshu:
+            print('结束')
             for data in data_list:
                 search_engine = '1'
                 sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', title='{title}', title_url='{title_url}', chaxun_status='1' where id = {tid};""".format(
@@ -128,7 +131,7 @@ class Baidu_Zhidao_yuming_pc():
 
                 update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
                 database_create_data.operDB(update_sql, 'update')
-                # print('pc --- 覆盖', self.detail_id)
+
 
 
 
@@ -137,6 +140,6 @@ class Baidu_Zhidao_yuming_pc():
 #     domain = '合众康桥'
 #     detail_id = 22
 #     yinqing = '1'
-#     # def __init__(self, yinqing, keyword, domain, detail_id=None, huoqu_gonggong_time_stamp=None, fugai_chaxun=None):
-#     Baidu_Zhidao_yuming_pc(yinqing,keyword,domain,detail_id,fugai_chaxun=1)
+#     # def __init__(self, yinqing, keyword, domain, detail_id=None, huoqu_gonggong_time_stamp=None, fugai_canshu=None):
+#     Baidu_Zhidao_yuming_pc(yinqing,keyword,domain,detail_id,fugai_canshu=1)
 

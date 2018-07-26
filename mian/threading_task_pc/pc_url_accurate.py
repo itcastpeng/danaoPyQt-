@@ -1,10 +1,11 @@
-import requests, random
 from bs4 import BeautifulSoup
 from time import sleep
-import datetime
-import chardet
 from urllib.request import urlopen
 from mian.my_db import database_create_data
+import random
+import datetime
+import chardet
+import requests
 
 pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 5.1; rv:6.0.2) Gecko/20100101 Firefox/6.0.2',
@@ -25,39 +26,38 @@ pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0',
     'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:2.0b13pre) Gecko/20110307 Firefox/4.0b13'
 ]
-headers = {
-    'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
+headers = {'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
 
 def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None):
-    huoqu_shoulu_time_stamp = ''
     domain = domain.strip()
-    url = 'https://www.baidu.com/s?wd={domain}'.format(domain=domain)
+    zhidao_url = 'http://www.baidu.com/s?wd={domain}'.format(domain=domain)
     shoulu = 0
     kuaizhao_time = ''
     title = ''
-    ret_domain = requests.get(url, headers=headers)
+    headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'}
+    sleep(1)
+    ret_domain = requests.get(zhidao_url, headers=headers)
     soup_domain = BeautifulSoup(ret_domain.text, 'lxml')
+    div_tags = soup_domain.find_all('div', class_='result c-container ')
     if soup_domain.find('div', class_='content_none'):
         pass
     else:
-        div_tags = soup_domain.find_all('div', class_='result c-container ')[0]
-        if div_tags and div_tags.attrs.get('id'):
-            f13_div_tag = div_tags.find('div', class_='f13')
+        div_tags = soup_domain.find_all('div', class_='result c-container ')
+        if div_tags and div_tags[0].attrs.get('id'):
+            f13_div_tag = div_tags[0].find('div', class_='f13')
             a_tag = f13_div_tag.find('a')
-            f13_div = div_tags.find('div', class_='f13')
+            f13_div = div_tags[0].find('div', class_='f13')
             yuming = f13_div.find('a').get_text()[:-5].split('/')[0]  # 获取域名
-            if div_tags.find('span', class_='newTimeFactor_before_abs'):
-                kuaizhao_time =div_tags.find('span', class_='newTimeFactor_before_abs').get_text().strip().replace('-','').replace('年','-').replace('月','-').replace('日','').strip()
+            if div_tags[0].find('span', class_='newTimeFactor_before_abs'):
+                kuaizhao_time =div_tags[0].find('span', class_='newTimeFactor_before_abs').get_text().strip().replace('-','').replace('年','-').replace('月','-').replace('日','').strip()
             if yuming in domain:
-                panduan_url = div_tags.find('a').attrs['href']
-                # print('======================',panduan_url)
-                sleep(1)
+                panduan_url = div_tags[0].find('a').attrs['href']
                 try:
+                    sleep(1)
                     ret_two = requests.get(panduan_url, headers=headers)
                     ret_two_url = ret_two.url
-                    html = urlopen(panduan_url).read()
-                    encode_ret = chardet.detect(html)['encoding']                       # 测试环境使用 ip被封
-
+                    # html = urlopen(panduan_url).read()
+                    # encode_ret = chardet.detect(html)['encoding']                       # 测试环境使用 ip被封
                     encode_ret = chardet.detect(ret_two.text.encode())['encoding']    # 线上可用
                     if encode_ret == 'GB2312':
                         ret_two.encoding = 'gbk'
@@ -65,20 +65,25 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
                         ret_two.encoding = 'utf-8'
                     soup_two = BeautifulSoup(ret_two.text, 'lxml')
                     title = soup_two.find('title').get_text().strip().replace('\r\n','')
-                    if domain == ret_two_url :
+                    # print('domain, ret_two_url---------------- > ',domain, ret_two_url)
+                    if domain in ret_two_url :
                         shoulu = 1
                 except Exception as e:
                     pass
             if shoulu_canshu:
-                data = ''
-                if shoulu == 1:
-                    data = (domain, shoulu, huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
-                else:
-                    data = (domain, shoulu, huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
-                sql = """insert into shoulu_Linshi_List (url, is_shoulu, time_stamp, title, search, kuaizhao_time) values {data};""".format(data=data)
-                database_create_data.operDB(sql, 'insert')
+                sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}'""".format(
+                    shoulu=shoulu,
+                    title=title,
+                    kuaizhao=kuaizhao_time
+                )
+                database_create_data.operDB(sql, 'update')
     return shoulu
 
+# domain = 'http://www.bjhzkq.com'
+# search = '1'
+# shoulu_canshu = 1
+# huoqu_gonggong_time_stamp = 111111
+# shoulu_chaxun(domain, search,huoqu_gonggong_time_stamp, shoulu_canshu)
 
 class Baidu_Zhidao_URL_PC():
 

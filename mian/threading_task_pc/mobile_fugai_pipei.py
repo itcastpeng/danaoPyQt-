@@ -55,6 +55,7 @@ class Baidu_Zhidao_yuming_mobile(object):
 
 
     def __init__(self,tid, yinqing, keyword, domain, detail_id=None, huoqu_gonggong_time_stamp=None,fugai_chaxun=None):
+        print('进入爬虫 ---------- 移动端')
         self.tid = tid
         self.keyword = keyword
         self.domain = domain
