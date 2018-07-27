@@ -6,7 +6,7 @@ import chardet
 from mian.my_db import database_create_data
 
 
-def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None):
+def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=None, data_id=None):
     print('传递的参数--------> ', domain, '引擎', search, '公共', huoqu_shoulu_time_stamp, '收录参数', shoulu_canshu)
     domain = domain.strip()
     headers = {
@@ -22,21 +22,30 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
     title = ''
     kuaizhao_time = ''
     shoulu = 0
+    status_code = ''
     if '抱歉，没有找到' in soup.find('div', id='results').find('div', class_='c-container').get_text():
         data_list.append({'shoulu':shoulu, 'url':'none'})
-        print('无 数 据')
+        title = ''
+        kuaizhao_time = ''
+        shoulu = 0
+        status_code = ''
     else:
-        print('==================',domain)
         shoulu = 1
         sleep(1)
-        div_tags = soup.find('div', class_='results').find_all('div', class_='result c-result')[0]
-        dict_data = eval(div_tags['data-log'])
+        div_tags = ''
+        if soup.find_all('div', class_='result c-result')[0].attrs.get('order') == '1':
+            div_tags = soup.find_all('div', class_='result c-result')
+        else:
+            div_tags = soup.find_all('div', class_='result c-result c-clk-recommend')
+        sleep(1)
+        dict_data = eval(div_tags[0]['data-log'])
         pipei_url = dict_data['mu']
+        print('pipei_url------------------------>' ,pipei_url)
         data_list.append({'url':pipei_url,'shoulu':shoulu})
         if 'http' or 'https' in pipei_url and pipei_url:
-            print('=======================================================')
             ret_two = ''
             try:
+                # print('pipei_url==============>',pipei_url)
                 ret_two = requests.get(pipei_url, headers=headers)
             except Exception as e:
                 pass
@@ -44,13 +53,13 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
             # html = urlopen(dict_data['mu']).read()
             # html = urlopen(domain).read()
             # encode_ret = chardet.detect(html)['encoding']
-            print('=--=-----------')
             if ret_two:
                 encode_ret = chardet.detect(ret_two.text.encode())['encoding']
                 if encode_ret == 'GB2312':
                     ret_two.encoding = 'gbk'
                 else:
                     ret_two.encoding = 'utf-8'
+                status_code = ret_two.status_code
                 soup_two = BeautifulSoup(ret_two.text, 'lxml')
                 # print('编码格式 -——----> ', ret.encoding)
                 if soup_two.find('h1'):
@@ -60,20 +69,29 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
                     if len(soup_two.find('h2').get_text()) > 5:
                         title = soup_two.find('h2').get_text().strip().replace('\r\n','')
     if shoulu_canshu:
-        # data = ''
+        print('==========================================================================',status_code)
+        data = ''
         # if shoulu == 1:
         #     data = (domain,shoulu,huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
         # else:
         #     data = (domain, shoulu, huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
         # sql = """insert into shoulu_Linshi_List (url, is_shoulu, time_stamp, title, search,kuaizhao_time) values {data};""".format(data=data)
         # print('sql-=----------------> ',sql)
-        sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}';""".format(
+        select_sql = """select id from shoulu_Linshi_List where time_stamp='{time_stamp}' and url='{url}' and search={search}""".format(
+            time_stamp=huoqu_shoulu_time_stamp, url=domain, search=search)
+        print('select_sql----------------> ', select_sql)
+        id_objs = database_create_data.operDB(select_sql, 'select')
+        id_obj = id_objs['data'][0][0]
+        print('获取的id mobile =-===================-----> ', id_obj)
+        update_sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}', status_code='{status_code}' where id={id};""".format(
             shoulu=shoulu,
             title=title,
-            kuaizhao=kuaizhao_time
+            kuaizhao=kuaizhao_time,
+            status_code=status_code,
+            id=id_obj
         )
-        print('sql--------------> ',sql )
-        database_create_data.operDB(sql, 'update')
+        print('sql--------------> ',update_sql )
+        database_create_data.operDB(update_sql, 'update')
     else:
         return data_list
 
@@ -118,6 +136,8 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None)
 #     search = '4'
 #     print(url)
     # shoulu_chaxun(url,search,huoqu_shoulu_time_stamp,shoulu_canshu)
+
+
 
 class Baidu_Zhidao_URL_MOBILE(object):
 

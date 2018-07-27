@@ -162,7 +162,16 @@
                  // });
             }
         }
+     function fugaiDetailChaxun(){
+                if (bridge){
+                    bridge.fugaiDetailChaxun = '1055';
 
+                     new QWebChannel(qt.webChannelTransport, function(channel) {
+                         obj = channel.objects.bridge;
+                         // alert(obj.setShouLuChaXun)
+                     });
+                }
+            }
 
 
     </script>
@@ -231,7 +240,9 @@
     <div style="padding-top:10px ">
         <input type="button" value="覆盖导出excel " onclick="setFuGaiDaoChuExcel()">
     </div>
-
+    <div style="padding-top:10px ">
+        <input type="button" value="覆盖查询详情 " onclick="fugaiDetailChaxun()">
+    </div>
 
 
 </form>

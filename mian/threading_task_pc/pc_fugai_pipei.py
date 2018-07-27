@@ -27,8 +27,6 @@ pcRequestHeader = [
 
 
 class Baidu_Zhidao_yuming_pc():
-
-
     def __init__(self,tid, yinqing, keyword, domain, detail_id=None,huoqu_fugai_time_stamp=None,fugai_canshu=None):
         print('进入pc端----------爬虫','detail_id-->',detail_id,'父id-->',tid, '引擎--> ',yinqing, '关键词--> ',keyword, '搜索条件--> ',domain, '时间戳--->', huoqu_fugai_time_stamp, '覆盖参数--> ',fugai_canshu)
         # print('----------------------》',detail_id)
@@ -46,8 +44,11 @@ class Baidu_Zhidao_yuming_pc():
         }
         self.zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword='{}')
         # print('进入 pc 端')
-        data_list = self.get_keywords()
-        self.set_data(data_list)
+        if self.fugai_canshu:
+            self.get_keywords()
+        else:
+            data_list = self.get_keywords()
+            self.set_data(data_list)
 
 
     def get_keywords(self):
@@ -62,16 +63,19 @@ class Baidu_Zhidao_yuming_pc():
         shoulu = 0
         order_list = []
         str_order = 0
+        status_code = ''
         for div_tag in div_tags:
             rank_num = div_tag.attrs.get('id')
             if not rank_num:
                 continue
             tiaojian_chaxun = div_tag.get_text()
             panduan_url = div_tag.find('h3',class_='t').find('a').attrs['href']
-            # print('domainm =============> ',self.domain)
+            # print('domainm =============> ',self.domain, type(self.domain))
             if self.domain in tiaojian_chaxun:
+                print('panduan_url=====================> ',panduan_url)
                 ret_two = requests.get(panduan_url, headers=self.headers)
                 ret_two_url = ret_two.url
+                status_code = ret_two.status_code
                 # html = urlopen(panduan_url).read()
                 # encode_ret = chardet.detect(html)['encoding']
                 encode_ret = chardet.detect(ret_two.text.encode())['encoding']
@@ -80,33 +84,41 @@ class Baidu_Zhidao_yuming_pc():
                 else:
                     ret_two.encoding = 'utf-8'
                 soup_two = BeautifulSoup(ret_two.text, 'lxml')
-                if len(soup_two.find('title').get_text()) > 5 and soup_two.find('title').get_text():
-                    title = soup_two.find('title').get_text()
-                    order_list.append(int(rank_num))
-                    str_order = ",".join(str(i) for i in order_list)
-                    shoulu = 1
-                    if self.fugai_canshu:
-                        search_engine = '1'
-                        sql = """insert into fugai_Linshi_List (keyword, paiming_detail, search_engine, title, title_url, sousuo_guize, time_stamp, tid) values ('{keyword}', '{paiming_detail}', '{search_engine}', '{title}', '{title_url}', '{sousuo_guize}', '{time_stamp}','{tid}');""".format(
-                            keyword=self.keyword, paiming_detail=rank_num, search_engine=search_engine,
-                            title=title, title_url=ret_two_url, sousuo_guize=self.domain,
-                            time_stamp=None,tid=str(self.tid))
-                        print('sql--------> ', sql)
-                        database_create_data.operDB(sql, 'insert')
-
-        # print('order-----> ',str_order, shoulu,detail_id,ret_two_url,yinqing,title,self.huoqu_gonggong_time_stamp)
-        data_list.append({
-            'paiming_detail': str_order,
-            'shoulu': shoulu,
-            'detail_id': self.detail_id,
-            'title_url': ret_two_url,
-            'yiniqng': self.yinqing,
-            'title': title,
-            'time_stamp':self.huoqu_fugai_time_stamp,
-            'sousuo_guize':self.domain,
-            'keyword':self.keyword
-        })
-        return data_list
+                if soup_two.find('title'):
+                    if len(soup_two.find('title').get_text()) > 5 and soup_two.find('title'):
+                        title = soup_two.find('title').get_text()
+                        order_list.append(int(rank_num))
+                        str_order = ",".join(str(i) for i in order_list)
+                        shoulu = 1
+                        if self.fugai_canshu:
+                            search_engine = '1'
+                            # print('====-=-=-==-> ',self.keyword, rank_num, search_engine, title, ret_two_url, self.domain, self.tid, status_code)
+                            insert_sql = """insert into fugai_Linshi_List (keyword, paiming_detail, search_engine, title, title_url, sousuo_guize, time_stamp, tid) values ('{keyword}', '{paiming_detail}', '{search_engine}', '{title}', '{title_url}', '{sousuo_guize}', '{time_stamp}','{tid}');""".format(
+                                keyword=self.keyword, paiming_detail=rank_num, search_engine=search_engine,
+                                title=title, title_url=ret_two_url, sousuo_guize=self.domain,
+                                time_stamp=None,tid=str(self.tid))
+                            # print('insert_sql--------> ', insert_sql)
+                            database_create_data.operDB(insert_sql, 'insert')
+        if self.fugai_canshu:
+            search_engine = '1'
+            sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', chaxun_status='1' where id = {id};""".format(
+                paiming_detail=str_order, id=self.tid)
+            print('sql_two-=------------> ',sql_two)
+            database_create_data.operDB(sql_two, 'insert')
+        else:
+            data_list.append({
+                'paiming_detail': str_order,
+                'shoulu': shoulu,
+                'detail_id': self.detail_id,
+                # 'title_url': ret_two_url,
+                # 'yiniqng': self.yinqing,
+                # 'title': title,
+                # 'time_stamp':self.huoqu_fugai_time_stamp,
+                # 'sousuo_guize':self.domain,
+                # 'keyword':self.keyword,
+                # 'status_code':status_code
+            })
+            return data_list
 
 
     def random_time(self):
@@ -114,23 +126,23 @@ class Baidu_Zhidao_yuming_pc():
 
 
     def set_data(self,data_list):
-        if self.fugai_canshu:
-            print('结束')
-            for data in data_list:
-                search_engine = '1'
-                sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', title='{title}', title_url='{title_url}', chaxun_status='1' where id = {tid};""".format(
-                    paiming_detail=data['paiming_detail'],title=data['title'],title_url=data['title_url'],tid=str(self.tid))
-                # print(sql_two)
-                database_create_data.operDB(sql_two, 'insert')
-        else:
-            date_time = datetime.datetime.today().strftime('%Y-%m-%d')
-            for data in data_list:
-                insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
-                    order=data['paiming_detail'],shoulu=data['shoulu'],detail_id=data['detail_id'],date_time=date_time)
-                database_create_data.operDB(insert_sql, 'insert')
-
-                update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-                database_create_data.operDB(update_sql, 'update')
+        # if self.fugai_canshu:
+        #     print('结束')
+        #     for data in data_list:
+        #         search_engine = '1'
+        #         sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', title='{title}', title_url='{title_url}', chaxun_status='1', status_code='{status_code}' where id = {tid};""".format(
+        #             paiming_detail=data['paiming_detail'], title=data['title'], title_url=data['title_url'],
+        #             tid=str(self.tid), status_code=data['status_code'])
+        #         print('sql_two-=------------> ', sql_two)
+        #         database_create_data.operDB(sql_two, 'insert')
+        # else:
+        date_time = datetime.datetime.today().strftime('%Y-%m-%d')
+        for data in data_list:
+            insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
+                order=data['paiming_detail'],shoulu=data['shoulu'],detail_id=data['detail_id'],date_time=date_time)
+            database_create_data.operDB(insert_sql, 'insert')
+            update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
+            database_create_data.operDB(update_sql, 'update')
 
 
 

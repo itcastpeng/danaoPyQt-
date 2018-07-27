@@ -65,10 +65,12 @@ class Baidu_Zhidao_yuming_mobile(object):
         self.huoqu_gonggong_time_stamp = huoqu_gonggong_time_stamp
         self.zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
         self.headers = {'User-Agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
-
-        # print('进入 手机端 ')
-        data_list = self.get_keyword()
-        self.set_data(data_list)
+        if self.fugai_chaxun:
+            self.get_keyword()
+        else:
+            # print('进入 手机端 ')
+            data_list = self.get_keyword()
+            self.set_data(data_list)
 
 
     def get_keyword(self):
@@ -91,6 +93,7 @@ class Baidu_Zhidao_yuming_mobile(object):
         order_list = []
         shoulu = 0
         str_order = 0
+        status_code = ''
         for data in content_list_order:
             if data['data-log']:
                 dict_data = eval(data['data-log'])
@@ -110,6 +113,7 @@ class Baidu_Zhidao_yuming_mobile(object):
                                 soup_two = BeautifulSoup(ret_two.text, 'lxml')
                                 if soup_two.find('title'):
                                     title = soup_two.find('title').get_text()
+                                    status_code = ret_two.status_code
                                     if self.fugai_chaxun:
                                         search_engine = '4'
                                         sql = """insert into fugai_Linshi_List (keyword, paiming_detail, search_engine, title, title_url, sousuo_guize, time_stamp, tid) values ('{keyword}', '{paiming_detail}', '{search_engine}', '{title}', '{title_url}', '{sousuo_guize}', '{time_stamp}','{tid}');""".format(
@@ -119,19 +123,26 @@ class Baidu_Zhidao_yuming_mobile(object):
                                         database_create_data.operDB(sql, 'insert')
                         except Exception as e:
                             pass
-
-        data_list.append({
-            'paiming_detail': str_order,
-            'shoulu': shoulu,
-            'detail_id': self.detail_id,
-            'title_url': url_title,
-            'yiniqng': self.yinqing,
-            'title': title,
-            'time_stamp': self.huoqu_gonggong_time_stamp,
-            'sousuo_guize': self.domain,
-            'keyword': self.keyword
-        })
-        return data_list
+        if self.fugai_chaxun:
+            for data in data_list:
+                search_engine = '4'
+                sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', chaxun_status='1' where id = {tid};""".format(
+                    paiming_detail=data['paiming_detail'],tid=str(self.tid),)
+                database_create_data.operDB(sql_two, 'insert')
+        else:
+            data_list.append({
+                'paiming_detail': str_order,
+                'shoulu': shoulu,
+                'detail_id': self.detail_id,
+                # 'title_url': url_title,
+                # 'yiniqng': self.yinqing,
+                # 'title': title,
+                # 'time_stamp': self.huoqu_gonggong_time_stamp,
+                # 'sousuo_guize': self.domain,
+                # 'keyword': self.keyword,
+                # 'status_code':status_code
+            })
+            return data_list
 
 
     def random_time(self):
@@ -139,22 +150,24 @@ class Baidu_Zhidao_yuming_mobile(object):
 
 
     def set_data(self, data_list):
-        if self.fugai_chaxun:
-            for data in data_list:
-                search_engine = '4'
-                sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', title='{title}', title_url='{title_url}', chaxun_status='1' where id = {tid};""".format(
-                    paiming_detail=data['paiming_detail'], title=data['title'], title_url=data['title_url'],
-                    tid=str(self.tid))
-                # print(sql_two)
-                database_create_data.operDB(sql_two, 'insert')
-        else:
-            date_time = datetime.datetime.today().strftime('%Y-%m-%d')
-            for data in data_list:
-                insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
-                    order=data['paiming_detail'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-                database_create_data.operDB(insert_sql, 'insert')
-                update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-                database_create_data.operDB(update_sql, 'update')
+        # if self.fugai_chaxun:
+        #     for data in data_list:
+        #         search_engine = '4'
+        #         sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', title='{title}', title_url='{title_url}', chaxun_status='1',  status_code={status_code} where id = {tid};""".format(
+        #             paiming_detail=data['paiming_detail'], title=data['title'], title_url=data['title_url'],
+        #             tid=str(self.tid),
+        #             status_code=data['status_code']
+        #             )
+        #         # print(sql_two)
+        #         database_create_data.operDB(sql_two, 'insert')
+        # else:
+        date_time = datetime.datetime.today().strftime('%Y-%m-%d')
+        for data in data_list:
+            insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
+                order=data['paiming_detail'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
+            database_create_data.operDB(insert_sql, 'insert')
+            update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
+            database_create_data.operDB(update_sql, 'update')
                 # print('mobile ==fugai')
 
 

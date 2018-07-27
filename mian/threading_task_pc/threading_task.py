@@ -96,6 +96,7 @@ thread_shoulu_obj = gonggong_pool.get_thread()
 
 # 收录
 def shoulu_pc(search, lianjie, huoqu_shoulu_time_stamp, shoulu_canshu):
+    print('进入-------------')
     pc_url_accurate.shoulu_chaxun(lianjie, search, huoqu_shoulu_time_stamp, shoulu_canshu)
     gonggong_pool.add_thread()
 
@@ -110,7 +111,8 @@ def shoulu_func(data_list):
         search = data['search']
         lianjie = data['lianjie']
         huoqu_shoulu_time_stamp = data['huoqu_shoulu_time_stamp']
-        if search == '1':
+        print('引擎-----------> ',search, '链接--------> ',huoqu_shoulu_time_stamp)
+        if str(search) == '1':
             shoulu_pc_obj = thread_shoulu_obj(target=shoulu_pc, args=(search, lianjie, huoqu_shoulu_time_stamp, shoulu_canshu))
             shoulu_pc_obj.start()
         else:
@@ -118,30 +120,34 @@ def shoulu_func(data_list):
             thread_mobile_url.start()
 
 
-
-# # 覆盖
+# 覆盖
 def fugai_pc(tid, yinqing, keyword, mohu_pipei, huoqu_fugai_time_stamp, fugai_canshu):
-    print('进入pc  端fugai_canshu ===========/ ',fugai_canshu)
+    # print('进入pc  端fugai_canshu ===========/ ',fugai_canshu)
     detail_id = ''
     pc_fugai_pipei.Baidu_Zhidao_yuming_pc(tid, yinqing, keyword, mohu_pipei, detail_id, huoqu_fugai_time_stamp,fugai_canshu)
     gonggong_pool.add_thread()
 
 def fugai_mobile(tid, yinqing, keyword, mohu_pipei, huoqu_fugai_time_stamp, fugai_canshu):
-    print('进入 移动端')
+    # print('进入 移动端')
     detail_id = ''
     mobile_fugai_pipei.Baidu_Zhidao_yuming_mobile(tid, yinqing, keyword, mohu_pipei, detail_id, huoqu_fugai_time_stamp, fugai_canshu)
     gonggong_pool.add_thread()
 
 # 运行程序 - 覆盖查询
-def fugai_func(yinqing, keyword, mohu_pipei, tid, huoqu_fugai_time_stamp):
-    print('进入-------')
+def fugai_func(data_list):
     fugai_canshu = 1
-    if yinqing == '1':
-        shoulu_pc_obj = thread_shoulu_obj(target=fugai_pc, args=(tid, yinqing, keyword, mohu_pipei, huoqu_fugai_time_stamp, fugai_canshu))
-        shoulu_pc_obj.start()
-    else:
-        thread_mobile_url = thread_shoulu_obj(target=fugai_mobile, args=(tid, yinqing, keyword, mohu_pipei, huoqu_fugai_time_stamp, fugai_canshu))
-        thread_mobile_url.start()
+    for data in data_list:
+        yinqing = data['search']
+        keyword = data['keyword']
+        mohu_pipei = data['tiaojian']
+        tid = data['tid']
+        huoqu_fugai_time_stamp = data['huoqu_fugai_time_stamp']
+        if yinqing == '1':
+            shoulu_pc_obj = thread_shoulu_obj(target=fugai_pc, args=(tid, yinqing, keyword, mohu_pipei, huoqu_fugai_time_stamp, fugai_canshu))
+            shoulu_pc_obj.start()
+        else:
+            thread_mobile_url = thread_shoulu_obj(target=fugai_mobile, args=(tid, yinqing, keyword, mohu_pipei, huoqu_fugai_time_stamp, fugai_canshu))
+            thread_mobile_url.start()
 
 
 

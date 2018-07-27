@@ -4,10 +4,6 @@ from time import sleep
 lock_file = './my_db/my_sqlite3.lock'
 db_file =  './my_db/my_sqlite.db'
 
-
-# lock_file = '../mian/my_db/my_sqlite3.lock'
-# db_file =  '../mian/my_db/my_sqlite.db'
-
 def operDB(sql, oper='select'):
     result_obj = {
         'data': '',
@@ -28,7 +24,8 @@ def operDB(sql, oper='select'):
             break
         else:
             print('-----数据库锁被占用等待....-----')
-            sleep(0.5)
+            sleep(1.5)
             continue
-    os.remove(lock_file)
+    if os.path.exists(lock_file):
+        os.remove(lock_file)
     return result_obj

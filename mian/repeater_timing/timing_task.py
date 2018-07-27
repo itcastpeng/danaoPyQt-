@@ -60,7 +60,7 @@ def thread_mobilemohupipei(search_engine, keywords, domain,detail_id, ):
 # 启动程序 - 重点词监控
 def func(detail_id, lianjie, keywords, search_engine, mohupipei,):
     # 去线程池里那一个线程，如果有，则池子里拿，如果没有，等直到有人归还线程到线程池
-    print('当前线程数量 --------=========================>',threading.active_count())
+    # print('当前线程数量 --------=========================>',threading.active_count())
     thread_obj = pool.get_thread()
     if lianjie:
         if search_engine == '4':
@@ -82,7 +82,7 @@ def func(detail_id, lianjie, keywords, search_engine, mohupipei,):
 
         else:
             # print('进入线程----> ',' pc端 无链接',keywords)
-            thread_pc_mohupipei = thread_obj(target=thread_pcmohupipei, args=(search_engine,detail_id, keywords,mohupipei,pool))
+            thread_pc_mohupipei = thread_obj(target=thread_pcmohupipei, args=(search_engine,detail_id, keywords,mohupipei))
             thread_pc_mohupipei.start()
 
 
@@ -157,7 +157,7 @@ def dingshi_timer():
                 if time_stamp_obj < int(shijianchuo):
                     is_run_flag = True
             if is_run_flag:
-                print('进入线程--------------------')
+                # print('进入线程--------------------')
                 func(detail_id, lianjie, keywords, search_engine, mohupipei)
 
     # 所有线程执行完毕 只剩主线程 则退出
