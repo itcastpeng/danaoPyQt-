@@ -25,7 +25,8 @@ pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:2.0b13pre) Gecko/20110307 Firefox/4.0b13'
 ]
 
-
+lock_file = './my_db/my_sqlite3.lock'
+db_file =  './my_db/my_sqlite.db'
 class Baidu_Zhidao_yuming_pc():
     def __init__(self,tid, yinqing, keyword, domain, detail_id=None,huoqu_fugai_time_stamp=None,fugai_canshu=None):
         print('进入pc端----------爬虫','detail_id-->',detail_id,'父id-->',tid, '引擎--> ',yinqing, '关键词--> ',keyword, '搜索条件--> ',domain, '时间戳--->', huoqu_fugai_time_stamp, '覆盖参数--> ',fugai_canshu)
@@ -37,7 +38,6 @@ class Baidu_Zhidao_yuming_pc():
         self.yinqing = yinqing
         self.fugai_canshu = fugai_canshu
         self.huoqu_fugai_time_stamp = huoqu_fugai_time_stamp
-
 
         self.headers = {
             'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)],
@@ -73,6 +73,7 @@ class Baidu_Zhidao_yuming_pc():
             # print('domainm =============> ',self.domain, type(self.domain))
             if self.domain in tiaojian_chaxun:
                 print('panduan_url=====================> ',panduan_url)
+
                 ret_two = requests.get(panduan_url, headers=self.headers)
                 ret_two_url = ret_two.url
                 status_code = ret_two.status_code
@@ -91,20 +92,19 @@ class Baidu_Zhidao_yuming_pc():
                         str_order = ",".join(str(i) for i in order_list)
                         shoulu = 1
                         if self.fugai_canshu:
-                            search_engine = '1'
                             # print('====-=-=-==-> ',self.keyword, rank_num, search_engine, title, ret_two_url, self.domain, self.tid, status_code)
-                            insert_sql = """insert into fugai_Linshi_List (keyword, paiming_detail, search_engine, title, title_url, sousuo_guize, time_stamp, tid) values ('{keyword}', '{paiming_detail}', '{search_engine}', '{title}', '{title_url}', '{sousuo_guize}', '{time_stamp}','{tid}');""".format(
-                                keyword=self.keyword, paiming_detail=rank_num, search_engine=search_engine,
+                            insert_sql = """insert into fugai_Linshi_List (keyword, paiming_detail, search_engine, title, title_url, sousuo_guize, time_stamp, status_code, tid) values ('{keyword}', '{paiming_detail}', '{search_engine}', '{title}', '{title_url}', '{sousuo_guize}', '{time_stamp}','{status_code}','{tid}');""".format(
+                                keyword=self.keyword, paiming_detail=rank_num, search_engine=self.yinqing,
                                 title=title, title_url=ret_two_url, sousuo_guize=self.domain,
-                                time_stamp=None,tid=str(self.tid))
+                                time_stamp=None,status_code=status_code,tid=str(self.tid))
                             # print('insert_sql--------> ', insert_sql)
-                            database_create_data.operDB(insert_sql, 'insert')
+                            database_create_data.operDB(insert_sql, lock_file, db_file, 'insert')
         if self.fugai_canshu:
-            search_engine = '1'
+            print('=-===============')
             sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', chaxun_status='1' where id = {id};""".format(
                 paiming_detail=str_order, id=self.tid)
-            print('sql_two-=------------> ',sql_two)
-            database_create_data.operDB(sql_two, 'insert')
+            # print('sql_two-=------------> ',sql_two)
+            database_create_data.operDB(sql_two, lock_file, db_file, 'update')
         else:
             data_list.append({
                 'paiming_detail': str_order,
@@ -140,9 +140,9 @@ class Baidu_Zhidao_yuming_pc():
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
                 order=data['paiming_detail'],shoulu=data['shoulu'],detail_id=data['detail_id'],date_time=date_time)
-            database_create_data.operDB(insert_sql, 'insert')
+            database_create_data.operDB(insert_sql, lock_file, db_file, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-            database_create_data.operDB(update_sql, 'update')
+            database_create_data.operDB(update_sql, lock_file, db_file, 'update')
 
 
 

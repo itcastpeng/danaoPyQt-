@@ -1,10 +1,10 @@
 import requests, random, sqlite3, os
 from time import sleep
 
-lock_file = './my_db/my_sqlite3.lock'
-db_file =  './my_db/my_sqlite.db'
+# lock_file = '../my_db/my_sqlite3.lock'
+# db_file =  '../my_db/my_sqlite.db'
 
-def operDB(sql, oper='select'):
+def operDB(sql, lock_file, db_file, oper='select'):
     result_obj = {
         'data': '',
         'code': 200
@@ -23,7 +23,7 @@ def operDB(sql, oper='select'):
             conn.close()
             break
         else:
-            print('-----数据库锁被占用等待....-----')
+            # print('-----数据库锁被占用等待....-----')
             sleep(1.5)
             continue
     if os.path.exists(lock_file):

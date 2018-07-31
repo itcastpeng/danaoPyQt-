@@ -27,7 +27,8 @@ pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:2.0b13pre) Gecko/20110307 Firefox/4.0b13'
 ]
 headers = {'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
-
+lock_file = './my_db/my_sqlite3.lock'
+db_file =  './my_db/my_sqlite.db'
 def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None,data_id=None):
     domain = domain.strip()
     zhidao_url = 'http://www.baidu.com/s?wd={domain}'.format(domain=domain)
@@ -83,17 +84,18 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None,
         select_sql = """select id from shoulu_Linshi_List where time_stamp='{time_stamp}' and url='{url}' and search={search}""".format(
             time_stamp=huoqu_shoulu_time_stamp, url=domain, search=search)
         print('select_sql----------------> ',select_sql)
-        id_objs = database_create_data.operDB(select_sql, 'select')
+        id_objs = database_create_data.operDB(select_sql, lock_file, db_file, 'select')
         id_obj = id_objs['data'][0][0]
         print('获取的pcid =------> ',id_obj , 'pc端状态码--------------->',status_code)
-        sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}', status_code='{status_code}' where id ={id};""".format(
+        sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}', status_code='{status_code}', is_zhixing={is_zhixing} where id ={id};""".format(
             shoulu=shoulu,
             title=title,
             kuaizhao=kuaizhao_time,
             status_code=status_code,
-            id=id_obj
+            id=id_obj,
+            is_zhixing='1'
         )
-        database_create_data.operDB(sql, 'update')
+        database_create_data.operDB(sql, lock_file, db_file, 'update')
     return shoulu
 
 # domain = 'http://www.bjhzkq.com'
@@ -109,6 +111,8 @@ class Baidu_Zhidao_URL_PC():
         self.keyword = keyword
         self.domain = domain
         self.detail_id = detail_id
+        self.lock_file = '../my_db/my_sqlite3.lock'
+        self.db_file = '../my_db/my_sqlite.db'
         self.headers = {
             'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
         self.zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword='{}')
@@ -167,9 +171,9 @@ class Baidu_Zhidao_URL_PC():
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-            database_create_data.operDB(insert_sql, 'insert')
+            database_create_data.operDB(insert_sql, self.lock_file, self.db_file, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-            database_create_data.operDB(update_sql, 'update')
+            database_create_data.operDB(update_sql, self.lock_file, self.db_file,'update')
 
 
 

@@ -5,7 +5,8 @@ import datetime
 import chardet
 from mian.my_db import database_create_data
 
-
+lock_file = './my_db/my_sqlite3.lock'
+db_file =  './my_db/my_sqlite.db'
 def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=None, data_id=None):
     print('传递的参数--------> ', domain, '引擎', search, '公共', huoqu_shoulu_time_stamp, '收录参数', shoulu_canshu)
     domain = domain.strip()
@@ -80,18 +81,19 @@ def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=No
         select_sql = """select id from shoulu_Linshi_List where time_stamp='{time_stamp}' and url='{url}' and search={search}""".format(
             time_stamp=huoqu_shoulu_time_stamp, url=domain, search=search)
         print('select_sql----------------> ', select_sql)
-        id_objs = database_create_data.operDB(select_sql, 'select')
+        id_objs = database_create_data.operDB(select_sql, lock_file, db_file, 'select')
         id_obj = id_objs['data'][0][0]
         print('获取的id mobile =-===================-----> ', id_obj)
-        update_sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}', status_code='{status_code}' where id={id};""".format(
+        update_sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}', status_code='{status_code}', is_zhixing={is_zhixing} where id={id};""".format(
             shoulu=shoulu,
             title=title,
             kuaizhao=kuaizhao_time,
             status_code=status_code,
-            id=id_obj
+            id=id_obj,
+            is_zhixing='1'
         )
         print('sql--------------> ',update_sql )
-        database_create_data.operDB(update_sql, 'update')
+        database_create_data.operDB(update_sql, lock_file, db_file, 'update')
     else:
         return data_list
 
@@ -145,6 +147,8 @@ class Baidu_Zhidao_URL_MOBILE(object):
         self.keyword = keyword
         self.detail_id = detail_id
         self.domain = domain
+        self.lock_file = '../my_db/my_sqlite3.lock'
+        self.db_file = '../my_db/my_sqlite.db'
         self.zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
 
         data_list = self.get_keywords()
@@ -214,9 +218,9 @@ class Baidu_Zhidao_URL_MOBILE(object):
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-            database_create_data.operDB(insert_sql, 'insert')
+            database_create_data.operDB(insert_sql, self.lock_file, self.db_file, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-            database_create_data.operDB(update_sql, 'update')
+            database_create_data.operDB(update_sql, self.lock_file, self.db_file, 'update')
             # print('mobile --- url')
 
 # if __name__ == '__main__':

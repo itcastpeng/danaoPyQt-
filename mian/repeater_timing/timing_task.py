@@ -88,7 +88,8 @@ def func(detail_id, lianjie, keywords, search_engine, mohupipei,):
 
 
 
-
+lock_file = './my_db/my_sqlite3.lock'
+db_file =  './my_db/my_sqlite.db'
 
 # 定时器一
 def get_task_list(data=None):
@@ -98,29 +99,28 @@ def get_task_list(data=None):
     sql = ''
     if data:
         # update_status_sql = """update task_List set task_status = '0', zhixing = '1' where id = '{}'""".format(data)
-        # database_create_data.operDB(update_status_sql, 'update')
+        # database_create_data.operDB(update_status_sql, lock_file, db_file, 'update')
         sql = """select id,next_datetime from task_List where qiyong_status = '1' and id = '{}';""".format(data)
     else:
         sql = """select id,next_datetime from task_List where next_datetime <='{xiaoyu_dengyu_date}' and qiyong_status = '1' limit 1;""".format(
         xiaoyu_dengyu_date=xiaoyu_dengyu_date)
-    objs = database_create_data.operDB(sql, 'select')
+    objs = database_create_data.operDB(sql, lock_file, db_file, 'select')
     if objs['data']:
         data = objs['data'][0][0]
         next_time = objs['data'][0][1]
         next_datetime = datetime.datetime.strptime(next_time, '%Y-%m-%d %H:%M:%S')
         update_status_sql = """update task_List set task_status = '0', zhixing = '1' where id = '{}'""".format(data)
-        database_create_data.operDB(update_status_sql, 'update')
+        database_create_data.operDB(update_status_sql, lock_file, db_file, 'update')
         if next_datetime.strftime('%Y-%m-%d') <= datetime.datetime.today().strftime('%Y-%m-%d'):
             # 修改下一次执行时间
             next_datetime_addoneday = (next_datetime + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
             next_sql = """update task_List set next_datetime = '{next_datetime}' where id = '{id}';""".format(next_datetime=next_datetime_addoneday,id=data)
-            database_create_data.operDB(next_sql, 'update')
+            database_create_data.operDB(next_sql, lock_file, db_file, 'update')
         # 修改 任务详情为 启用
         sql_status = """update task_Detail set is_perform = '1', task_start_time = '{time}' where tid = '{task_id}';""".format(time=start_time,task_id=data)
-        database_create_data.operDB(sql_status, 'update')
-
-
+        database_create_data.operDB(sql_status, lock_file, db_file, 'update')
 timer_flag = False
+
 
 # 定时器二
 def dingshi_timer():
@@ -134,7 +134,7 @@ def dingshi_timer():
     now_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')
     sql = """select * from task_Detail where is_perform=1;"""
     is_run_flag = False     # 表示是否有任务要运行
-    objs_list = database_create_data.operDB(sql, 'select')
+    objs_list = database_create_data.operDB(sql, lock_file, db_file, 'select')
     if objs_list['data']:
         for obj in objs_list['data']:
             detail_id = obj[0]
@@ -150,7 +150,7 @@ def dingshi_timer():
                 time_stamp = int(shijianchuo) + 300
                 sql = """update task_Detail set time_stamp ='{time_stamp}' where id = {detail_id};""".format(
                     time_stamp=time_stamp, detail_id=detail_id)
-                database_create_data.operDB(sql, 'update')
+                database_create_data.operDB(sql, lock_file, db_file, 'update')
                 is_run_flag = True
             else:
                 time_stamp_obj = int(time_stamp_obj)
@@ -171,7 +171,7 @@ def dingshi_timer():
 
 # 启动定时器
 def run():
-    print('启动定时器------------')
+    # print('启动定时器------------')
     schedule.every(30).seconds.do(get_task_list)
     schedule.every(10).seconds.do(dingshi_timer)
     while True:
