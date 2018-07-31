@@ -748,6 +748,9 @@ class Danao_Inter_Action(QObject):
             data_list = []
             exit_dict = {}
             count_obj = ''
+            paiming_num = '0'
+            fugailv = '0'
+            paiminglv = '0'
             if self.fugai_chaxun_page:
                 count_sql = """select count(id) from fugai_Linshi_List where time_stamp='{time_stamp}' and tid is NULL """.format(time_stamp=self.huoqu_fugai_time_stamp)
                 count_objs = database_create_data.operDB(count_sql, lock_file, db_file, 'select')
@@ -765,6 +768,7 @@ class Danao_Inter_Action(QObject):
                     tiaoshu=int(self.tiaoshu)
                 )
                 objs = database_create_data.operDB(sql, lock_file, db_file, 'select')
+
                 for obj in objs['data']:
                     # print('-------------------')
                     rank_num = 0
@@ -781,21 +785,22 @@ class Danao_Inter_Action(QObject):
                         search = '手机百度'
                     else:
                         search = ''
-                    fugailv = '0'
-                    paiminglv = '0'
+
                     data_list.append({
                         'id':obj[0],
                         'keyword':obj[1],
                         'rank_info':rank_info,              # 排名情况  为空为查询中  无排名为-
-                        'search':search,                    # 搜索引擎
+                        'search_engine':search,             # 搜索引擎
                         'rank_num':rank_num,                # 排名个数
-                        'chongfu_num':self.fugai_chongfu_num,          # 重复数
-                        'fugailv':fugailv,                  # 覆盖率
-                        'paiminglv':paiminglv,              # 排名率
                         'whether_complete': ''              # 全部完成 传True
                     })
             exit_dict = {'data':data_list,
-                'total_data_num':count_obj}                  # 数据总数
+                        'total_data_num':count_obj,# 数据总数
+                         'fugailv': fugailv,  # 覆盖率
+                         'paiminglv': paiminglv,  # 排名率
+                         'paiming_num': paiming_num, # 有排名的个数
+                         'chongfu_num': self.fugai_chongfu_num,  # 重复数
+                         }
             return json.dumps(exit_dict)
     # 覆盖查询 - 获取id 返回详情数据的子任务
     def set_fugai_detail_get_id_values(self, data):
