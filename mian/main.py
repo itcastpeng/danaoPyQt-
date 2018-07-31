@@ -781,20 +781,21 @@ class Danao_Inter_Action(QObject):
                         search = '手机百度'
                     else:
                         search = ''
+                    fugailv = '0'
+                    paiminglv = '0'
                     data_list.append({
                         'id':obj[0],
                         'keyword':obj[1],
                         'rank_info':rank_info,              # 排名情况  为空为查询中  无排名为-
                         'search':search,                    # 搜索引擎
                         'rank_num':rank_num,                # 排名个数
-                        'total_data_num':count_obj,         # 数据总数
                         'chongfu_num':self.fugai_chongfu_num,          # 重复数
-                        # 'fugailv':fugailv,                  # 覆盖率
-                        # 'paiminglv':paiminglv,              # 排名率
+                        'fugailv':fugailv,                  # 覆盖率
+                        'paiminglv':paiminglv,              # 排名率
                         'whether_complete': ''              # 全部完成 传True
                     })
             exit_dict = {'data':data_list,
-                'count_obj':count_obj}
+                'total_data_num':count_obj}                  # 数据总数
             return json.dumps(exit_dict)
     # 覆盖查询 - 获取id 返回详情数据的子任务
     def set_fugai_detail_get_id_values(self, data):
