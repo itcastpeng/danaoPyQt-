@@ -751,10 +751,18 @@ class Danao_Inter_Action(QObject):
             paiming_num = '0'
             fugailv = '0'
             paiminglv = '0'
+            yiwancheng_obj = '0'
+            whether_complete = False
             if self.fugai_chaxun_page:
                 count_sql = """select count(id) from fugai_Linshi_List where time_stamp='{time_stamp}' and tid is NULL """.format(time_stamp=self.huoqu_fugai_time_stamp)
                 count_objs = database_create_data.operDB(count_sql, lock_file, db_file, 'select')
                 count_obj = count_objs['data'][0][0]
+                yiwancheng_sql = """select count(id) from fugai_Linshi_List where time_stamp='{time_stamp}' and is_zhixing = '1'""".format(time_stamp=self.huoqu_fugai_time_stamp)
+                yiwancheng_objs = database_create_data.operDB(yiwancheng_sql, lock_file, db_file, 'select')
+                yiwancheng_obj = yiwancheng_objs['data'][0][0]
+                if count_obj == yiwancheng_obj:
+                    whether_complete = True
+                print('count_obj, yiwancheng_obj===========? > ',count_obj, yiwancheng_obj)
                 data_dict = json.loads(self.fugai_chaxun_page)
                 start_page = ''
                 search = ''
@@ -762,6 +770,7 @@ class Danao_Inter_Action(QObject):
                     start_page = 0
                 else:
                     start_page = (data_dict['currentPage'] - 1) * 100
+
                 sql = """select * from fugai_Linshi_List where time_stamp='{time_stamp}' limit '{start_page}', '{tiaoshu}';""".format(
                     time_stamp=self.huoqu_fugai_time_stamp,
                     start_page=start_page,
@@ -792,7 +801,7 @@ class Danao_Inter_Action(QObject):
                         'rank_info':rank_info,              # 排名情况  为空为查询中  无排名为-
                         'search_engine':search,             # 搜索引擎
                         'rank_num':rank_num,                # 排名个数
-                        'whether_complete': ''              # 全部完成 传True
+
                     })
             exit_dict = {'data':data_list,
                         'total_data_num':count_obj,# 数据总数
@@ -800,6 +809,8 @@ class Danao_Inter_Action(QObject):
                          'paiminglv': paiminglv,  # 排名率
                          'paiming_num': paiming_num, # 有排名的个数
                          'chongfu_num': self.fugai_chongfu_num,  # 重复数
+                         'whether_complete': whether_complete,  # 全部完成 传True
+                         'yiwancheng_obj':yiwancheng_obj        # 当前完成数量
                          }
             return json.dumps(exit_dict)
     # 覆盖查询 - 获取id 返回详情数据的子任务

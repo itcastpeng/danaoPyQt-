@@ -142,12 +142,14 @@ def shoulu_func():
 # 覆盖
 def fugai_pc(tid, yinqing, keyword, mohu_pipei, huoqu_fugai_time_stamp, fugai_canshu):
     # print('进入pc  端fugai_canshu ===========/ ',fugai_canshu)
+    print('请求爬虫 pc 端 ============> ', tid)
     detail_id = ''
     pc_fugai_pipei_baidu.Baidu_Zhidao_yuming_pc(tid, yinqing, keyword, mohu_pipei, detail_id, huoqu_fugai_time_stamp,fugai_canshu)
     gonggong_pool.add_thread()
 
 def fugai_mobile(tid, yinqing, keyword, mohu_pipei, huoqu_fugai_time_stamp, fugai_canshu):
     # print('进入 覆盖 移动端')
+    print('请求爬虫 mobile 端 ============> ', tid)
     detail_id = ''
     mobile_fugai_pipei_baidu.Baidu_Zhidao_yuming_mobile(tid, yinqing, keyword, mohu_pipei, detail_id, huoqu_fugai_time_stamp, fugai_canshu)
     gonggong_pool.add_thread()
@@ -164,11 +166,11 @@ def fugai_func():
         tid = obj[0]
         huoqu_fugai_time_stamp = obj[7]
         time_stamp_panduan = obj[12]
-
         flag = False
+        # print('tid==============================> ',tid)
         if not time_stamp_panduan:
             time_stamp = int(shijianchuo) + 300
-            sql = """update fugai_Linshi_List set shijianchuo ='{time_stamp}' where id = {detail_id};""".format(
+            sql = """update fugai_Linshi_List set shijianchuo ='{time_stamp}' where id = '{detail_id}';""".format(
                 time_stamp=time_stamp, detail_id=tid)
             database_create_data.operDB(sql, lock_file, db_file, 'update')
             flag = True

@@ -72,7 +72,7 @@ class Baidu_Zhidao_yuming_pc():
             panduan_url = div_tag.find('h3',class_='t').find('a').attrs['href']
             # print('domainm =============> ',self.domain, type(self.domain))
             if self.domain in tiaojian_chaxun:
-                print('panduan_url=====================> ',panduan_url)
+                # print('panduan_url=====================> ',panduan_url)
 
                 ret_two = requests.get(panduan_url, headers=self.headers)
                 ret_two_url = ret_two.url
@@ -99,11 +99,11 @@ class Baidu_Zhidao_yuming_pc():
                                 time_stamp=None,status_code=status_code,tid=str(self.tid))
                             # print('insert_sql--------> ', insert_sql)
                             database_create_data.operDB(insert_sql, lock_file, db_file, 'insert')
+        print('修改状态-------------------------------',self.tid)
         if self.fugai_canshu:
-            print('=-===============')
-            sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', chaxun_status='1' where id = {id};""".format(
-                paiming_detail=str_order, id=self.tid)
-            # print('sql_two-=------------> ',sql_two)
+            sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', chaxun_status='1', is_zhixing='{is_zhixing}' where id = {id};""".format(
+                paiming_detail=str_order, is_zhixing='1', id=self.tid)
+            print('sql_two-=------------> ',sql_two)
             database_create_data.operDB(sql_two, lock_file, db_file, 'update')
         else:
             data_list.append({
