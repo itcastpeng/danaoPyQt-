@@ -5,7 +5,7 @@ import threading
 import queue, schedule
 from mian.my_db import database_create_data
 from time import sleep
-from mian.threading_task_pc import mobile_fugai_pipei, mobile_url_accurate, pc_url_accurate, pc_fugai_pipei
+from mian.threading_task_pc import mobile_fugai_pipei_baidu, mobile_url_accurate_baidu, pc_url_accurate_baidu, pc_fugai_pipei_baidu
 # 线程池
 class ThreadPool(object):
 
@@ -32,13 +32,13 @@ pool = ThreadPool(5)
 # 重点词监控 - 多线程部署
 def thread_pcurl(detail_id, keywords, domain, ):
     # print('进入线程--thread_pcurl--> ', ' pc端 有链接', keywords, domain)
-    pc_url_accurate.Baidu_Zhidao_URL_PC(detail_id, keywords, domain)
+    pc_url_accurate_baidu.Baidu_Zhidao_URL_PC(detail_id, keywords, domain)
     pool.add_thread()
 
 
 def thread_mobileurl(detail_id, keywords, domain, ):
     # print('进入线程--thread_mobileurl--> ', ' 移动端 有链接', keywords, domain)
-    mobile_url_accurate.Baidu_Zhidao_URL_MOBILE(detail_id, keywords, domain)
+    mobile_url_accurate_baidu.Baidu_Zhidao_URL_MOBILE(detail_id, keywords, domain)
     pool.add_thread()
 
 
@@ -46,14 +46,14 @@ def thread_pcmohupipei(yinqing,detail_id, keywords, domain, ):
     # print('进入线程--thread_pcmohupipei--> ',' pc端 无链接',keywords, domain)
     tid = ''
     # print('detail_id=================> ',detail_id)
-    pc_fugai_pipei.Baidu_Zhidao_yuming_pc(tid, yinqing, keywords, domain, detail_id)
+    pc_fugai_pipei_baidu.Baidu_Zhidao_yuming_pc(tid, yinqing, keywords, domain, detail_id)
     pool.add_thread()
 
 
 def thread_mobilemohupipei(search_engine, keywords, domain,detail_id, ):
     # print('进入线程--thread_mobilemohupipei--> ','移动端 无链接',keywords, domain)
     tid = ''
-    mobile_fugai_pipei.Baidu_Zhidao_yuming_mobile(tid, search_engine, keywords, domain, detail_id)
+    mobile_fugai_pipei_baidu.Baidu_Zhidao_yuming_mobile(tid, search_engine, keywords, domain, detail_id)
     pool.add_thread()
 
 

@@ -1,6 +1,6 @@
 from multiprocessing import Queue
 import sqlite3, os, sys, json, re, time
-from mian.threading_task_pc import mobile_fugai_pipei, mobile_url_accurate, pc_url_accurate, pc_fugai_pipei
+from mian.threading_task_pc import mobile_fugai_pipei_baidu, mobile_url_accurate_baidu, pc_url_accurate_baidu, pc_fugai_pipei_baidu
 from time import sleep
 import threading
 import queue
@@ -97,11 +97,11 @@ thread_shoulu_obj = gonggong_pool.get_thread()
 # 收录
 def shoulu_pc(search, lianjie, huoqu_shoulu_time_stamp, shoulu_canshu):
     print('进入-------------')
-    pc_url_accurate.shoulu_chaxun(lianjie, search, huoqu_shoulu_time_stamp, shoulu_canshu)
+    pc_url_accurate_baidu.shoulu_chaxun(lianjie, search, huoqu_shoulu_time_stamp, shoulu_canshu)
     gonggong_pool.add_thread()
 
 def shoulu_mobile(search, lianjie, huoqu_shoulu_time_stamp, shoulu_canshu):
-    mobile_url_accurate.shoulu_chaxun(lianjie, search, huoqu_shoulu_time_stamp, shoulu_canshu)
+    mobile_url_accurate_baidu.shoulu_chaxun(lianjie, search, huoqu_shoulu_time_stamp, shoulu_canshu)
     gonggong_pool.add_thread()
 
 # 运行程序 - 收录查询
@@ -124,13 +124,13 @@ def shoulu_func(data_list):
 def fugai_pc(tid, yinqing, keyword, mohu_pipei, huoqu_fugai_time_stamp, fugai_canshu):
     # print('进入pc  端fugai_canshu ===========/ ',fugai_canshu)
     detail_id = ''
-    pc_fugai_pipei.Baidu_Zhidao_yuming_pc(tid, yinqing, keyword, mohu_pipei, detail_id, huoqu_fugai_time_stamp,fugai_canshu)
+    pc_fugai_pipei_baidu.Baidu_Zhidao_yuming_pc(tid, yinqing, keyword, mohu_pipei, detail_id, huoqu_fugai_time_stamp,fugai_canshu)
     gonggong_pool.add_thread()
 
 def fugai_mobile(tid, yinqing, keyword, mohu_pipei, huoqu_fugai_time_stamp, fugai_canshu):
     # print('进入 移动端')
     detail_id = ''
-    mobile_fugai_pipei.Baidu_Zhidao_yuming_mobile(tid, yinqing, keyword, mohu_pipei, detail_id, huoqu_fugai_time_stamp, fugai_canshu)
+    mobile_fugai_pipei_baidu.Baidu_Zhidao_yuming_mobile(tid, yinqing, keyword, mohu_pipei, detail_id, huoqu_fugai_time_stamp, fugai_canshu)
     gonggong_pool.add_thread()
 
 # 运行程序 - 覆盖查询

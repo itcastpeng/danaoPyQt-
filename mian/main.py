@@ -514,6 +514,7 @@ class Danao_Inter_Action(QObject):
         self.dangqian_chaxunshoulu_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
         data_dict = json.loads(data)
         data_list = []
+        data_result = []
         if data_dict['searchEngineModel'] and data_dict['editor_content']:
             for search in data_dict['searchEngineModel']:
                 for url_data in data_dict['editor_content'].split('\n'):
@@ -523,24 +524,17 @@ class Danao_Inter_Action(QObject):
                         data_value = (lianjie, '', self.huoqu_shoulu_time_stamp, '', str(search), '', '')
                         insert_sql = """insert into shoulu_Linshi_List (url, is_shoulu, time_stamp, title, search, kuaizhao_time, status_code) values {data_value}""".format(data_value=data_value)
                         database_create_data.operDB(insert_sql, 'insert')
-                        # select_sql = """select id from shoulu_Linshi_List where url='{url}' and time_stamp='{time_stamp}' and search='{search}';""".format(
-                        #     url=lianjie,
-                        #     time_stamp=self.huoqu_shoulu_time_stamp,
-                        #     search=str(search)
-                        # )
-                        # renwu_id = database_create_data.operDB(select_sql, 'select')
-                        # data_id = renwu_id['data'][0][0]
-                        data_list.append({
+                        data_result.append({
                             'search': search,
                             'lianjie': lianjie,
                             'huoqu_shoulu_time_stamp': self.huoqu_shoulu_time_stamp,
-                            # 'data_id':data_id
                         })
-            print('data_list===最初数据===============> ',data_list)
-            threed = Process(target=shoulu_func, args=(data_list,))
-            threed.start()
+            print('data_list===最初数据===============> ',data_result)
+            # threed = Process(target=shoulu_func, args=(data_result,))
+            # threed.start()
     # 收录查询 - 收录分页处理
     def set_shoulu_chauxn_page_value(self, data):
+        print('收录页码------------------------->',data)
         self.shoulu_chaxun_page = data
     # 收录查询 - 查询数据库 展示
     def get_shoulu_zhanshi_list_value(self):
@@ -576,7 +570,6 @@ class Danao_Inter_Action(QObject):
                     shoululv = int((shoulushu/count_obj) * 100)
                 # print('---------->', '总数:', count_obj, '开始页码:', start_page, '判断总数:', panduan_count, '收录数量:',shoulushu, '收录率:', shoululv)
                 print(objs['data'])
-                print('是否全部完成-----------------------------> ', panduan_count, count_obj)
                 # 判断 是否全部执行完毕
                 whether_complete = False
                 if panduan_count == count_obj:
@@ -599,11 +592,12 @@ class Danao_Inter_Action(QObject):
                         'search_engine':search_engine,
                         'kuaizhao_date':obj[6],
                         'statusCode':obj[7],
-                        'shoulushu':shoulushu,
-                        'shoululv':shoululv
+
                     })
 
                 exit_dict = {'data':data_list,
+                             'shoulushu': shoulushu,
+                             'shoululv': shoululv,
                          'whether_complete': whether_complete,   # 全部完成 传True
                          'count_obj':count_obj}
                 print(json.dumps(exit_dict))
@@ -732,7 +726,7 @@ class Danao_Inter_Action(QObject):
                                 })
             print('data_lsit----------? ',data_lsit)
             # fugai_func(data_lsit)
-    # 覆盖查询 - 接收页码数
+    #     # 覆盖查询 - 接收页码数
     def set_fugai_chaxun_xiangqing(self,data):
         print('data-------0000---> ',data)
         self.fugai_chaxun_page = data
@@ -741,24 +735,22 @@ class Danao_Inter_Action(QObject):
         if self.huoqu_fugai_time_stamp:
             exit_dict = {}
             count_obj = ''
-            if 1+1==2:
-            # if self.fugai_chaxun_page:
-                p = 1
+            # if 1+1==2:
+            if self.fugai_chaxun_page:
+                # p = 1
                 count_sql = """select count(id) from fugai_Linshi_List where time_stamp='{time_stamp}' and tid is NULL """.format(time_stamp=self.huoqu_fugai_time_stamp)
                 count_objs = database_create_data.operDB(count_sql, 'select')
                 count_obj = count_objs['data'][0][0]
                 print('------------------------>',count_obj)
                 # data_dict = json.loads(self.fugai_chaxun_page)
                 start_page = ''
-                # if data_dict['currentPage'] == 1:
-                if p == 1:
+                if data_dict['currentPage'] == 1:
+                # if p == 1:
                     start_page = 0
                 else:
                     # start_page = (data_dict['currentPage'] - 1) * 10
                     start_page = (p - 1) * 10
                 print('start_page=============>',start_page)
-
-
                 sql = """select * from fugai_Linshi_List where time_stamp='{time_stamp}' limit '{start_page}', '{tiaoshu}';""".format(
                     time_stamp=self.huoqu_fugai_time_stamp,
                     start_page=start_page,

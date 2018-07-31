@@ -62,15 +62,15 @@ def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=No
                 status_code = ret_two.status_code
                 soup_two = BeautifulSoup(ret_two.text, 'lxml')
                 # print('编码格式 -——----> ', ret.encoding)
-                if soup_two.find('h1'):
+                if soup_two.find('title'):
+                    title = soup_two.find_all('title')[0].get_text().strip().replace('\r\n','')
+                elif soup_two.find('h1'):
                     if len(soup_two.find('h1').get_text()) > 5:
                         title = soup_two.find('h1').get_text().strip().replace('\r\n','')
-                if soup_two.find('h2'):
+                else:
                     if len(soup_two.find('h2').get_text()) > 5:
                         title = soup_two.find('h2').get_text().strip().replace('\r\n','')
     if shoulu_canshu:
-        print('==========================================================================',status_code)
-        data = ''
         # if shoulu == 1:
         #     data = (domain,shoulu,huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
         # else:
@@ -141,66 +141,53 @@ def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=No
 
 class Baidu_Zhidao_URL_MOBILE(object):
 
-    def __init__(self,detail_id, keyword, domain):
+    def __init__(self, keyword, domain):
         self.keyword = keyword
         self.detail_id = detail_id
         self.domain = domain
-        self.zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
-
+        self.PC_360_url = 'https://m.so.com/s?src=3600w&q={}'.format(domain)
+        print('self.PC_360_url------------> ',self.PC_360_url)
         data_list = self.get_keywords()
         # print('data_list============> ',data_list)
-        self.set_data(data_list)
+        # self.set_data(data_list)
 
     def get_keywords(self):
-        self.random_time()
-        # print('查看收录链接 ---------- > ', self.zhidao_url.format(self.domain))
+        # shoulu = shoulu_chaxun()
         headers = {
             'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
-        url = self.zhidao_url.format(self.domain)
-        search = ''
-        # print(url)
-        data_list = shoulu_chaxun(url,search)
-        # 查询关键词 匹配链接
-        self.random_time()
-        url = self.zhidao_url.format(self.keyword)
-        # print('搜索关键词 链接--------> ', url)
-        ret_two = requests.get(url, headers=headers)
-        # print(url)
-        soup_two = BeautifulSoup(ret_two.text, 'lxml')
-        content_list_order = []
-        div_tags = soup_two.find_all('div', class_='result c-result')
-        for div_tag in div_tags:
-            content_list_order.append(div_tag)
-        div_tags = soup_two.find_all('div', class_='result c-result c-clk-recommend')
-        for div_tag in div_tags:
-            content_list_order.append(div_tag)
+        ret = requests.get(self.PC_360_url, headers=headers)
+        soup = BeautifulSoup(ret.text, 'lxml')
+        result_tag = soup.find('div', class_='r-results')
+        data_list = result_tag.find_all('div', class_='res-list')
+        data_num = 0
+        for data in data_list:
+            data_url = ''
+            if data.attrs.get('data-pcurl'):
+                data_url = data.attrs.get('data-pcurl')
 
-        # 遍历已收录链接 匹配url
-        data_list_content = []
-        for data_url in data_list:
-            if data_url['url']:
-                for content_order in content_list_order:
-                    str_data = eval(content_order['data-log'])
-                    if str_data['mu']:
-                        if str_data['mu'] == data_url['url']:
-                            # print(str_data['mu'],' ==================== ',data_url['url'])
-                            paiming_order = str_data['order']
+            data_num += 1
+            if data_url == domain:
+                print(data_url)
 
-                            data_list_content.append({
-                                'order': int(paiming_order),
-                                'shoulu': data_url['shoulu'],
-                                'detail_id': self.detail_id
-                            })
-                            # print('有')
-                            return data_list_content
-        data_list_content = [{
-            'order': 0,
-            'shoulu': 0,
-            'detail_id': self.detail_id
-        }]
+        # # 遍历已收录链接 匹配url
+        # data_list_content = []
+        # for data_url in data_list:
+        #     if data_url['url']:
+        #         for content_order in content_list_order:
+        #             str_data = eval(content_order['data-log'])
+        #             if str_data['mu']:
+        #                 if str_data['mu'] == data_url['url']:
+        #                     # print(str_data['mu'],' ==================== ',data_url['url'])
+        #                     paiming_order = str_data['order']
+        #
+        #                     data_list_content.append({
+        #                         'order': int(paiming_order),
+        #                         'shoulu': data_url['shoulu'],
+        #                         'detail_id': self.detail_id
+        #                     })
+        #                     # print('有')
+        #                     return data_list_content
 
-        # print('无')
-        return data_list_content
 
 
 
@@ -209,7 +196,6 @@ class Baidu_Zhidao_URL_MOBILE(object):
 
 
     def set_data(self, data_list):
-        # print('thread_mobileurl ------------- > ', data_list)
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
@@ -219,10 +205,10 @@ class Baidu_Zhidao_URL_MOBILE(object):
             database_create_data.operDB(update_sql, 'update')
             # print('mobile --- url')
 
-# if __name__ == '__main__':
-#     keyword = '沈阳中泰肛肠医院怎么样？患者都在说好！'
-#     domain = 'http://news.39.net/a/171204/5900289.html'
-#     # domain = 'http://m-mip.39.net/news/mipso_5901183.html'
-#     # domain = 'https://tieba.baidu.com/p/1382203163?red_tag=2092386831'
-#     detail_id = 22
-#     Baidu_Zhidao_URL_MOBILE(detail_id, keyword, domain)
+if __name__ == '__main__':
+    keyword = '沈阳中泰肛肠医院怎么样？患者都在说好！'
+    domain = 'http://news.39.net/a/171204/5900289.html'
+    # domain = 'http://m-mip.39.net/news/mipso_5901183.html'
+    # domain = 'https://tieba.baidu.com/p/1382203163?red_tag=2092386831'
+    detail_id = 22
+    Baidu_Zhidao_URL_MOBILE( keyword, domain)

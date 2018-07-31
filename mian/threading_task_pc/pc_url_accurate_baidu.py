@@ -58,6 +58,7 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None,
                 kuaizhao_time = ''
                 shoulu = 0
             ret_two_url = ret_two.url
+            print('ret_two_url=========> ',ret_two_url)
             status_code = ret_two.status_code
             f13_div_tag = div_tags[0].find('div', class_='f13')
             a_tag = f13_div_tag.find('a')
@@ -116,7 +117,7 @@ class Baidu_Zhidao_URL_PC():
 
     def get_keywords(self):
         # 调用查询收录
-        search = ''
+        search = '1'
         shoulu = shoulu_chaxun(self.domain,search)
         sleep(1)
         ret = requests.get(self.zhidao_url.format(self.keyword), headers=self.headers)
@@ -132,7 +133,7 @@ class Baidu_Zhidao_URL_PC():
             if div_13 and div_13.find('a', target="_blank"):
                 yuming = div_13.find('a', target="_blank").get_text()[:-4]
                 # print('yuming============> ',yuming)
-                if yuming in self.domain:
+                if yuming in self.domain or yuming == self.domain:
                     rank_num = div_tag.attrs.get('id')  # 排名
                     abstract = div_tag.find('div', class_='c-abstract').get_text()  # 文本内容
                     title_tag = div_tag.find('div', class_='c-tools')['data-tools']
@@ -148,7 +149,6 @@ class Baidu_Zhidao_URL_PC():
                             'detail_id':self.detail_id
                         })
                         return data_list
-
         data_list = [{
             'order': 0,
             'shoulu': 0,
