@@ -748,8 +748,8 @@ class Danao_Inter_Action(QObject):
                 # if p == 1:
                     start_page = 0
                 else:
-                    # start_page = (data_dict['currentPage'] - 1) * 10
-                    start_page = (p - 1) * 10
+                    start_page = (data_dict['currentPage'] - 1) * 10
+                    # start_page = (p - 1) * 10
                 print('start_page=============>',start_page)
                 sql = """select * from fugai_Linshi_List where time_stamp='{time_stamp}' limit '{start_page}', '{tiaoshu}';""".format(
                     time_stamp=self.huoqu_fugai_time_stamp,
