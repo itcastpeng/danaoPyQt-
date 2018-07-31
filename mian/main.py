@@ -747,6 +747,7 @@ class Danao_Inter_Action(QObject):
         if self.huoqu_fugai_time_stamp:
             data_list = []
             exit_dict = {}
+            otherData = []
             count_obj = ''
             paiming_num = '0'
             fugailv = '0'
@@ -762,7 +763,6 @@ class Danao_Inter_Action(QObject):
                 yiwancheng_obj = yiwancheng_objs['data'][0][0]
                 if count_obj == yiwancheng_obj:
                     whether_complete = True
-                print('count_obj, yiwancheng_obj===========? > ',count_obj, yiwancheng_obj)
                 data_dict = json.loads(self.fugai_chaxun_page)
                 start_page = ''
                 search = ''
@@ -777,9 +777,25 @@ class Danao_Inter_Action(QObject):
                     tiaoshu=int(self.tiaoshu)
                 )
                 objs = database_create_data.operDB(sql, lock_file, db_file, 'select')
-
                 for obj in objs['data']:
-                    # print('-------------------')
+                    detaile_data_sql = """select * from fugai_Linshi_List where tid = '{tid}';""".format(
+                        tid=obj[0])
+                    # print('detaile_data=========> ',detaile_data)
+                    detaile_objs = database_create_data.operDB(detaile_data_sql, lock_file, db_file, 'select')
+                    zhanwei = '0'
+                    for detaile_obj in detaile_objs['data']:
+
+                        print('detaile_obj[2]==============> ',detaile_obj[2])
+                        if detaile_obj[2]:
+                            zhanwei = '1'
+                        otherData.append({
+                            'rank':detaile_obj[2],
+                            'title':detaile_obj[4],
+                            'zhanwei':zhanwei,
+                            'guize':detaile_obj[6],
+                            'url':detaile_obj[5],
+                            'search_engine':detaile_obj[3]
+                        })
                     rank_num = 0
                     if obj[2] == '0':
                         rank_info = '-'
@@ -804,14 +820,16 @@ class Danao_Inter_Action(QObject):
 
                     })
             exit_dict = {'data':data_list,
-                        'total_data_num':count_obj,# 数据总数
-                         'fugailv': fugailv,  # 覆盖率
-                         'paiminglv': paiminglv,  # 排名率
-                         'paiming_num': paiming_num, # 有排名的个数
-                         'chongfu_num': self.fugai_chongfu_num,  # 重复数
+                         'otherData':otherData,
+                        'total_data_num':count_obj,         # 数据总数
+                         'fugailv': fugailv,                # 覆盖率
+                         'paiminglv': paiminglv,            # 排名率
+                         'paiming_num': paiming_num,            # 有排名的个数
+                         'chongfu_num': self.fugai_chongfu_num, # 重复数
                          'whether_complete': whether_complete,  # 全部完成 传True
                          'yiwancheng_obj':yiwancheng_obj        # 当前完成数量
                          }
+            print('exit_dict  -------->',exit_dict)
             return json.dumps(exit_dict)
     # 覆盖查询 - 获取id 返回详情数据的子任务
     def set_fugai_detail_get_id_values(self, data):
@@ -837,8 +855,9 @@ class Danao_Inter_Action(QObject):
             return json.dumps(data_list)
     # 查询覆盖 - 生成 excel 表格
     def set_fugai_save_select_result_value(self,data):
+        print('=======================================进入')
         if self.huoqu_fugai_time_stamp:
-        # if 1 + 1 == 2:
+            print('===========> ',self.huoqu_fugai_time_stamp)
             wb = Workbook()
             ws = wb.active
             ws.title = '关键词覆盖查询'
@@ -924,19 +943,16 @@ class Danao_Inter_Action(QObject):
 
 
             chaxun_time = self.huoqu_fugai_time_stamp  # 查询时间
-            chaxun_time = '0000-00-00'
-            huoqu_fugai_time_stamp = '1532262177'
             now_date = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
             ws.cell(row=2, column=4, value="{chaxun_time}".format(chaxun_time=chaxun_time))
             ws2.cell(row=2, column=6, value="{chaxun_time}".format(chaxun_time=chaxun_time))
             sql = """select id,keyword,paiming_detail,search_engine from fugai_Linshi_List where time_stamp={time_stamp};""".format(
-                # time_stamp=self.huoqu_fugai_time_stamp)
-                time_stamp=huoqu_fugai_time_stamp)
-            objs = database_create_data.operDB(sql, ock_file, db_file, 'select')
+                time_stamp=chaxun_time)
+            objs = database_create_data.operDB(sql, lock_file, db_file, 'select')
             row = 9
             row_two = 4
             for obj in objs['data']:
-                if obj[3] == 1:
+                if obj[3] == '1':
                     search = '百度'
                 else:
                     search = '手机百度'
@@ -1041,7 +1057,7 @@ class Danao_Inter_Action(QObject):
     # 覆盖查询 - 退出时删除所有覆盖数据
     fugaiExitDeleteAll = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_fugai_delete_all_values)
     # 覆盖查询 - 查询覆盖详情数据
-    fugaiDetailChaxun = pyqtProperty(str, fget=get_fugai_detai_return_values, fset=set_fugai_detail_get_id_values)
+    # fugaiDetailChaxun = pyqtProperty(str, fget=get_fugai_detai_return_values, fset=set_fugai_detail_get_id_values)
 
 
 # PyQt 架构 与 数据库初始化类
@@ -1275,7 +1291,7 @@ class DaNao(object):
         # view.load(QUrl('https://www.cnblogs.com/wangshoul'))
         # view.load(QUrl('http://192.168.10.240:8080'))
         # view.load(QUrl('http://192.168.10.252:8080'))
-        view.load(QUrl('http://192.168.10.240:8080'))
+        view.load(QUrl('http://192.168.10.240:8081'))
         # view.load(QUrl('C:/pycharm zh/danaoPyQt/mian/web/index.html'))
 
         # 简单理解就是将这个控件(QWidget)的几何内容(宽高位置等)，赋值给qr
