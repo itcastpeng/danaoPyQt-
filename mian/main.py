@@ -745,7 +745,7 @@ class Danao_Inter_Action(QObject):
                 count_objs = database_create_data.operDB(count_sql, 'select')
                 count_obj = count_objs['data'][0][0]
                 print('------------------------>',count_obj)
-                # data_dict = json.loads(self.fugai_chaxun_page)
+                data_dict = json.loads(self.fugai_chaxun_page)
                 start_page = ''
                 if data_dict['currentPage'] == 1:
                 # if p == 1:
