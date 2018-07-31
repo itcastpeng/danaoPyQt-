@@ -732,11 +732,14 @@ class Danao_Inter_Action(QObject):
         self.fugai_chaxun_page = data
     # 覆盖查询 - 获取时间戳 返回展示所有数据
     def get_fugai_zhanshi_list_value(self):
+        print('进入------------')
         if self.huoqu_fugai_time_stamp:
+            data_list = []
             exit_dict = {}
             count_obj = ''
-            # if 1+1==2:
+            print('==========')
             if self.fugai_chaxun_page:
+                print('到这；额=================')
                 # p = 1
                 count_sql = """select count(id) from fugai_Linshi_List where time_stamp='{time_stamp}' and tid is NULL """.format(time_stamp=self.huoqu_fugai_time_stamp)
                 count_objs = database_create_data.operDB(count_sql, 'select')
@@ -757,7 +760,6 @@ class Danao_Inter_Action(QObject):
                     tiaoshu=int(self.tiaoshu)
                 )
                 objs = database_create_data.operDB(sql, 'select')
-                data_list = []
                 for obj in objs['data']:
                     data_list.append({
                         'id':obj[0],
