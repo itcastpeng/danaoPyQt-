@@ -59,6 +59,7 @@ def thread_mobilemohupipei(search_engine, keywords, domain,detail_id, ):
 
 # 启动程序 - 重点词监控
 def func(detail_id, lianjie, keywords, search_engine, mohupipei,):
+    print('启动程序---------------------> ',detail_id, lianjie, keywords, search_engine, mohupipei)
     # 去线程池里那一个线程，如果有，则池子里拿，如果没有，等直到有人归还线程到线程池
     # print('当前线程数量 --------=========================>',threading.active_count())
     thread_obj = pool.get_thread()
@@ -98,33 +99,39 @@ def get_task_list(data=None):
     task_id = ''
     sql = ''
     if data:
-        # update_status_sql = """update task_List set task_status = '0', zhixing = '1' where id = '{}'""".format(data)
-        # database_create_data.operDB(update_status_sql, lock_file, db_file, 'update')
         sql = """select id,next_datetime from task_List where qiyong_status = '1' and id = '{}';""".format(data)
     else:
         sql = """select id,next_datetime from task_List where next_datetime <='{xiaoyu_dengyu_date}' and qiyong_status = '1' limit 1;""".format(
         xiaoyu_dengyu_date=xiaoyu_dengyu_date)
     objs = database_create_data.operDB(sql, lock_file, db_file, 'select')
+    print('进入定时器一')
     if objs['data']:
-        data = objs['data'][0][0]
-        next_time = objs['data'][0][1]
-        next_datetime = datetime.datetime.strptime(next_time, '%Y-%m-%d %H:%M:%S')
-        update_status_sql = """update task_List set task_status = '0', zhixing = '1' where id = '{}'""".format(data)
-        database_create_data.operDB(update_status_sql, lock_file, db_file, 'update')
-        if next_datetime.strftime('%Y-%m-%d') <= datetime.datetime.today().strftime('%Y-%m-%d'):
-            # 修改下一次执行时间
-            next_datetime_addoneday = (next_datetime + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
-            next_sql = """update task_List set next_datetime = '{next_datetime}' where id = '{id}';""".format(next_datetime=next_datetime_addoneday,id=data)
-            database_create_data.operDB(next_sql, lock_file, db_file, 'update')
-        # 修改 任务详情为 启用
-        sql_status = """update task_Detail set is_perform = '1', task_start_time = '{time}' where tid = '{task_id}';""".format(time=start_time,task_id=data)
-        database_create_data.operDB(sql_status, lock_file, db_file, 'update')
+        print('进入---------------------')
+        data_id = objs['data'][0][0]
+        select_sql = """select id from task_Detail where tid='{data}'""".format(data=data_id)
+        select_objs = database_create_data.operDB(select_sql, lock_file, db_file, 'select')
+        if select_objs['data']:
+            next_time = objs['data'][0][1]
+            next_datetime = datetime.datetime.strptime(next_time, '%Y-%m-%d %H:%M:%S')
+            update_status_sql = """update task_List set task_status = '0', zhixing = '1' where id = '{}'""".format(data_id)
+            database_create_data.operDB(update_status_sql, lock_file, db_file, 'update')
+            if next_datetime.strftime('%Y-%m-%d') <= datetime.datetime.today().strftime('%Y-%m-%d'):
+                # 修改下一次执行时间
+                next_datetime_addoneday = (next_datetime + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+                next_sql = """update task_List set next_datetime = '{next_datetime}' where id = '{id}';""".format(next_datetime=next_datetime_addoneday,id=data_id)
+                database_create_data.operDB(next_sql, lock_file, db_file, 'update')
+            # 修改 任务详情为 启用
+            sql_status = """update task_Detail set is_perform = '1', task_start_time = '{time}' where tid = '{task_id}';""".format(time=start_time,task_id=data_id)
+            database_create_data.operDB(sql_status, lock_file, db_file, 'update')
+        else:
+            print('进入else')
+            update_sql = """update task_List set qiyong_status = '0' where id = '{data_id}';""".format(data_id=data_id)
+            database_create_data.operDB(update_sql, lock_file, db_file, 'update')
 timer_flag = False
 
 
 # 定时器二
 def dingshi_timer():
-    # print('进入---------dingshi_timer')
     global timer_flag
     if timer_flag:
         return
@@ -157,7 +164,6 @@ def dingshi_timer():
                 if time_stamp_obj < int(shijianchuo):
                     is_run_flag = True
             if is_run_flag:
-                # print('进入线程--------------------')
                 func(detail_id, lianjie, keywords, search_engine, mohupipei)
 
     # 所有线程执行完毕 只剩主线程 则退出
@@ -171,10 +177,10 @@ def dingshi_timer():
 
 # 启动定时器
 def run():
-    # print('启动定时器------------')
     schedule.every(30).seconds.do(get_task_list)
     schedule.every(10).seconds.do(dingshi_timer)
     while True:
+        # print('启动定时器')
         schedule.run_pending()
 
 

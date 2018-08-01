@@ -54,9 +54,7 @@ lock_file = './my_db/my_sqlite3.lock'
 db_file =  './my_db/my_sqlite.db'
 class Baidu_Zhidao_yuming_mobile(object):
 
-
     def __init__(self,tid, yinqing, keyword, domain, detail_id=None, huoqu_gonggong_time_stamp=None,fugai_chaxun=None):
-        print('进入爬虫 ---------- 移动端')
         self.tid = tid
         self.keyword = keyword
         self.domain = domain
@@ -69,18 +67,13 @@ class Baidu_Zhidao_yuming_mobile(object):
         if self.fugai_chaxun:
             self.get_keyword()
         else:
-            # print('进入 手机端 ')
             data_list = self.get_keyword()
             self.set_data(data_list)
 
-
     def get_keyword(self):
         zhidao_url = self.zhidao_url.format(self.keyword)
-        # print('请求链接 ------------ >',zhidao_url)
         ret = requests.get(zhidao_url)
-        self.random_time()
         soup_browser = BeautifulSoup(ret.text, 'lxml')
-        # results = soup_browser.find('div', id='results').find_all('div', class_='result c-result')
         content_list_order = []
         title = ''
         div_tags = soup_browser.find_all('div', class_='result c-result')
@@ -126,45 +119,14 @@ class Baidu_Zhidao_yuming_mobile(object):
             'detail_id': self.detail_id
         })
         if self.fugai_chaxun:
-            print('----------------------------------修改',data_list)
             for data in data_list:
-                print('data----------> ',data)
                 sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', chaxun_status='1', is_zhixing='{is_zhixing}' where id = {tid};""".format(
                     paiming_detail=data['paiming_detail'],tid=str(self.tid),is_zhixing='1')
-                print('sql_two-----------> ',sql_two)
                 database_create_data.operDB(sql_two, lock_file, db_file, 'insert')
         else:
             return data_list
-        #     data_list.append({
-        #         'paiming_detail': str_order,
-        #         'shoulu': shoulu,
-        #         'detail_id': self.detail_id,
-                # 'title_url': url_title,
-                # 'yiniqng': self.yinqing,
-                # 'title': title,
-                # 'time_stamp': self.huoqu_gonggong_time_stamp,
-                # 'sousuo_guize': self.domain,
-                # 'keyword': self.keyword,
-                # 'status_code':status_code
-            # })
-
-
-    def random_time(self):
-        return sleep(random.randint(1,2))
-
 
     def set_data(self, data_list):
-        # if self.fugai_chaxun:
-        #     for data in data_list:
-        #         search_engine = '4'
-        #         sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', title='{title}', title_url='{title_url}', chaxun_status='1',  status_code={status_code} where id = {tid};""".format(
-        #             paiming_detail=data['paiming_detail'], title=data['title'], title_url=data['title_url'],
-        #             tid=str(self.tid),
-        #             status_code=data['status_code']
-        #             )
-        #         # print(sql_two)
-        #         database_create_data.operDB(sql_two, 'insert')
-        # else:
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
@@ -172,15 +134,6 @@ class Baidu_Zhidao_yuming_mobile(object):
             database_create_data.operDB(insert_sql, lock_file, db_file, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
             database_create_data.operDB(update_sql, lock_file, db_file, 'update')
-                # print('mobile ==fugai')
 
-
-# if __name__ == '__main__':
-#     keyword = '北京男科哪家好'
-#     domain = '全的北京男科医院排行榜,供您查询北京男科医院排名,告诉您北京哪家'
-#     detail_id = 22
-#     yinqing = 1
-#     tid = 1
-#     Baidu_Zhidao_yuming_mobile(tid,yinqing,keyword,domain,detail_id,fugai_chaxun=1)
 
 

@@ -8,8 +8,6 @@ from mian.my_db import database_create_data
 lock_file = './my_db/my_sqlite3.lock'
 db_file =  './my_db/my_sqlite.db'
 def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=None, data_id=None):
-    print('传递的参数--------> ', domain, '引擎', search, '公共', huoqu_shoulu_time_stamp, '收录参数', shoulu_canshu)
-    domain = domain.strip()
     headers = {
         'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
     zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'.format(domain)
@@ -24,33 +22,28 @@ def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=No
     kuaizhao_time = ''
     shoulu = 0
     status_code = ''
-    if '抱歉，没有找到' in soup.find('div', id='results').find('div', class_='c-container').get_text():
-        data_list.append({'shoulu':shoulu, 'url':'none'})
+    if '抱歉，没有找到' in soup.find('div', class_='c-container').get_text():
+        data_list.append({'shoulu': shoulu, 'url': 'none'})
         title = ''
         kuaizhao_time = ''
         shoulu = 0
         status_code = ''
     else:
         shoulu = 1
-        sleep(1)
         div_tags = ''
         if soup.find_all('div', class_='result c-result')[0].attrs.get('order') == '1':
             div_tags = soup.find_all('div', class_='result c-result')
         else:
             div_tags = soup.find_all('div', class_='result c-result c-clk-recommend')
-        sleep(1)
         dict_data = eval(div_tags[0]['data-log'])
         pipei_url = dict_data['mu']
-        print('pipei_url------------------------>' ,pipei_url)
         data_list.append({'url':pipei_url,'shoulu':shoulu})
         if 'http' or 'https' in pipei_url and pipei_url:
             ret_two = ''
             try:
-                # print('pipei_url==============>',pipei_url)
                 ret_two = requests.get(pipei_url, headers=headers)
             except Exception as e:
                 pass
-            sleep(1)
             # html = urlopen(dict_data['mu']).read()
             # html = urlopen(domain).read()
             # encode_ret = chardet.detect(html)['encoding']
@@ -72,18 +65,10 @@ def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=No
                     if len(soup_two.find('h2').get_text()) > 5:
                         title = soup_two.find('h2').get_text().strip().replace('\r\n','')
     if shoulu_canshu:
-        # if shoulu == 1:
-        #     data = (domain,shoulu,huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
-        # else:
-        #     data = (domain, shoulu, huoqu_shoulu_time_stamp,title,search,kuaizhao_time)
-        # sql = """insert into shoulu_Linshi_List (url, is_shoulu, time_stamp, title, search,kuaizhao_time) values {data};""".format(data=data)
-        # print('sql-=----------------> ',sql)
         select_sql = """select id from shoulu_Linshi_List where time_stamp='{time_stamp}' and url='{url}' and search={search}""".format(
             time_stamp=huoqu_shoulu_time_stamp, url=domain, search=search)
-        print('select_sql----------------> ', select_sql)
         id_objs = database_create_data.operDB(select_sql, lock_file, db_file, 'select')
         id_obj = id_objs['data'][0][0]
-        print('获取的id mobile =-===================-----> ', id_obj)
         update_sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}', status_code='{status_code}', is_zhixing={is_zhixing} where id={id};""".format(
             shoulu=shoulu,
             title=title,
@@ -92,54 +77,9 @@ def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=No
             id=id_obj,
             is_zhixing='1'
         )
-        print('sql--------------> ',update_sql )
         database_create_data.operDB(update_sql, lock_file, db_file, 'update')
     else:
         return data_list
-
-# url_list = [
-# 'http://www.iiijk.com/cjxw/04-74547.html',
-# 'http://news.100yiyao.com/detail/193538290.html          ',
-# 'http://news.qiuyi.cn/html/2017/fuke_1205/63968.html     ',
-# 'http://at.025ct.com/dt/2017/1204/514781.html            ',
-# 'http://www.jianzhijia.com/hyzx/jkjd/79379.html          ',
-# 'http://news.39.net/a/171204/5901183.html                ',
-# 'http://news.39.net/a/171204/5901194.html                ',
-# 'http://news.360xh.com/201712/04/37416.html              ',
-# 'http://www.iiijk.com/cjxw/04-74550.html                 ',
-# 'http://www.jianzhijia.com/hyzx/jkjd/79381.html          ',
-# 'http://news.qiuyi.cn/html/2017/zhengxing_1204/63922.html',
-# 'http://news.39.net/a/171204/5902419.html                ',
-# 'http://www.jianzhijia.com/hyzx/jkjd/79383.html          ',
-# 'http://news.360xh.com/201712/04/37402.html              ',
-# 'http://www.sohu.com/a/208330800_544906                  ',
-# 'http://www.iiijk.com/cjxw/04-74552.html                 ',
-# 'http://www.iiijk.com/cjxw/04-74551.html                 ',
-# 'http://focus.smxe.cn/20171204/148402.shtml              ',
-# 'http://news.360xh.com/201712/04/37408.html              ',
-# 'http://news.39.net/a/171204/5902423.html                ',
-# 'http://www.jianzhijia.com/hyzx/jkjd/79385.html          ',
-# 'http://news.360xh.com/201712/04/37409.html              ',
-# 'http://news.360xh.com/201712/04/37410.html              ',
-# 'http://news.100yiyao.com/detail/193538295.html          ',
-# 'http://www.jianzhijia.com/hyzx/jkjd/79387.html          ',
-# 'http://news.100yiyao.com/detail/193538308.html          ',
-# 'http://news.360xh.com/201712/04/37411.html              ',
-# 'http://news.39.net/a/171204/5902507.html                ',
-# 'http://news.360xh.com/201712/04/37412.html              ',
-# 'http://www.jianzhijia.com/hyzx/jkjd/79388.html          ',
-# 'http://news.39.net/a/171204/5902519.html                ',
-# 'http://news.360xh.com/201712/04/37414.html              ',
-# 'http://www.jianzhijia.com/hyzx/jkjd/79389.html          ',
-# 'http://news.cx368.com/news/gd/2017/1204/69128.html      ',]
-# for url in url_list:
-#     huoqu_shoulu_time_stamp = '测试mobiel'
-#     shoulu_canshu = 1
-#     search = '4'
-#     print(url)
-    # shoulu_chaxun(url,search,huoqu_shoulu_time_stamp,shoulu_canshu)
-
-
 
 class Baidu_Zhidao_URL_MOBILE(object):
 
@@ -147,29 +87,18 @@ class Baidu_Zhidao_URL_MOBILE(object):
         self.keyword = keyword
         self.detail_id = detail_id
         self.domain = domain
-        self.lock_file = '../my_db/my_sqlite3.lock'
-        self.db_file = '../my_db/my_sqlite.db'
         self.zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
-
         data_list = self.get_keywords()
-        # print('data_list============> ',data_list)
         self.set_data(data_list)
 
     def get_keywords(self):
-        self.random_time()
-        # print('查看收录链接 ---------- > ', self.zhidao_url.format(self.domain))
         headers = {
             'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
         url = self.zhidao_url.format(self.domain)
         search = ''
-        # print(url)
         data_list = shoulu_chaxun(url,search)
-        # 查询关键词 匹配链接
-        self.random_time()
         url = self.zhidao_url.format(self.keyword)
-        # print('搜索关键词 链接--------> ', url)
         ret_two = requests.get(url, headers=headers)
-        # print(url)
         soup_two = BeautifulSoup(ret_two.text, 'lxml')
         content_list_order = []
         div_tags = soup_two.find_all('div', class_='result c-result')
@@ -178,8 +107,6 @@ class Baidu_Zhidao_URL_MOBILE(object):
         div_tags = soup_two.find_all('div', class_='result c-result c-clk-recommend')
         for div_tag in div_tags:
             content_list_order.append(div_tag)
-
-        # 遍历已收录链接 匹配url
         data_list_content = []
         for data_url in data_list:
             if data_url['url']:
@@ -187,46 +114,25 @@ class Baidu_Zhidao_URL_MOBILE(object):
                     str_data = eval(content_order['data-log'])
                     if str_data['mu']:
                         if str_data['mu'] == data_url['url']:
-                            # print(str_data['mu'],' ==================== ',data_url['url'])
                             paiming_order = str_data['order']
-
                             data_list_content.append({
                                 'order': int(paiming_order),
                                 'shoulu': data_url['shoulu'],
                                 'detail_id': self.detail_id
                             })
-                            # print('有')
                             return data_list_content
         data_list_content = [{
             'order': 0,
             'shoulu': 0,
             'detail_id': self.detail_id
         }]
-
-        # print('无')
         return data_list_content
 
-
-
-    def random_time(self):
-        return sleep(random.randint(1, 2))
-
-
     def set_data(self, data_list):
-        # print('thread_mobileurl ------------- > ', data_list)
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-            database_create_data.operDB(insert_sql, self.lock_file, self.db_file, 'insert')
+            database_create_data.operDB(insert_sql, lock_file, db_file, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-            database_create_data.operDB(update_sql, self.lock_file, self.db_file, 'update')
-            # print('mobile --- url')
-
-# if __name__ == '__main__':
-#     keyword = '沈阳中泰肛肠医院怎么样？患者都在说好！'
-#     domain = 'http://news.39.net/a/171204/5900289.html'
-#     # domain = 'http://m-mip.39.net/news/mipso_5901183.html'
-#     # domain = 'https://tieba.baidu.com/p/1382203163?red_tag=2092386831'
-#     detail_id = 22
-#     Baidu_Zhidao_URL_MOBILE(detail_id, keyword, domain)
+            database_create_data.operDB(update_sql, lock_file, db_file, 'update')

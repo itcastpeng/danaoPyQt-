@@ -26,6 +26,7 @@ def operDB(sql, lock_file, db_file, oper='select'):
             # print('-----数据库锁被占用等待....-----')
             sleep(1.5)
             continue
+
     if os.path.exists(lock_file):
         os.remove(lock_file)
     return result_obj

@@ -29,6 +29,7 @@ pcRequestHeader = [
 headers = {'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
 lock_file = './my_db/my_sqlite3.lock'
 db_file =  './my_db/my_sqlite.db'
+
 def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None,data_id=None):
     domain = domain.strip()
     zhidao_url = 'http://www.baidu.com/s?wd={domain}'.format(domain=domain)
@@ -37,7 +38,6 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None,
     title = ''
     status_code = ''
     headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'}
-    sleep(1)
     ret_domain = requests.get(zhidao_url, headers=headers)
     soup_domain = BeautifulSoup(ret_domain.text, 'lxml')
     div_tags = soup_domain.find_all('div', class_='result c-container ')
@@ -50,7 +50,6 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None,
         div_tags = soup_domain.find_all('div', class_='result c-container ')
         if div_tags and div_tags[0].attrs.get('id'):
             panduan_url = div_tags[0].find('a').attrs['href']
-            sleep(1)
             try:
                 ret_two = requests.get(panduan_url, headers=headers)
             except Exception as e:
@@ -59,7 +58,6 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None,
                 kuaizhao_time = ''
                 shoulu = 0
             ret_two_url = ret_two.url
-            print('ret_two_url=========> ',ret_two_url)
             status_code = ret_two.status_code
             f13_div_tag = div_tags[0].find('div', class_='f13')
             a_tag = f13_div_tag.find('a')
@@ -83,10 +81,8 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None,
     if shoulu_canshu:
         select_sql = """select id from shoulu_Linshi_List where time_stamp='{time_stamp}' and url='{url}' and search={search}""".format(
             time_stamp=huoqu_shoulu_time_stamp, url=domain, search=search)
-        print('select_sql----------------> ',select_sql)
         id_objs = database_create_data.operDB(select_sql, lock_file, db_file, 'select')
         id_obj = id_objs['data'][0][0]
-        print('获取的pcid =------> ',id_obj , 'pc端状态码--------------->',status_code)
         sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}', status_code='{status_code}', is_zhixing={is_zhixing} where id ={id};""".format(
             shoulu=shoulu,
             title=title,
@@ -111,8 +107,8 @@ class Baidu_Zhidao_URL_PC():
         self.keyword = keyword
         self.domain = domain
         self.detail_id = detail_id
-        self.lock_file = '../my_db/my_sqlite3.lock'
-        self.db_file = '../my_db/my_sqlite.db'
+        # self.lock_file = './my_db/my_sqlite3.lock'
+        # self.db_file = './my_db/my_sqlite.db'
         self.headers = {
             'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
         self.zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword='{}')
@@ -123,9 +119,8 @@ class Baidu_Zhidao_URL_PC():
         # 调用查询收录
         search = '1'
         shoulu = shoulu_chaxun(self.domain,search)
-        sleep(1)
         ret = requests.get(self.zhidao_url.format(self.keyword), headers=self.headers)
-        self.random_time()
+        # self.random_time()
         soup = BeautifulSoup(ret.text, 'lxml')
         # id_tag = soup.find('div', id='content_left')
         # if id_tag:
@@ -144,7 +139,6 @@ class Baidu_Zhidao_URL_PC():
                     dict_title = eval(title_tag)
                     str_title = dict_title['title']  # 标题
                     url_title = dict_title['url']  # 标题链接
-                    self.random_time()
                     ret_two = requests.get(url_title, headers=self.headers)
                     if self.domain == ret_two.url:
                         data_list.append({
@@ -160,20 +154,14 @@ class Baidu_Zhidao_URL_PC():
         }]
         return data_list
 
-
-    def random_time(self):
-        return sleep(random.randint(1, 2))
-
-
     def set_data(self, data_list):
-        # print(data_list)
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-            database_create_data.operDB(insert_sql, self.lock_file, self.db_file, 'insert')
+            database_create_data.operDB(insert_sql, lock_file, db_file, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-            database_create_data.operDB(update_sql, self.lock_file, self.db_file,'update')
+            database_create_data.operDB(update_sql, lock_file, db_file,'update')
 
 
 
