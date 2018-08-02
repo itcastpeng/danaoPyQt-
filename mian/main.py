@@ -12,7 +12,8 @@ from tkinter.filedialog import askdirectory
 from mian.my_db import database_create_data
 from time import sleep
 from mian.repeater_timing import timing_task
-from multiprocessing import Process
+# from multiprocessing import Process
+import multiprocessing
 from mian.threading_task_pc.threading_task import shoulu_func, fugai_func
 import sqlite3, os, json, time, datetime, tkinter.messagebox, threading, sys, requests, queue
 from PyQt5 import sip
@@ -20,7 +21,7 @@ from PyQt5 import sip
 class Danao_Inter_Action(QObject):
     def __init__(self):
         super(Danao_Inter_Action, self).__init__()
-        self.process = Process(target=timing_task.run)
+        self.process = multiprocessing.Process(target=timing_task.run)
         self.process.start()
         self.zhongdianci_select_task_detail = ''
         self.fugai_huoqu_id_fanhui_detail = ''
@@ -45,7 +46,9 @@ class Danao_Inter_Action(QObject):
         # 查询数据库 返回用户信息
         sql = """select message from Login_message;"""
         objs = database_create_data.operDB(sql, 'select')
-        return objs['data'][0][0]
+        if objs['data']:
+            # print('objs====================> ',objs)
+            return objs['data'][0][0]
     # 登录 - 获取登录参数 保存数据库
     def set_Loginvalue(self, data):
         print('获得登录参数---->: %s' % data)
@@ -532,17 +535,8 @@ class Danao_Inter_Action(QObject):
                     data_value = (lianjie, '', self.huoqu_shoulu_time_stamp, '', str(search), '', '','0')
                     insert_sql = """insert into shoulu_Linshi_List (url, is_shoulu, time_stamp, title, search, kuaizhao_time, status_code, is_zhixing) values {data_value}""".format(data_value=data_value)
                     database_create_data.operDB(insert_sql, 'insert')
-        process_shoulu = Process(target=shoulu_func, args=(self.huoqu_shoulu_time_stamp, ))
+        process_shoulu = multiprocessing.Process(target=shoulu_func, args=(self.huoqu_shoulu_time_stamp, ))
         process_shoulu.start()
-
-            #             data_result.append({
-            #                 'search': search,
-            #                 'lianjie': lianjie,
-            #                 'huoqu_shoulu_time_stamp': self.huoqu_shoulu_time_stamp,
-            #             })
-            # print('data_list===最初数据===============> ',data_result)
-            # threed = Process(target=shoulu_func, args=(data_result,))
-            # threed.start()
     # 收录查询 - 收录分页处理
     def set_shoulu_chauxn_page_value(self, data):
         # print('收录页码------------------------->',data)
@@ -732,7 +726,7 @@ class Danao_Inter_Action(QObject):
                         insert_sql = """insert into fugai_Linshi_List (keyword, paiming_detail, search_engine, title, title_url, sousuo_guize, time_stamp, status_code, is_zhixing) values ('{keyword}', '', '{search_engine}', '', '', '{sousuo_guize}', '{time_stamp}','','0');""".format(
                         keyword=keyword,search_engine=search,sousuo_guize=str_tiaojian,time_stamp=self.huoqu_fugai_time_stamp)
                         database_create_data.operDB(insert_sql, 'insert')
-            prcess1 = Process(target=fugai_func, args=(self.huoqu_fugai_time_stamp, ))
+            prcess1 = multiprocessing.Process(target=fugai_func, args=(self.huoqu_fugai_time_stamp, ))
             prcess1.start()
     # 覆盖查询 - 接收页码数
     def set_fugai_chaxun_xiangqing(self,data):
@@ -981,7 +975,6 @@ class Danao_Inter_Action(QObject):
             delete_sql = """delete from fugai_Linshi_List;"""
             database_create_data.operDB(delete_sql, 'delete')
 
-
     # 退出杀死进程
     def __del__(self):
         if 'win' in sys.platform:
@@ -1041,207 +1034,197 @@ class DaNao(object):
         self.initDB()
         self.main_body()
 
+
     # 初始化数据库和表
     def initDB(self):
-        # 判断路径
-        my_db_path = os.path.join('my_db')
-        database_lock_path = './my_db/my_sqlite3.lock'
-        if os.path.exists(database_lock_path):
-            os.remove(database_lock_path)
-        if my_db_path:
-            # 查询sqlite所有表  查询表是否存在 不在创建
-            sql = """select name from sqlite_master  where type = 'table' order by name;"""
-            objs = database_create_data.operDB(sql, 'select')
-            sqlite_dbs = []
+        db_file = os.path.join(os.getcwd(), 'my_db', 'my_sqlite.db')
+        db_lock = os.path.join(os.getcwd(), 'my_db', 'my_sqlite3.lock')
+        if not os.path.exists(db_file):
+            conn = sqlite3.connect(db_file)
+            conn.cursor()
+        if os.path.exists(db_lock):
+            os.remove(db_lock)
+
+        # 查询sqlite所有表  查询表是否存在 不在创建
+        sql = """select name from sqlite_master  where type = 'table' order by name;"""
+        objs = database_create_data.operDB(sql, 'select')
+        sqlite_dbs = []
+        if objs['data']:
             for obj in objs['data']:
-                db_obj = obj[0]
-                sqlite_dbs.append(db_obj)
-            print('数据库的所有表名-=-=-==-=-=-=--=-===-=-=> ', sqlite_dbs)
+                sqlite_dbs.append(obj[0])
 
-            # 判断登录 信息表
-            if 'Login_Message' not in sqlite_dbs:
-                print('没有Login_Message表 ------- 创建Login_Message表')
-                Login_Message = """
-                      create table Login_Message (
-                      id integer primary key autoincrement,
-                      message text not null
-                      )"""
-                database_create_data.operDB(Login_Message, 'create')
+        print('数据库的所有表名-=-=-==-=-=-=--=-===-=-=> ', sqlite_dbs)
+        # 判断登录 信息表
+        if 'Login_Message' not in sqlite_dbs:
+            print('没有Login_Message表 ------- 创建Login_Message表')
+            Login_Message = """
+                  create table Login_Message (
+                  id integer primary key autoincrement,
+                  message text not null
+                  )"""
+            database_create_data.operDB(Login_Message, 'create')
 
-            # 判断 任务列表
-            if 'task_List' not in sqlite_dbs:
-                print('没有Task_List表 ------- 创建Task_List表')
+        # 判断 任务列表
+        if 'task_List' not in sqlite_dbs:
+            print('没有Task_List表 ------- 创建Task_List表')
 
-                """
-                qiyong_status       启用状态
-                task_name           任务名称
-                task_jindu          查询任务的进度百分比
-                task_start_time     任务查询时间
-                task_status         任务状态
-                                         1 未查询
-                                         2 查询中
-                                         3 已完成
-                             
-                search_engine      需要查询的搜索引擎
-                                       1 百度
-                                       2 搜狗
-                                       3 360
-                                       4 手机百度
-                                       5 手机搜狗
-                                       6 手机360
-                                       7 神马
-                               
-                mohupipei          模糊匹配条件 
-                zhixing            是否正在查询
-                next_datetime      下次查询时间
-                keywords           查询的关键词
-                
-                """
+            """
+            qiyong_status       启用状态
+            task_name           任务名称
+            task_jindu          查询任务的进度百分比
+            task_start_time     任务查询时间
+            task_status         任务状态
+                                     1 未查询
+                                     2 查询中
+                                     3 已完成
 
-                Task_List_sql = """CREATE TABLE task_List (
-                     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                     "qiyong_status" INTEGER,
-                     "task_name" TEXT,
-                     "task_jindu" INTEGER,
-                     "task_start_time" TEXT,
-                     "task_status" INTEGER DEFAULT 1,
-                     "search_engine" TEXT,
-                     "mohupipei" TEXT,
-                     "zhixing" INTEGER,
-                     "next_datetime" TEXT,
-                     "keywords" TEXT
-                   );"""
-                database_create_data.operDB(Task_List_sql, 'create')
+            search_engine      需要查询的搜索引擎
+                                   1 百度
+                                   2 搜狗
+                                   3 360
+                                   4 手机百度
+                                   5 手机搜狗
+                                   6 手机360
+                                   7 神马
 
-            # 判断 任务详情
-            if 'task_Detail' not in sqlite_dbs:
-                print('没有Task_Detail表 ------- 创建Task_Detail表')
+            mohupipei          模糊匹配条件
+            zhixing            是否正在查询
+            next_datetime      下次查询时间
+            keywords           查询的关键词
 
-                """   id 
-                      tid INTEGER          归属任务
-                      search_engine        搜索引擎
-                      lianjie              条件链接
-                      keywords             关键词
-                      mohupipei            模糊匹配条件
-                      create_time          创建时间
-                      task_start_time      任务执行时间
-                      time_stamp           时间戳
-                      is_perform           是否执行
-                """
-                Task_Detail_sql = """CREATE TABLE task_Detail (
-                      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                      "tid" INTEGER,
-                      "search_engine" TEXT,
-                      "lianjie" TEXT,
-                      "keywords" TEXT,
-                      "mohupipei" TEXT,
-                      "create_time" TEXT,
-                      "task_start_time" TEXT,
-                      "time_stamp" INTEGER,
-                      "is_perform" TEXT,
-                      CONSTRAINT "task_detail_tid" FOREIGN KEY ("tid") REFERENCES "Task_List" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
-                    );"""
-                database_create_data.operDB(Task_Detail_sql, 'create')
+            """
 
-            # 判断 关键词详情数据
-            if 'task_Detail_Data' not in sqlite_dbs:
-                print('没有task_Detail_Data ------- 创建task_Detail_Data')
-                """   
-                    id 
-                    paiming              排名
-                    is_shoulu            收录
-                    tid                  父id详情表
-                    create_time          创建时间
-                """
-                task_Detail_Data_sql = """CREATE TABLE task_Detail_Data (
-                      "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-                      "paiming" integer,
-                      "is_shoulu" integer,
-                      "tid" integer,
-                      "create_time" TEXT,
-                      CONSTRAINT "task_Detail_Data_tid" FOREIGN KEY ("tid") REFERENCES "task_Detail" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
-                    );"""
-                database_create_data.operDB(task_Detail_Data_sql, 'create')
+            Task_List_sql = """CREATE TABLE task_List (
+                 "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                 "qiyong_status" INTEGER,
+                 "task_name" TEXT,
+                 "task_jindu" INTEGER,
+                 "task_start_time" TEXT,
+                 "task_status" INTEGER DEFAULT 1,
+                 "search_engine" TEXT,
+                 "mohupipei" TEXT,
+                 "zhixing" INTEGER,
+                 "next_datetime" TEXT,
+                 "keywords" TEXT
+               );"""
+            database_create_data.operDB(Task_List_sql, 'create')
 
-            # 判断 收录临时 表
-            if 'shoulu_Linshi_List' not in sqlite_dbs:
-                print('没有shoulu_Linshi_List表  创建shoulu_Linshi_List表')
-                """   
-                    id 
-                    url              链接
-                    is_shoulu        收录
-                    time_stamp       时间戳 为了更准确的展示出当前查询的所有数据
-                    title            创建时间
-                    search           引擎
-                    kuaizhao_time    百度快照
-                    status_code      状态码
-                    is_zhixing       是否执行
-                    shijianchuo      判断时间戳
-                """
-                shoulu_Linshi_List_sql = """CREATE TABLE shoulu_Linshi_List (
-                        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                        "url" TEXT,
-                        "is_shoulu" TEXT,
-                        "time_stamp" TEXT,
-                        "title" TEXT,
-                        "search" integer,
-                        "kuaizhao_time" TEXT,
-                        "status_code" integer,
-                        "is_zhixing" text,
-                        "shijianchuo" TEXT
-                    );"""
-                database_create_data.operDB(shoulu_Linshi_List_sql, 'create')
+        # 判断 任务详情
+        if 'task_Detail' not in sqlite_dbs:
+            print('没有Task_Detail表 ------- 创建Task_Detail表')
 
-            # 判断 覆盖临时 表
-            if 'fugai_Linshi_List' not in sqlite_dbs:
-                print('没有fugai_Linshi_List表 ,创建fugai_Linshi_List表')
-                """
-                    本表区分父子级  
-                    keyword             关键词
-                    paiming_detail      排名详情 父级为全部排名 子级为单个排名
-                    search_engine       搜索引擎
-                    title               标题 父级为空 
-                    title_url           标题链接 父级为空
-                    sousuo_guize        搜索规则
-                    time_stamp          时间戳  后台判断用
-                    tid                 父级id  父级为空
-                    chaxun_status       查询状态 为1 代表查询完成 
-                    status_code         链接 状态码
-                    is_zhixing          是否执行
-                    shijianchuo         取数据判断
-                """
+            """   id
+                  tid INTEGER          归属任务
+                  search_engine        搜索引擎
+                  lianjie              条件链接
+                  keywords             关键词
+                  mohupipei            模糊匹配条件
+                  create_time          创建时间
+                  task_start_time      任务执行时间
+                  time_stamp           时间戳
+                  is_perform           是否执行
+            """
+            Task_Detail_sql = """CREATE TABLE task_Detail (
+                  "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                  "tid" INTEGER,
+                  "search_engine" TEXT,
+                  "lianjie" TEXT,
+                  "keywords" TEXT,
+                  "mohupipei" TEXT,
+                  "create_time" TEXT,
+                  "task_start_time" TEXT,
+                  "time_stamp" INTEGER,
+                  "is_perform" TEXT,
+                  CONSTRAINT "task_detail_tid" FOREIGN KEY ("tid") REFERENCES "Task_List" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
+                );"""
+            database_create_data.operDB(Task_Detail_sql, 'create')
 
-                fugai_Linshi_List_sql = """
-                    CREATE TABLE fugai_Linshi_List (
-                      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                      "keyword" TEXT,
-                      "paiming_detail" TEXT,
-                      "search_engine" TEXT,
-                      "title" TEXT,
-                      "title_url" TEXT,
-                      "sousuo_guize" TEXT,
-                      "time_stamp" TEXT,
-                       "tid" INTEGER,
-                       "chaxun_status" integer,
-                       "status_code" integer,
-                       "is_zhixing" TEXT,
-                       "shijianchuo" integer
-                    );
-                """
-                database_create_data.operDB(fugai_Linshi_List_sql, 'create')
+        # 判断 关键词详情数据
+        if 'task_Detail_Data' not in sqlite_dbs:
+            print('没有task_Detail_Data ------- 创建task_Detail_Data')
+            """
+                id
+                paiming              排名
+                is_shoulu            收录
+                tid                  父id详情表
+                create_time          创建时间
+            """
+            task_Detail_Data_sql = """CREATE TABLE task_Detail_Data (
+                  "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+                  "paiming" integer,
+                  "is_shoulu" integer,
+                  "tid" integer,
+                  "create_time" TEXT,
+                  CONSTRAINT "task_Detail_Data_tid" FOREIGN KEY ("tid") REFERENCES "task_Detail" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
+                );"""
+            database_create_data.operDB(task_Detail_Data_sql, 'create')
 
+        # 判断 收录临时 表
+        if 'shoulu_Linshi_List' not in sqlite_dbs:
+            print('没有shoulu_Linshi_List表  创建shoulu_Linshi_List表')
+            """
+                id
+                url              链接
+                is_shoulu        收录
+                time_stamp       时间戳 为了更准确的展示出当前查询的所有数据
+                title            创建时间
+                search           引擎
+                kuaizhao_time    百度快照
+                status_code      状态码
+                is_zhixing       是否执行
+                shijianchuo      判断时间戳
+            """
+            shoulu_Linshi_List_sql = """CREATE TABLE shoulu_Linshi_List (
+                    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    "url" TEXT,
+                    "is_shoulu" TEXT,
+                    "time_stamp" TEXT,
+                    "title" TEXT,
+                    "search" integer,
+                    "kuaizhao_time" TEXT,
+                    "status_code" integer,
+                    "is_zhixing" text,
+                    "shijianchuo" TEXT
+                );"""
+            database_create_data.operDB(shoulu_Linshi_List_sql, 'create')
 
-            # 判断 搜索引擎表
-            # if 'searchEngineList' not in data_list:
-            #     print('searchEngineList ------- searchEngineList')
-            #     sql = """CREATE TABLE searchEngineList (
-            #             "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            #             "value" TEXT,
-            #             "label" TEXT
-            #             );"""
-            #     cursor.execute(sql)
+        # 判断 覆盖临时 表
+        if 'fugai_Linshi_List' not in sqlite_dbs:
+                    print('没有fugai_Linshi_List表 ,创建fugai_Linshi_List表')
+                    """
+                        本表区分父子级
+                        keyword             关键词
+                        paiming_detail      排名详情 父级为全部排名 子级为单个排名
+                        search_engine       搜索引擎
+                        title               标题 父级为空
+                        title_url           标题链接 父级为空
+                        sousuo_guize        搜索规则
+                        time_stamp          时间戳  后台判断用
+                        tid                 父级id  父级为空
+                        chaxun_status       查询状态 为1 代表查询完成
+                        status_code         链接 状态码
+                        is_zhixing          是否执行
+                        shijianchuo         取数据判断
+                    """
+                    fugai_Linshi_List_sql = """
+                        CREATE TABLE fugai_Linshi_List (
+                          "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                          "keyword" TEXT,
+                          "paiming_detail" TEXT,
+                          "search_engine" TEXT,
+                          "title" TEXT,
+                          "title_url" TEXT,
+                          "sousuo_guize" TEXT,
+                          "time_stamp" TEXT,
+                           "tid" INTEGER,
+                           "chaxun_status" integer,
+                           "status_code" integer,
+                           "is_zhixing" TEXT,
+                           "shijianchuo" integer
+                        );
+                    """
+                    database_create_data.operDB(fugai_Linshi_List_sql, 'create')
 
-            # 关闭链接
 
     # 主体 函数
     def main_body(self):
@@ -1252,12 +1235,14 @@ class DaNao(object):
         win = QWidget()
         win.resize(win32_width, win32_height)
         win.setWindowTitle('诸葛大脑')
-        app.setWindowIcon(QIcon('128.ico'))
+        # app.setWindowIcon(QIcon('128.ico'))
+        # print('os.path.join(os.getcwd(),==============> ',os.path.join(os.getcwd(), '128.ico'))
+        print('os.path.join(os.getcwd() ===================> ',os.path.join(os.getcwd(), '128.ico'))
+        app.setWindowIcon(QIcon(os.path.join(os.getcwd(), '128.ico')))
 
         # 创建垂直布局
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        # layout.setMargin(0)
         win.setLayout(layout)
 
         view = QWebEngineView()
@@ -1289,6 +1274,6 @@ class DaNao(object):
         sys.exit(app.exec_())
 
 
-# if __name__ == '__main__':
-obj = DaNao()
-
+if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    obj = DaNao()

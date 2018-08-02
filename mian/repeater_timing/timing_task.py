@@ -87,10 +87,9 @@ def func(detail_id, lianjie, keywords, search_engine, mohupipei,):
             thread_pc_mohupipei.start()
 
 
-
-
 # lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
 # db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
+
 
 # 定时器一
 def get_task_list(data=None):
@@ -175,6 +174,7 @@ def dingshi_timer():
             time.sleep(1)
     timer_flag = False
 
+
 # 启动定时器
 def run():
     schedule.every(30).seconds.do(get_task_list)
@@ -182,14 +182,6 @@ def run():
     while True:
         # print('启动定时器')
         schedule.run_pending()
-
-
-
-
-
-
-
-
 
 
 
@@ -272,4 +264,3 @@ def run():
 # 定时 1s == 1000
 # timer.start(30000)
 # timer2.start(2000)
-

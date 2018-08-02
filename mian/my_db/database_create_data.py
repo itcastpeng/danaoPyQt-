@@ -1,8 +1,12 @@
 import requests, random, sqlite3, os
 from time import sleep
 
-lock_file = '../my_db/my_sqlite3.lock'
-db_file =  '../my_db/my_sqlite.db'
+# lock_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'my_sqlite3.lock')
+# db_file =  os.path.join(os.path.dirname(os.path.realpath(__file__)), 'my_sqlite.db')
+
+db_file = os.path.join(os.getcwd(), 'my_db', 'my_sqlite.db')
+lock_file = os.path.join(os.getcwd(), 'my_db', 'my_sqlite3.lock')
+
 
 def operDB(sql, oper='select'):
     result_obj = {
