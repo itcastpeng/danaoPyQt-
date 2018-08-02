@@ -17,8 +17,8 @@ from mian.threading_task_pc.threading_task import shoulu_func, fugai_func
 import sqlite3, os, json, time, datetime, tkinter.messagebox, threading, sys, requests, queue
 
 
-lock_file = './my_db/my_sqlite3.lock'
-db_file =  './my_db/my_sqlite.db'
+lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
+db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
 
 class Danao_Inter_Action(QObject):
     def __init__(self):

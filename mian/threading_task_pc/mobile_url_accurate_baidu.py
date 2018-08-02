@@ -5,8 +5,8 @@ import datetime
 import chardet
 from mian.my_db import database_create_data
 
-lock_file = './my_db/my_sqlite3.lock'
-db_file =  './my_db/my_sqlite.db'
+lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
+db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
 def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=None, data_id=None):
     headers = {
         'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}

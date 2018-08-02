@@ -89,8 +89,8 @@ def func(detail_id, lianjie, keywords, search_engine, mohupipei,):
 
 
 
-lock_file = './my_db/my_sqlite3.lock'
-db_file =  './my_db/my_sqlite.db'
+lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
+db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
 
 # 定时器一
 def get_task_list(data=None):

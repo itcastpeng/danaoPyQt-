@@ -97,8 +97,8 @@ from  mian.repeater_timing import timing_task
 
 
 
-lock_file = './my_db/my_sqlite3.lock'
-db_file =  './my_db/my_sqlite.db'
+lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
+db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
 shijianchuo = time.time()
 
 

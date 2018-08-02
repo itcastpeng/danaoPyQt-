@@ -26,8 +26,8 @@ pcRequestHeader = [
 ]
 
 
-lock_file = './my_db/my_sqlite3.lock'
-db_file =  './my_db/my_sqlite.db'
+lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
+db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
 
 class Baidu_Zhidao_yuming_pc():
     def __init__(self,tid, yinqing, keyword, domain, detail_id=None,huoqu_fugai_time_stamp=None,fugai_canshu=None):

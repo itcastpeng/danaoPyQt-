@@ -50,8 +50,8 @@ mobile_emulation = {
             "deviceName": "Notebook with touch",
             "deviceName": "iPhone 6"
 }
-lock_file = './my_db/my_sqlite3.lock'
-db_file =  './my_db/my_sqlite.db'
+lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
+db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
 class Baidu_Zhidao_yuming_mobile(object):
 
     def __init__(self,tid, yinqing, keyword, domain, detail_id=None, huoqu_gonggong_time_stamp=None,fugai_chaxun=None):
