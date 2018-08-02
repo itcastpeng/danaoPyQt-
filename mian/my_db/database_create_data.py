@@ -1,10 +1,10 @@
 import requests, random, sqlite3, os
 from time import sleep
 
-# lock_file = '../my_db/my_sqlite3.lock'
-# db_file =  '../my_db/my_sqlite.db'
+lock_file = '../my_db/my_sqlite3.lock'
+db_file =  '../my_db/my_sqlite.db'
 
-def operDB(sql, lock_file, db_file, oper='select'):
+def operDB(sql, oper='select'):
     result_obj = {
         'data': '',
         'code': 200

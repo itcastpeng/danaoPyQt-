@@ -15,10 +15,7 @@ from mian.repeater_timing import timing_task
 from multiprocessing import Process
 from mian.threading_task_pc.threading_task import shoulu_func, fugai_func
 import sqlite3, os, json, time, datetime, tkinter.messagebox, threading, sys, requests, queue
-
-
-lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
-db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
+from PyQt5 import sip
 
 class Danao_Inter_Action(QObject):
     def __init__(self):
@@ -47,14 +44,14 @@ class Danao_Inter_Action(QObject):
     def get_Loginvalue(self):
         # 查询数据库 返回用户信息
         sql = """select message from Login_message;"""
-        objs = database_create_data.operDB(sql, lock_file, db_file, 'select')
+        objs = database_create_data.operDB(sql, 'select')
         return objs['data'][0][0]
     # 登录 - 获取登录参数 保存数据库
     def set_Loginvalue(self, data):
         print('获得登录参数---->: %s' % data)
         # 查询数据库 有数据更新 没数据创建
         sql = """select * from Login_message;"""
-        objs = database_create_data.operDB(sql, lock_file, db_file, 'select')
+        objs = database_create_data.operDB(sql, 'select')
         sql_data = ''
         sql_two = ''
         for sql_data in objs['data']:
@@ -63,22 +60,22 @@ class Danao_Inter_Action(QObject):
             sql_two = """update Login_message set message='{data}' where id=1""".format(data=data)
         else:
             sql_two = """insert into Login_message values (1,'{data}')""".format(data=data)
-        database_create_data.operDB(sql_two, lock_file, db_file, 'update or insert')
+        database_create_data.operDB(sql_two, 'update or insert')
         # print('当前数据库执行结束-------------')
     # 重点词监控 - 获取任务列表数据
     def get_zhongdianci_create_task_list_value(self):
         sql = """select * from task_List;"""
-        objs = database_create_data.operDB(sql, lock_file, db_file, 'select')
+        objs = database_create_data.operDB(sql, 'select')
         data_list = []
         baifenbi = 0
         if objs['data']:
             for obj in objs['data']:
                 id = obj[0]
                 sql_two = """select count(id) from task_Detail where tid = '{}';""".format(id)
-                objs_two = database_create_data.operDB(sql_two, lock_file, db_file, 'select')
+                objs_two = database_create_data.operDB(sql_two, 'select')
                 count_obj = int(objs_two['data'][0][0])
                 sql_three = """select count(id) from task_Detail where tid = '{}' and is_perform = '0';""".format(id)
-                objs_three = database_create_data.operDB(sql_three, lock_file, db_file, 'select')
+                objs_three = database_create_data.operDB(sql_three, 'select')
                 if objs_three['data']:
                     wancheng_obj = int(objs_three['data'][0][0])
                     if count_obj != 0:
@@ -1291,6 +1288,6 @@ class DaNao(object):
         sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
-    obj = DaNao()
+# if __name__ == '__main__':
+obj = DaNao()
 

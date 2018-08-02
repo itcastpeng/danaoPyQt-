@@ -59,7 +59,7 @@ def thread_mobilemohupipei(search_engine, keywords, domain,detail_id, ):
 
 # 启动程序 - 重点词监控
 def func(detail_id, lianjie, keywords, search_engine, mohupipei,):
-    print('启动程序---------------------> ',detail_id, lianjie, keywords, search_engine, mohupipei)
+    # print('启动程序---------------------> ',detail_id, lianjie, keywords, search_engine, mohupipei)
     # 去线程池里那一个线程，如果有，则池子里拿，如果没有，等直到有人归还线程到线程池
     # print('当前线程数量 --------=========================>',threading.active_count())
     thread_obj = pool.get_thread()
@@ -89,8 +89,8 @@ def func(detail_id, lianjie, keywords, search_engine, mohupipei,):
 
 
 
-lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
-db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
+# lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
+# db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
 
 # 定时器一
 def get_task_list(data=None):
@@ -103,30 +103,30 @@ def get_task_list(data=None):
     else:
         sql = """select id,next_datetime from task_List where next_datetime <='{xiaoyu_dengyu_date}' and qiyong_status = '1' limit 1;""".format(
         xiaoyu_dengyu_date=xiaoyu_dengyu_date)
-    objs = database_create_data.operDB(sql, lock_file, db_file, 'select')
+    objs = database_create_data.operDB(sql, 'select')
     print('进入定时器一')
     if objs['data']:
         print('进入---------------------')
         data_id = objs['data'][0][0]
         select_sql = """select id from task_Detail where tid='{data}'""".format(data=data_id)
-        select_objs = database_create_data.operDB(select_sql, lock_file, db_file, 'select')
+        select_objs = database_create_data.operDB(select_sql, 'select')
         if select_objs['data']:
             next_time = objs['data'][0][1]
             next_datetime = datetime.datetime.strptime(next_time, '%Y-%m-%d %H:%M:%S')
             update_status_sql = """update task_List set task_status = '0', zhixing = '1' where id = '{}'""".format(data_id)
-            database_create_data.operDB(update_status_sql, lock_file, db_file, 'update')
+            database_create_data.operDB(update_status_sql, 'update')
             if next_datetime.strftime('%Y-%m-%d') <= datetime.datetime.today().strftime('%Y-%m-%d'):
                 # 修改下一次执行时间
                 next_datetime_addoneday = (next_datetime + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
                 next_sql = """update task_List set next_datetime = '{next_datetime}' where id = '{id}';""".format(next_datetime=next_datetime_addoneday,id=data_id)
-                database_create_data.operDB(next_sql, lock_file, db_file, 'update')
+                database_create_data.operDB(next_sql, 'update')
             # 修改 任务详情为 启用
             sql_status = """update task_Detail set is_perform = '1', task_start_time = '{time}' where tid = '{task_id}';""".format(time=start_time,task_id=data_id)
-            database_create_data.operDB(sql_status, lock_file, db_file, 'update')
+            database_create_data.operDB(sql_status, 'update')
         else:
             print('进入else')
             update_sql = """update task_List set qiyong_status = '0' where id = '{data_id}';""".format(data_id=data_id)
-            database_create_data.operDB(update_sql, lock_file, db_file, 'update')
+            database_create_data.operDB(update_sql, 'update')
 timer_flag = False
 
 
@@ -141,7 +141,7 @@ def dingshi_timer():
     now_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')
     sql = """select * from task_Detail where is_perform=1;"""
     is_run_flag = False     # 表示是否有任务要运行
-    objs_list = database_create_data.operDB(sql, lock_file, db_file, 'select')
+    objs_list = database_create_data.operDB(sql, 'select')
     if objs_list['data']:
         for obj in objs_list['data']:
             detail_id = obj[0]
@@ -157,7 +157,7 @@ def dingshi_timer():
                 time_stamp = int(shijianchuo) + 300
                 sql = """update task_Detail set time_stamp ='{time_stamp}' where id = {detail_id};""".format(
                     time_stamp=time_stamp, detail_id=detail_id)
-                database_create_data.operDB(sql, lock_file, db_file, 'update')
+                database_create_data.operDB(sql, 'update')
                 is_run_flag = True
             else:
                 time_stamp_obj = int(time_stamp_obj)

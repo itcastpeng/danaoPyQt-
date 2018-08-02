@@ -27,8 +27,8 @@ pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:2.0b13pre) Gecko/20110307 Firefox/4.0b13'
 ]
 headers = {'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
-lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
-db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
+# lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
+# db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
 
 def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None,data_id=None):
     domain = domain.strip()
@@ -50,6 +50,7 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None,
         div_tags = soup_domain.find_all('div', class_='result c-container ')
         if div_tags and div_tags[0].attrs.get('id'):
             panduan_url = div_tags[0].find('a').attrs['href']
+            ret_two = ''
             try:
                 ret_two = requests.get(panduan_url, headers=headers)
             except Exception as e:
@@ -81,7 +82,7 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None,
     if shoulu_canshu:
         select_sql = """select id from shoulu_Linshi_List where time_stamp='{time_stamp}' and url='{url}' and search={search}""".format(
             time_stamp=huoqu_shoulu_time_stamp, url=domain, search=search)
-        id_objs = database_create_data.operDB(select_sql, lock_file, db_file, 'select')
+        id_objs = database_create_data.operDB(select_sql, 'select')
         id_obj = id_objs['data'][0][0]
         sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}', status_code='{status_code}', is_zhixing={is_zhixing} where id ={id};""".format(
             shoulu=shoulu,
@@ -91,7 +92,7 @@ def shoulu_chaxun(domain,search,huoqu_shoulu_time_stamp=None,shoulu_canshu=None,
             id=id_obj,
             is_zhixing='1'
         )
-        database_create_data.operDB(sql, lock_file, db_file, 'update')
+        database_create_data.operDB(sql, 'update')
     return shoulu
 
 # domain = 'http://www.bjhzkq.com'
@@ -159,9 +160,9 @@ class Baidu_Zhidao_URL_PC():
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-            database_create_data.operDB(insert_sql, lock_file, db_file, 'insert')
+            database_create_data.operDB(insert_sql, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-            database_create_data.operDB(update_sql, lock_file, db_file,'update')
+            database_create_data.operDB(update_sql, 'update')
 
 
 

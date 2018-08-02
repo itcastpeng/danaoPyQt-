@@ -5,8 +5,8 @@ import datetime
 import chardet
 from mian.my_db import database_create_data
 
-lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
-db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
+# lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
+# db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
 def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=None, data_id=None):
     headers = {
         'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
@@ -67,7 +67,7 @@ def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=No
     if shoulu_canshu:
         select_sql = """select id from shoulu_Linshi_List where time_stamp='{time_stamp}' and url='{url}' and search={search}""".format(
             time_stamp=huoqu_shoulu_time_stamp, url=domain, search=search)
-        id_objs = database_create_data.operDB(select_sql, lock_file, db_file, 'select')
+        id_objs = database_create_data.operDB(select_sql, 'select')
         id_obj = id_objs['data'][0][0]
         update_sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}', status_code='{status_code}', is_zhixing={is_zhixing} where id={id};""".format(
             shoulu=shoulu,
@@ -77,7 +77,7 @@ def shoulu_chaxun(domain, search, huoqu_shoulu_time_stamp=None, shoulu_canshu=No
             id=id_obj,
             is_zhixing='1'
         )
-        database_create_data.operDB(update_sql, lock_file, db_file, 'update')
+        database_create_data.operDB(update_sql, 'update')
     else:
         return data_list
 
@@ -133,6 +133,6 @@ class Baidu_Zhidao_URL_MOBILE(object):
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-            database_create_data.operDB(insert_sql, lock_file, db_file, 'insert')
+            database_create_data.operDB(insert_sql, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-            database_create_data.operDB(update_sql, lock_file, db_file, 'update')
+            database_create_data.operDB(update_sql, 'update')

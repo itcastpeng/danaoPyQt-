@@ -26,8 +26,8 @@ pcRequestHeader = [
 ]
 
 
-lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
-db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
+# lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
+# db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
 
 class Baidu_Zhidao_yuming_pc():
     def __init__(self,tid, yinqing, keyword, domain, detail_id=None,huoqu_fugai_time_stamp=None,fugai_canshu=None):
@@ -87,11 +87,11 @@ class Baidu_Zhidao_yuming_pc():
                                 keyword=self.keyword, paiming_detail=rank_num, search_engine=self.yinqing,
                                 title=title, title_url=ret_two_url, sousuo_guize=self.domain,
                                 time_stamp=None,status_code=status_code,tid=str(self.tid))
-                            database_create_data.operDB(insert_sql, lock_file, db_file, 'insert')
+                            database_create_data.operDB(insert_sql, 'insert')
         if self.fugai_canshu:
             sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', chaxun_status='1', is_zhixing='{is_zhixing}' where id = '{id}';""".format(
                 paiming_detail=str_order, is_zhixing='1', id=self.tid)
-            database_create_data.operDB(sql_two, lock_file, db_file, 'update')
+            database_create_data.operDB(sql_two, 'update')
         else:
             data_list.append({
                 'paiming_detail': str_order,
@@ -106,8 +106,8 @@ class Baidu_Zhidao_yuming_pc():
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
                 order=data['paiming_detail'],shoulu=data['shoulu'],detail_id=data['detail_id'],date_time=date_time)
-            database_create_data.operDB(insert_sql, lock_file, db_file, 'insert')
+            database_create_data.operDB(insert_sql, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-            database_create_data.operDB(update_sql, lock_file, db_file, 'update')
+            database_create_data.operDB(update_sql, 'update')
 
 

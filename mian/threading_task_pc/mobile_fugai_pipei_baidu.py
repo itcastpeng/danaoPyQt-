@@ -50,8 +50,8 @@ mobile_emulation = {
             "deviceName": "Notebook with touch",
             "deviceName": "iPhone 6"
 }
-lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
-db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
+# lock_file = 'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite3.lock'
+# db_file =  'C:/pycharm zh/danaoPyQt/mian/my_db/my_sqlite.db'
 class Baidu_Zhidao_yuming_mobile(object):
 
     def __init__(self,tid, yinqing, keyword, domain, detail_id=None, huoqu_gonggong_time_stamp=None,fugai_chaxun=None):
@@ -110,7 +110,7 @@ class Baidu_Zhidao_yuming_mobile(object):
                                             keyword=self.keyword, paiming_detail=order, search_engine=self.yinqing,
                                             title=title, title_url=ret_two.url, sousuo_guize=self.domain,
                                             time_stamp=None, status_code=status_code, tid=str(self.tid))
-                                        database_create_data.operDB(sql, lock_file, db_file, 'insert')
+                                        database_create_data.operDB(sql, 'insert')
                         except Exception as e:
                             pass
         data_list.append({
@@ -122,7 +122,7 @@ class Baidu_Zhidao_yuming_mobile(object):
             for data in data_list:
                 sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', chaxun_status='1', is_zhixing='{is_zhixing}' where id = {tid};""".format(
                     paiming_detail=data['paiming_detail'],tid=str(self.tid),is_zhixing='1')
-                database_create_data.operDB(sql_two, lock_file, db_file, 'insert')
+                database_create_data.operDB(sql_two, 'insert')
         else:
             return data_list
 
@@ -131,9 +131,9 @@ class Baidu_Zhidao_yuming_mobile(object):
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
                 order=data['paiming_detail'], shoulu=data['shoulu'], detail_id=data['detail_id'], date_time=date_time)
-            database_create_data.operDB(insert_sql, lock_file, db_file, 'insert')
+            database_create_data.operDB(insert_sql, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-            database_create_data.operDB(update_sql, lock_file, db_file, 'update')
+            database_create_data.operDB(update_sql, 'update')
 
 
 
