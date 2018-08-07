@@ -9,14 +9,22 @@ from openpyxl.styles import Font, Alignment
 from openpyxl import Workbook
 from tkinter import *
 from tkinter.filedialog import askdirectory
-from mian.my_db import database_create_data
+# from my_db import database_create_data
+# from repeater_timing import timing_task
+# import multiprocessing
+# from threading_task_pc.threading_task import shoulu_func, fugai_func
+# import sqlite3, os, json, time, datetime, tkinter.messagebox, threading, sys, requests, queue, settings
+# from backend import insert_databse
 from time import sleep
+from PyQt5 import sip
+from mian.my_db import database_create_data
 from mian.repeater_timing import timing_task
-# from multiprocessing import Process
 import multiprocessing
 from mian.threading_task_pc.threading_task import shoulu_func, fugai_func
 import sqlite3, os, json, time, datetime, tkinter.messagebox, threading, sys, requests, queue
-from PyQt5 import sip
+from mian import settings
+from mian.backend import insert_databse
+
 
 class Danao_Inter_Action(QObject):
     def __init__(self):
@@ -36,11 +44,13 @@ class Danao_Inter_Action(QObject):
         self.fugai_chaxun_page = ''
         self.fugai_chongfu_num = '0'
         self.shoulu_chongfu = '0'
-        self.tiaoshu =  '10'
+        self.tiaoshu = '10'
         self.panduan = '0'
+
     # 占位 助手
     def zhanwei_zhushou(self):
         pass
+
     # 登录 - 返回登陆参数
     def get_Loginvalue(self):
         # 查询数据库 返回用户信息
@@ -49,6 +59,7 @@ class Danao_Inter_Action(QObject):
         if objs['data']:
             # print('objs====================> ',objs)
             return objs['data'][0][0]
+
     # 登录 - 获取登录参数 保存数据库
     def set_Loginvalue(self, data):
         print('获得登录参数---->: %s' % data)
@@ -64,7 +75,7 @@ class Danao_Inter_Action(QObject):
         else:
             sql_two = """insert into Login_message values (1,'{data}')""".format(data=data)
         database_create_data.operDB(sql_two, 'update or insert')
-        # print('当前数据库执行结束-------------')
+
     # 重点词监控 - 获取任务列表数据
     def get_zhongdianci_create_task_list_value(self):
         sql = """select * from task_List;"""
@@ -113,12 +124,14 @@ class Danao_Inter_Action(QObject):
                         "zhixing": obj[8],
                         "next_datetime": obj[9],
                         "keywords": obj[10],
-                        'task_jindu':int(baifenbi),
+                        'task_jindu': int(baifenbi),
                     })
         return json.dumps(data_list)
+
     # 重点词监控 - 增加任务列表
     def set_zhongdianci_create_value(self, data):
         if type(data) == str:
+            sql_three = ''
             json_data = json.loads(data)
             qiyong_status = json_data['qiyong_status']
             task_name = json_data['task_name']
@@ -127,6 +140,7 @@ class Danao_Inter_Action(QObject):
             search_engine = ','.join(json_data['search_engine'])
             mohupipei = json_data['mohupipei']
             zhixing = json_data['zhixing']
+            # print('mohupipei==================> ',mohupipei)
             if qiyong_status:
                 qiyong_status = 1
             else:
@@ -158,12 +172,11 @@ class Danao_Inter_Action(QObject):
 
             keywords = json_data['keywords']
             values = (
-                qiyong_status,task_name, task_jindu, task_start_time,
+                qiyong_status, task_name, task_jindu, task_start_time,
                 search_engine, mohupipei, zhixing, next_datetime, keywords
             )
             sql = """insert into Task_List (qiyong_status, task_name, task_jindu, task_start_time, search_engine, mohupipei, zhixing, next_datetime, keywords) values {values};""".format(
                 values=values)
-            # print('sql--------------> ', sql)
             database_create_data.operDB(sql, 'insert')
             """search_engine
             需要查询的搜索引擎
@@ -180,7 +193,11 @@ class Danao_Inter_Action(QObject):
             tid = [i for i in objs['data']][0][0]
             keyword_list = keywords.split('\n')
             search_engine_list = search_engine.split(',')
+            # print('search_engine_list ===============> ',search_engine_list)
             data_list = []
+            lianjie = ''
+            new_keyword = ''
+            keyword = ''
             for keyword in keyword_list:
                 if keyword in data_list:
                     pass
@@ -188,30 +205,33 @@ class Danao_Inter_Action(QObject):
                     data_list.append(keyword)
             create_time = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
             for search_engine in search_engine_list:
+                # print('search_engine=========> ',search_engine)
                 for keyword in data_list:
                     if keyword:
-                        sql_three = ''
                         if 'http' in keyword:
-                            new_keyword = re.findall("(.*)http", keyword)[0].replace('\t','')
-                            print('new_keyword-------------> ',new_keyword)
-                            lianjie_list = keyword.split(new_keyword)
-                            lianjie = ''
-                            for lianjie in lianjie_list:
-                                if lianjie:
-                                    lianjie = lianjie.replace('\t','')
-                            data_insert = (tid, search_engine, lianjie, new_keyword, mohupipei, create_time)
-                            sql_three = """insert into task_Detail (tid, search_engine, lianjie, keywords, mohupipei, create_time) values {data_insert};""".format(
-                                data_insert=data_insert)
+                            new_keyword = re.findall("(.*)http", keyword)[0].replace('\t', '')
+                            if new_keyword:
+                                lianjie_list = keyword.split(new_keyword)
+                                for lianjie in lianjie_list:
+                                    if lianjie:
+                                        lianjie = lianjie.replace('\t', '')
+                                        # print('mohupipei------------> ',mohupipei)
+                                        data_insert = (tid, search_engine, lianjie, new_keyword, mohupipei, create_time)
+                                        sql_three_sql = """insert into task_Detail (tid, search_engine, lianjie, keywords, mohupipei, create_time) values {data_insert};""".format(
+                                            data_insert=data_insert)
+                                        database_create_data.operDB(sql_three_sql, 'insert')
                         else:
                             lianjie = ''
                             data_insert = (tid, search_engine, lianjie, keyword, mohupipei, create_time)
                             sql_three = """insert into task_Detail (tid, search_engine, lianjie, keywords, mohupipei, create_time) values {data_insert};""".format(
                                 data_insert=data_insert)
-                        database_create_data.operDB(sql_three, 'insert')
+                            database_create_data.operDB(sql_three, 'insert')
+
     # 重点词监控 - 查询修改前数据 获取修改任务列表id
     def set_zhongdianci_update_task_list_value(self, data):
         print('获取修改任务列表id ----------- > ', data)
         self.zhongdianci_update = data
+
     # 重点词监控 - 查询修改前数据 返回该id任务列表数据
     def get_zhongdianci_update_task_list_data_value(self):
         if self.zhongdianci_update:
@@ -253,6 +273,7 @@ class Danao_Inter_Action(QObject):
                 }
             # print('返回原数据 id为{}的数据-------------> '.format(self.zhongdianci_update), data_list)
             return json.dumps(data_list)
+
     # 重点词监护 - 修改任务列表数据
     def set_zhongdianci_update_data_value(self, update_data):
         if self.zhongdianci_update and update_data:
@@ -284,7 +305,7 @@ class Danao_Inter_Action(QObject):
                 now_date = datetime.datetime.strptime(now_date, '%Y-%m-%d %H:%M:%S')
                 if now_date < task_start_time_date:
                     task_start_time_date = task_start_time_date.strftime('%H:%M:%S')
-                    #如果当前时间小于 任务开始时间 那么 加一天
+                    # 如果当前时间小于 任务开始时间 那么 加一天
                     add_one_day = (now_datetime_date + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
                     next_datetime = str(add_one_day) + ' ' + task_start_time_date
                 else:
@@ -299,6 +320,7 @@ class Danao_Inter_Action(QObject):
                     id=id,
                     qiyong_status=qiyong_status)
                 database_create_data.operDB(sql, 'update')
+
     # 重点词监护 - 清空为该id的任务 - 的详情数据
     def set_zhongdianci_select_id_task_detail_value(self, select_task_detail):
         if select_task_detail:
@@ -310,9 +332,11 @@ class Danao_Inter_Action(QObject):
                     database_create_data.operDB(sql_two, 'delete')
                 sql_three = """delete from task_Detail where tid = {};""".format(select_task_detail)
                 database_create_data.operDB(sql_three, 'delete')
+
     # 重点词监护 - 获取任务id
     def set_zhongdianci_select_id_select_task_detail_value(self, data):
         self.zhongdianci_select_task_detail = data
+
     # 重点词监护 - 查询该任务的详情
     def get_zhongdianci_select_id_select_task_detail_value(self):
         data_list = []
@@ -332,13 +356,15 @@ class Danao_Inter_Action(QObject):
                     "create_time": obj[6],
                 })
         return str(data_list)
+
     # 重点词监护 - 立即监控 获取需要执行的任务id 调用定时器
     def set_pc_task_value(self, datas):
         self.huoqu_shoulu_time_stamp = int(time.time())
         self.dangqian_chaxunshoulu_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
         json_data = json.loads(datas)
-        for data in json_data:
-            timing_task.get_task_list(data)
+        lijijiankong = multiprocessing.Process(target=timing_task.lijijiankong, args=(json_data,))
+        lijijiankong.start()
+
     # 重点词监护 - 删除单个或多个 任务
     def delete_or_batch_delete_task(self, delete_id):
         json_id = json.loads(delete_id)
@@ -346,28 +372,33 @@ class Danao_Inter_Action(QObject):
             sql = """select id from task_Detail where tid = {}""".format(data)
             objs = database_create_data.operDB(sql, 'select')
             for obj in objs['data']:
+                # print('obj[0]------------>',obj[0])
                 sql_two = """delete from task_Detail_Data where tid = {}""".format(obj[0])
                 database_create_data.operDB(sql_two, 'delete')
             sql_three = """delete from task_Detail where tid = {};""".format(data)
             database_create_data.operDB(sql_three, 'delete')
             sql_four = """delete from task_List where id ={}""".format(data)
             database_create_data.operDB(sql_four, 'delete')
+
     # 重点词监护 - 获取展示详情获取子任务id
     def set_task_id_view_The_subtasks_task(self, data):
         self.huoqu_task_id_detail = data
+
     # 重点词监护 - 重点词监护分页
-    def set_huoqu_page_detail_value(self,data):
+    def set_huoqu_page_detail_value(self, data):
         self.zhongdianci_page_detail = data
+
     # 重点词监护 - 展示详情任务子任务
     def get_view_The_subtasks_detail(self):
         if self.huoqu_task_id_detail:
             sql_page = ''
-            sql_count = """select b.task_name,count(a.id) from task_Detail as a, task_List as b where a.tid = '{}' and a.tid=b.id """.format(self.huoqu_task_id_detail)
+            sql_count = """select b.task_name,count(a.id) from task_Detail as a, task_List as b where a.tid = '{}' and a.tid=b.id """.format(
+                self.huoqu_task_id_detail)
             if self.zhongdianci_page_detail:
                 if int(self.zhongdianci_page_detail) == 1:
                     start_page = 0
                 else:
-                    start_page = (int(self.zhongdianci_page_detail) -1) * 10
+                    start_page = (int(self.zhongdianci_page_detail) - 1) * 10
                 #  分页                                                                           开始行数         条数
                 sql_page = """select * from task_Detail where tid = {huoqu_task_id_detail} limit '{start_page}', '{tiaoshu}';""".format(
                     huoqu_task_id_detail=self.huoqu_task_id_detail,
@@ -383,25 +414,31 @@ class Danao_Inter_Action(QObject):
             sql_count = database_create_data.operDB(sql_count, 'select')
             objs = database_create_data.operDB(sql_page, 'select')
             task_name = sql_count['data'][0][0]
-            count= sql_count['data'][0][1]
+            count = sql_count['data'][0][1]
             if objs:
                 for obj in objs['data']:
-                    sql_two = """select create_time, paiming, is_shoulu from task_Detail_Data where tid = {} order by create_time desc limit 3""".format(obj[0])
+                    sql_two = """select create_time, paiming, is_shoulu from task_Detail_Data where tid = {} order by create_time desc limit 3""".format(
+                        obj[0])
                     objs_two = database_create_data.operDB(sql_two, 'select')
                     data_detail_list = []
                     sanci_chaxun = {}
                     if objs_two:
+                        is_shoulu = ''
                         for detaildata_obj in objs_two['data']:
+                            if detaildata_obj[2] == 1:
+                                is_shoulu = '是'
+                            else:
+                                is_shoulu = '否'
                             detail_create = detaildata_obj[0]
                             detail_paiming = detaildata_obj[1]
-                            detail_shoulu = detaildata_obj[2]
+                            detail_shoulu = is_shoulu
                             if detail_create not in headers_list:
                                 headers_list.append(detail_create)
                             sanci_chaxun[detail_create] = {
-                                    'detail_create': detail_create,
-                                    'shoulu': detail_shoulu,
-                                    'paiming': detail_paiming
-                                    }
+                                'detail_create': detail_create,
+                                'shoulu': detail_shoulu,
+                                'paiming': detail_paiming
+                            }
                     data_list.append({
                         'id': obj[0],
                         'search_engine': obj[2],
@@ -411,12 +448,13 @@ class Danao_Inter_Action(QObject):
                         'sanci_chaxun': sanci_chaxun,
                     })
                 exit_data_list = {
-                    'task_name':task_name,
+                    'task_name': task_name,
                     'count_page': count,
                     'data_list': data_list,
                     'headers_list': headers_list
                 }
             return json.dumps(exit_data_list)
+
     # 重点词监护 - 导出 excl 功能
     def set_save_select_results_task_excel_daochu(self, tid_data):
         if tid_data:
@@ -509,50 +547,39 @@ class Danao_Inter_Action(QObject):
                 print('点击取消')
             root.destroy()  # 销毁
 
-
     # 收录查询 - 筛选链接 调用多线程 保存数据库
     def set_shoulu_select_get_list_value(self, data):
-        data_dict = json.loads(data)
-        num = 0
-        data_count = []
-        for dataurl in data_dict['editor_content'].replace('\r\n', '').strip().split('http'):
-            data_url = dataurl.replace('\n', '')
-            if 'http' + data_url in data_count:
-                print('')
-            else:
-                if data_url:
-                    data_count.append('http' + data_url)
-            num += 1
-        self.shoulu_chongfu = (num - 1) - int(len(data_count))
+        delete_sql = """delete from shoulu_Linshi_List;"""
+        database_create_data.operDB(delete_sql, 'delete')
         self.huoqu_shoulu_time_stamp = int(time.time())
         self.dangqian_chaxunshoulu_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
-        data_list = []
-        data_result = []
-        if data_dict['searchEngineModel'] and data_count:
-            for search in data_dict['searchEngineModel']:
-                for url_data in data_count:
-                    lianjie = url_data.strip().replace('\t', '')
-                    data_value = (lianjie, '', self.huoqu_shoulu_time_stamp, '', str(search), '', '','0')
-                    insert_sql = """insert into shoulu_Linshi_List (url, is_shoulu, time_stamp, title, search, kuaizhao_time, status_code, is_zhixing) values {data_value}""".format(data_value=data_value)
-                    database_create_data.operDB(insert_sql, 'insert')
-        process_shoulu = multiprocessing.Process(target=shoulu_func, args=(self.huoqu_shoulu_time_stamp, ))
-        process_shoulu.start()
+        data_dict = json.loads(data)
+        shibiecanshu = 'shoulu'
+        insert_databse.threading_insert_into(data, self.huoqu_shoulu_time_stamp, shibiecanshu)
+        data_url_list = data_dict['editor_content'].replace('\r\n', '').strip().split('http')
+        len_url_data = (len(data_url_list) * len(data_dict['searchEngineModel']))
+        set_url_data = (len(set(data_url_list)) * len(data_dict['searchEngineModel']))
+        self.shoulu_chongfu = len_url_data - set_url_data
+        sleep(1)
+        self.process_shoulu = multiprocessing.Process(target=shoulu_func,
+            args=(self.huoqu_shoulu_time_stamp, set_url_data))
+        self.process_shoulu.start()
+
     # 收录查询 - 收录分页处理
     def set_shoulu_chauxn_page_value(self, data):
-        # print('收录页码------------------------->',data)
         self.shoulu_chaxun_page = data
+
     # 收录查询 - 查询数据库 展示
     def get_shoulu_zhanshi_list_value(self):
-        # print('=====================')
         if self.huoqu_shoulu_time_stamp:
             data_list = []
             exit_dict = {}
             if self.shoulu_chaxun_page:
-                # print('进入 -=----------------')
                 shoulu_page = json.loads(self.shoulu_chaxun_page)
-                count_sql = """select count(id) from shoulu_Linshi_List where time_stamp = '{time_stamp}';""".format(time_stamp=self.huoqu_shoulu_time_stamp)
+                count_sql = """select count(id) from shoulu_Linshi_List where time_stamp = '{time_stamp}';""".format(
+                    time_stamp=self.huoqu_shoulu_time_stamp)
                 count_objs = database_create_data.operDB(count_sql, 'select')
-                count_obj = count_objs['data'][0][0] # 查询总数
+                count_obj = count_objs['data'][0][0]  # 查询总数
                 if int(shoulu_page['current_page']) == 1:
                     start_page = 0
                 else:
@@ -572,7 +599,7 @@ class Danao_Inter_Action(QObject):
                 shoulushu = shoulushu_objs['data'][0][0]
                 shoululv = 0
                 if shoulushu and count_obj != 0:
-                    shoululv = int((shoulushu/count_obj) * 100)
+                    shoululv = int((shoulushu / count_obj) * 100)
                 # 判断 是否全部执行完毕
                 whether_complete = False
                 if panduan_count == count_obj:
@@ -594,32 +621,33 @@ class Danao_Inter_Action(QObject):
                     if str(obj[5]) == '1':
                         search_engine = '百度'
                     data_list.append({
-                        'website':obj[1],
-                        'shoulu_status':shoulu_status ,
-                        'title':obj[4],
-                        'search_engine':search_engine,
-                        'kuaizhao_date':obj[6],
-                        'statusCode':obj[7],
+                        'website': obj[1],
+                        'shoulu_status': shoulu_status,
+                        'title': obj[4],
+                        'search_engine': search_engine,
+                        'kuaizhao_date': obj[6],
+                        'statusCode': obj[7],
                     })
                 exit_dict = {
-                    'data':data_list,
+                    'data': data_list,
                     'shoulushu': shoulushu,
                     'shoululv': shoululv,
-                    'chongfu_num':self.shoulu_chongfu,
-                    'whether_complete': whether_complete,   # 全部完成 传True
-                    'count_obj':count_obj,            # 数据总数
+                    'chongfu_num': self.shoulu_chongfu,
+                    'whether_complete': whether_complete,  # 全部完成 传True
+                    'count_obj': count_obj,  # 数据总数
                     # 'total_data_num': count_obj,      # 数据总数
                     'yiwancheng_obj': yiwancheng_obj  # 当前完成数量
                 }
-                # print(json.dumps(exit_dict))
+                # print(exit_dict)
             return json.dumps(exit_dict)
+
     # 收录查询 - 查询数据库 导出excel表格
     def set_shoulu_save_select_result_value(self, data):
         if self.huoqu_shoulu_time_stamp:
             now_date = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
             sql = """select url,is_shoulu,title,search,kuaizhao_time from shoulu_Linshi_List where {time_stamp};""".format(
                 time_stamp=self.huoqu_shoulu_time_stamp)
-                # time_stamp=huoqu_shoulu_time_stamp)
+            # time_stamp=huoqu_shoulu_time_stamp)
             objs = database_create_data.operDB(sql, 'select')
             wb = Workbook()
             ws = wb.active
@@ -692,52 +720,42 @@ class Danao_Inter_Action(QObject):
             else:
                 print('点击取消')
             root.destroy()  # 销毁
+
     # 收录查询 - 退出清空查询结果
     def set_shoulu_delete_all_values(self, data):
         if data == 'delete_all_shoulu':
+            # print('退出 清空 收录查询')
             delete_sql = """delete from shoulu_Linshi_List;"""
             database_create_data.operDB(delete_sql, 'delete')
 
-
     # 覆盖查询 - 筛选查询条件 调用多线程 保存到数据库
-    def set_fugai_select_get_list_value(self,data):
+    def set_fugai_select_get_list_value(self, data):
+        delete_sql = """delete from fugai_Linshi_List;"""
+        database_create_data.operDB(delete_sql, 'delete')
         json_data = json.loads(data)
-        keyword_content_list = []
-        num = 0
-        for keyword in json_data['editor_content'].strip().split('\n'):
-            if keyword:
-                if keyword not in keyword_content_list:
-                    keyword_content_list.append(keyword)
-                num += 1
-        self.fugai_chongfu_num = num - int(len(keyword_content_list))
-        if keyword_content_list and json_data['searchEngineModel'] and json_data['fugai_tiaojian']:
-            self.huoqu_fugai_time_stamp = int(time.time())
-            self.dangqian_chaxunfugai_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
-            tiaojian_list = []
-            for tiaojian in json_data['fugai_tiaojian'].split('|'):
-                if not tiaojian.isspace():
-                    tiaojian = tiaojian.strip().replace('\n', '')
-                    if tiaojian not in tiaojian_list:
-                        tiaojian_list.append(tiaojian)
-            str_tiaojian = ",".join(str(i) for i in tiaojian_list)
-            for search in json_data['searchEngineModel']:
-                for keyword in keyword_content_list:
-                    if keyword:
-                        insert_sql = """insert into fugai_Linshi_List (keyword, paiming_detail, search_engine, title, title_url, sousuo_guize, time_stamp, status_code, is_zhixing) values ('{keyword}', '', '{search_engine}', '', '', '{sousuo_guize}', '{time_stamp}','','0');""".format(
-                        keyword=keyword,search_engine=search,sousuo_guize=str_tiaojian,time_stamp=self.huoqu_fugai_time_stamp)
-                        database_create_data.operDB(insert_sql, 'insert')
-            prcess1 = multiprocessing.Process(target=fugai_func, args=(self.huoqu_fugai_time_stamp, ))
+        data_keyword_list = json_data['editor_content'].strip().split('\n')
+        len_Keyword_data = len(data_keyword_list)
+        set_keyword_data = len(set(data_keyword_list))
+        print('len_Keyword_data===================覆盖=======> ', len_Keyword_data, set_keyword_data)
+        self.fugai_chongfu_num = len_Keyword_data - set_keyword_data
+        self.huoqu_fugai_time_stamp = int(time.time())
+        self.dangqian_chaxunfugai_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
+        shibiecanshu = 'fugai'
+        if json_data['searchEngineModel'] and json_data['fugai_tiaojian']:
+            insert_databse.threading_insert_into(json_data, self.huoqu_fugai_time_stamp, shibiecanshu)
+            sleep(1)
+            prcess1 = multiprocessing.Process(target=fugai_func, args=(self.huoqu_fugai_time_stamp, set_keyword_data))
             prcess1.start()
+
     # 覆盖查询 - 接收页码数
-    def set_fugai_chaxun_xiangqing(self,data):
-        # print('data-------0000---> ',data)
+    def set_fugai_chaxun_xiangqing(self, data):
         self.fugai_chaxun_page = data
+
     # 覆盖查询 - 获取时间戳 返回展示所有数据
     def get_fugai_zhanshi_list_value(self):
-        # print('===========================')
+        # print("覆盖 查询")
         if self.huoqu_fugai_time_stamp:
             data_list = []
-            exit_dict = {}
             otherData = []
             count_obj = ''
             paiming_num = '0'
@@ -745,26 +763,36 @@ class Danao_Inter_Action(QObject):
             paiminglv = '0'
             yiwancheng_obj = '0'
             whether_complete = False
+            # print('self.fugai_chaxun_page=============>',self.fugai_chaxun_page)
             if self.fugai_chaxun_page:
-                count_sql = """select count(id) from fugai_Linshi_List where time_stamp='{time_stamp}' and tid is NULL """.format(time_stamp=self.huoqu_fugai_time_stamp)
+                count_sql = """select count(id) from fugai_Linshi_List where time_stamp='{time_stamp}' and tid is NULL """.format(
+                    time_stamp=self.huoqu_fugai_time_stamp)
                 count_objs = database_create_data.operDB(count_sql, 'select')
                 count_obj = count_objs['data'][0][0]
-                # print('self.huoqu_fugai_time_stamp================> ',self.huoqu_fugai_time_stamp)
-                yiwancheng_sql = """select count(id) from fugai_Linshi_List where time_stamp='{time_stamp}' and is_zhixing = '1'""".format(time_stamp=self.huoqu_fugai_time_stamp)
+                yiwancheng_sql = """select count(id) from fugai_Linshi_List where time_stamp='{time_stamp}' and is_zhixing = '1'""".format(
+                    time_stamp=self.huoqu_fugai_time_stamp)
                 yiwancheng_objs = database_create_data.operDB(yiwancheng_sql, 'select')
                 yiwancheng_obj = yiwancheng_objs['data'][0][0]
-                # print('count_obj, yiwancheng_obj============>',count_obj, yiwancheng_obj)
                 if count_obj == yiwancheng_obj:
                     whether_complete = True
-                # print('whether_complete-------------------------------> ',whether_complete)
                 data_dict = json.loads(self.fugai_chaxun_page)
                 start_page = ''
                 search = ''
+                select_fugai_lv_sql = """select count(id) from fugai_Linshi_List where tid is not NULL and paiming_detail is not NULL; """
+                fugailv_obj = database_create_data.operDB(select_fugai_lv_sql, 'select')
+                if fugailv_obj['data'][0][0] and count_obj != (0 and '0'):
+                    fugailv = int((fugailv_obj['data'][0][0] / (count_obj * 10)) * 100)
+                paiminglv_fugai_sql = """select count(id) from fugai_Linshi_List where time_stamp='{time_stamp}' and tid is NULL and paiming_detail is not NULL and paiming_detail is not '0'""".format(
+                    time_stamp=self.huoqu_fugai_time_stamp
+                )
+                paiminglv_obj = database_create_data.operDB(paiminglv_fugai_sql, 'select')
+                if paiminglv_obj['data'][0][0] and count_obj != (0 and '0'):
+                    paiminglv = int((paiminglv_obj['data'][0][0] / count_obj) * 100)
+                paiming_num = paiminglv_obj['data'][0][0]
                 if data_dict['currentPage'] == 1:
                     start_page = 0
                 else:
                     start_page = (data_dict['currentPage'] - 1) * 10
-                # print('start_page--------------> ',start_page)
                 sql = """select * from fugai_Linshi_List where time_stamp='{time_stamp}' limit '{start_page}', '{tiaoshu}';""".format(
                     time_stamp=self.huoqu_fugai_time_stamp,
                     start_page=start_page,
@@ -776,6 +804,8 @@ class Danao_Inter_Action(QObject):
                         tid=obj[0])
                     detaile_objs = database_create_data.operDB(detaile_data_sql, 'select')
                     zhanwei = 0
+                    rank_num = 0
+                    rank_info = ''
                     for detaile_obj in detaile_objs['data']:
                         if detaile_obj[2]:
                             zhanwei = 1
@@ -783,18 +813,16 @@ class Danao_Inter_Action(QObject):
                         if detaile_obj[3] == '1':
                             search_engine = '百度'
                         otherData.append({
-                            'rank':detaile_obj[2],
-                            'title':detaile_obj[4],
-                            'zhanwei':zhanwei,
-                            'guize':detaile_obj[6],
-                            'url':detaile_obj[5],
-                            'search_engine':search_engine
+                            'rank': detaile_obj[2],
+                            'title': detaile_obj[4],
+                            'zhanwei': zhanwei,
+                            'guize': detaile_obj[6],
+                            'url': detaile_obj[5],
+                            'search_engine': search_engine
                         })
-                    rank_num = 0
                     if obj[2] == '0':
-                        rank_info = '-'
-                    else:
-                        rank_num = 0
+                        rank_info = '_'
+                    if obj[2] and obj[2] != '0':
                         rank_info = obj[2]
                         for num in rank_info.split(','):
                             rank_num += 1
@@ -804,29 +832,29 @@ class Danao_Inter_Action(QObject):
                         search = '手机百度'
                     else:
                         search = ''
-
                     data_list.append({
-                        'id':obj[0],
-                        'keyword':obj[1],
-                        'rank_info':rank_info,              # 排名情况  为空为查询中  无排名为-
-                        'search_engine':search,             # 搜索引擎
-                        'rank_num':rank_num,                # 排名个数
+                        'id': obj[0],
+                        'keyword': obj[1],
+                        'rank_info': rank_info,  # 排名情况  为空为查询中  无排名为-
+                        'search_engine': search,  # 搜索引擎
+                        'rank_num': rank_num,  # 排名个数
                         'otherData': otherData,
                     })
-            exit_dict = {'data':data_list,
-                         'total_data_num':count_obj,         # 数据总数
-                         'fugailv': fugailv,                 # 覆盖率
-                         'paiminglv': paiminglv,             # 排名率
-                         'paiming_num': paiming_num,            # 有排名的个数
-                         'chongfu_num': self.fugai_chongfu_num, # 重复数
+            exit_dict = {'data': data_list,
+                         'total_data_num': count_obj,  # 数据总数
+                         'fugailv': fugailv,  # 覆盖率
+                         'paiminglv': paiminglv,  # 排名率
+                         'paiming_num': paiming_num,  # 有排名的个数
+                         'chongfu_num': self.fugai_chongfu_num,  # 重复数
                          'whether_complete': whether_complete,  # 全部完成 传True
-                         'yiwancheng_obj':yiwancheng_obj        # 当前完成数量
+                         'yiwancheng_obj': yiwancheng_obj  # 当前完成数量
                          }
             # print('exit_dict  -------->',json.dumps(exit_dict))
             # print('whether_complete======================> ',whether_complete)
             return json.dumps(exit_dict)
+
     # 覆盖查询 - 导出excel表
-    def set_fugai_save_select_result_value(self,data):
+    def set_fugai_save_select_result_value(self, data):
         if self.huoqu_fugai_time_stamp:
             # print('===========> ',self.huoqu_fugai_time_stamp)
             wb = Workbook()
@@ -867,8 +895,6 @@ class Danao_Inter_Action(QObject):
             ws['C8'].alignment = Alignment(horizontal='center', vertical='center')
             ws['D8'].alignment = Alignment(horizontal='center', vertical='center')
             ws['D2'].alignment = Alignment(horizontal='left', vertical='center')
-
-
 
             ws2 = wb.create_sheet('sheet2')
             ws2.title = '关键词覆盖查询详情'
@@ -912,7 +938,6 @@ class Danao_Inter_Action(QObject):
             ws2['D2'].alignment = Alignment(horizontal='right', vertical='center')
             ws2['F2'].alignment = Alignment(horizontal='left', vertical='center')
 
-
             chaxun_time = self.huoqu_fugai_time_stamp  # 查询时间
             now_date = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
             ws.cell(row=2, column=4, value="{chaxun_time}".format(chaxun_time=self.dangqian_chaxunfugai_time))
@@ -948,7 +973,7 @@ class Danao_Inter_Action(QObject):
                     ws2.cell(row=row_two, column=3, value="{title}".format(title=obj_two[4]))
                     ws2.cell(row=row_two, column=4, value="{title_url}".format(title_url=obj_two[5]))
                     ws2.cell(row=row_two, column=5, value="{guize}".format(guize=obj_two[6]))
-                    ws2.cell(row=row_two, column=6, value="{search}".format(search=obj_two[7]))
+                    ws2.cell(row=row_two, column=6, value="{search}".format(search=search))
                     row_two += 1
 
             root = Tk()
@@ -969,17 +994,17 @@ class Danao_Inter_Action(QObject):
             else:
                 print('点击取消')
             root.destroy()  # 销毁
+
     # 查询覆盖 - 退出清空查询结果
     def set_fugai_delete_all_values(self, data):
         if data == 'delete_all_fugai':
             delete_sql = """delete from fugai_Linshi_List;"""
             database_create_data.operDB(delete_sql, 'delete')
 
-    # 退出杀死进程
+    # 退出停止进程
     def __del__(self):
         if 'win' in sys.platform:
             os.system('taskkill /PID %s /F' % self.process.pid)
-
 
     loginValue = pyqtProperty(str, fget=get_Loginvalue, fset=set_Loginvalue)
     # 重点词监护 - 增加任务
@@ -1006,8 +1031,6 @@ class Danao_Inter_Action(QObject):
         fset=set_task_id_view_The_subtasks_task)
     # 重点词监护 - 保存查询结果 导出excl表格
     saveTheQueryResults = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_save_select_results_task_excel_daochu)
-
-
     # 收录查询 - 筛选链接 查询 及 展示入库
     ShouLuChaXun = pyqtProperty(str, fget=get_shoulu_zhanshi_list_value, fset=set_shoulu_select_get_list_value)
     # 收录查询 - 详情分页查询
@@ -1016,8 +1039,6 @@ class Danao_Inter_Action(QObject):
     setShouLuDaoChuExcel = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_shoulu_save_select_result_value)
     # 收录查询 - 退出时删除所有收录数据
     shouluExitDeleteAll = pyqtProperty(str, fget=zhanwei_zhushou, fset=set_shoulu_delete_all_values)
-
-
     # 覆盖查询 - 筛选关键词 查询入库及展示
     fugaiChaXun = pyqtProperty(str, fget=get_fugai_zhanshi_list_value, fset=set_fugai_select_get_list_value)
     # 覆盖查询 - 分页查询
@@ -1031,19 +1052,21 @@ class Danao_Inter_Action(QObject):
 # PyQt 架构 与 数据库初始化类
 class DaNao(object):
     def __init__(self):
-        self.initDB()
+        self.initDatabase = multiprocessing.Process(target=self.initDB)
+        self.initDatabase.start()
+        # self.initDB()
         self.main_body()
-
 
     # 初始化数据库和表
     def initDB(self):
-        db_file = os.path.join(os.getcwd(), 'my_db', 'my_sqlite.db')
-        db_lock = os.path.join(os.getcwd(), 'my_db', 'my_sqlite3.lock')
-        if not os.path.exists(db_file):
-            conn = sqlite3.connect(db_file)
+        # db_file = os.path.join(os.getcwd(), 'my_db', 'my_sqlite.db')
+        # db_lock = os.path.join(os.getcwd(), 'my_db', 'my_sqlite3.lock')
+        # print('settings.db_file===========> ',settings.db_file)
+        if not os.path.exists(settings.db_file):
+            conn = sqlite3.connect(settings.db_file)
             conn.cursor()
-        if os.path.exists(db_lock):
-            os.remove(db_lock)
+        if os.path.exists(settings.lock_file):
+            os.remove(settings.lock_file)
 
         # 查询sqlite所有表  查询表是否存在 不在创建
         sql = """select name from sqlite_master  where type = 'table' order by name;"""
@@ -1190,41 +1213,40 @@ class DaNao(object):
 
         # 判断 覆盖临时 表
         if 'fugai_Linshi_List' not in sqlite_dbs:
-                    print('没有fugai_Linshi_List表 ,创建fugai_Linshi_List表')
-                    """
-                        本表区分父子级
-                        keyword             关键词
-                        paiming_detail      排名详情 父级为全部排名 子级为单个排名
-                        search_engine       搜索引擎
-                        title               标题 父级为空
-                        title_url           标题链接 父级为空
-                        sousuo_guize        搜索规则
-                        time_stamp          时间戳  后台判断用
-                        tid                 父级id  父级为空
-                        chaxun_status       查询状态 为1 代表查询完成
-                        status_code         链接 状态码
-                        is_zhixing          是否执行
-                        shijianchuo         取数据判断
-                    """
-                    fugai_Linshi_List_sql = """
-                        CREATE TABLE fugai_Linshi_List (
-                          "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                          "keyword" TEXT,
-                          "paiming_detail" TEXT,
-                          "search_engine" TEXT,
-                          "title" TEXT,
-                          "title_url" TEXT,
-                          "sousuo_guize" TEXT,
-                          "time_stamp" TEXT,
-                           "tid" INTEGER,
-                           "chaxun_status" integer,
-                           "status_code" integer,
-                           "is_zhixing" TEXT,
-                           "shijianchuo" integer
-                        );
-                    """
-                    database_create_data.operDB(fugai_Linshi_List_sql, 'create')
-
+            print('没有fugai_Linshi_List表 ,创建fugai_Linshi_List表')
+            """
+                本表区分父子级
+                keyword             关键词
+                paiming_detail      排名详情 父级为全部排名 子级为单个排名
+                search_engine       搜索引擎
+                title               标题 父级为空
+                title_url           标题链接 父级为空
+                sousuo_guize        搜索规则
+                time_stamp          时间戳  后台判断用
+                tid                 父级id  父级为空
+                chaxun_status       查询状态 为1 代表查询完成
+                status_code         链接 状态码
+                is_zhixing          是否执行
+                shijianchuo         取数据判断
+            """
+            fugai_Linshi_List_sql = """
+                CREATE TABLE fugai_Linshi_List (
+                  "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                  "keyword" TEXT,
+                  "paiming_detail" TEXT,
+                  "search_engine" TEXT,
+                  "title" TEXT,
+                  "title_url" TEXT,
+                  "sousuo_guize" TEXT,
+                  "time_stamp" TEXT,
+                   "tid" INTEGER,
+                   "chaxun_status" integer,
+                   "status_code" integer,
+                   "is_zhixing" TEXT,
+                   "shijianchuo" integer
+                );
+            """
+            database_create_data.operDB(fugai_Linshi_List_sql, 'create')
 
     # 主体 函数
     def main_body(self):
@@ -1237,7 +1259,7 @@ class DaNao(object):
         win.setWindowTitle('诸葛大脑')
         # app.setWindowIcon(QIcon('128.ico'))
         # print('os.path.join(os.getcwd(),==============> ',os.path.join(os.getcwd(), '128.ico'))
-        print('os.path.join(os.getcwd() ===================> ',os.path.join(os.getcwd(), '128.ico'))
+        # print('os.path.join(os.getcwd() ===================> ',os.path.join(os.getcwd(), '128.ico'))
         app.setWindowIcon(QIcon(os.path.join(os.getcwd(), '128.ico')))
 
         # 创建垂直布局
@@ -1249,7 +1271,8 @@ class DaNao(object):
         # view.load(QUrl('https://www.cnblogs.com/wangshoul'))
         # view.load(QUrl('http://192.168.10.240:8080'))
         # view.load(QUrl('http://192.168.10.252:8080'))
-        view.load(QUrl('http://192.168.10.240:8081'))
+        view.load(QUrl('http://192.168.10.240:8080'))
+        # view.load(QUrl('http://wenda.zhugeyingxiao.com'))
         # view.load(QUrl('C:/pycharm zh/danaoPyQt/mian/web/index.html'))
 
         # 简单理解就是将这个控件(QWidget)的几何内容(宽高位置等)，赋值给qr
@@ -1271,7 +1294,13 @@ class DaNao(object):
 
         # 显示窗口和运行
         win.show()
+
         sys.exit(app.exec_())
+
+    # 退出停止进程
+    def __del__(self):
+        if 'win' in sys.platform:
+            os.system('taskkill /PID %s /F' % self.initDatabase.pid)
 
 
 if __name__ == '__main__':

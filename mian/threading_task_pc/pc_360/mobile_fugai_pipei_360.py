@@ -2,7 +2,7 @@ import requests, random
 from bs4 import BeautifulSoup
 import datetime
 from time import sleep
-from mian.my_db import database_create_data
+from my_db import database_create_data
 
 import chardet
 from mian.my_db import database_create_data
@@ -65,7 +65,7 @@ class Baidu_Zhidao_yuming_mobile(object):
         # self.fugai_chaxun = fugai_chaxun
         # self.yinqing = yinqing
         # self.huoqu_gonggong_time_stamp = huoqu_gonggong_time_stamp
-        self.PC_360_url = 'https://so.com/s?src=3600w&q={}'.format(keyword)
+        self.PC_360_url = 'https://m.so.com/s?src=3600w&q={}'.format(keyword)
         self.headers = {'User-Agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
         # if self.fugai_chaxun:
         self.get_keyword()
@@ -78,7 +78,6 @@ class Baidu_Zhidao_yuming_mobile(object):
         print('请求的url --------------------- > ',self.PC_360_url)
         ret = requests.get(self.PC_360_url)
         self.random_time()
-        str_order = ''
         # html = urlopen(panduan_url).read()
         # encode_ret = chardet.detect(html)['encoding']
         encode_ret = chardet.detect(ret.text.encode())['encoding']
@@ -86,38 +85,16 @@ class Baidu_Zhidao_yuming_mobile(object):
             ret.encoding = 'gbk'
         else:
             ret.encoding = 'utf-8'
-        soup = BeautifulSoup(ret.text, 'lxml')
-        li_tags = soup.find_all('li', class_='res-list')
-        order_list = []
-        for li_tag in li_tags:
-            if self.domain in li_tag.get_text():
-                data_url = li_tag.find('a').attrs['href']
-                ret_two = requests.get(data_url, headers=self.headers)
-                soup_two = BeautifulSoup(ret_two.text, 'lxml')
-                zhutixinxi = eval(li_tag.find('a').attrs.get('data-res'))
-                rank_num = zhutixinxi['pos']
-                title = ''
-                if soup_two.find('title'):
-                    title = soup_two.find('title').get_text()
-                print(title, rank_num, data_url)
-                order_list.append(int(rank_num))
-                str_order = ",".join(str(i) for i in order_list)
-        print(order_list)
-        print(str_order)
+        soup_browser = BeautifulSoup(ret.text, 'lxml')
+        result_tag = soup_browser.find('div', class_='r-results')
+        data_list = result_tag.find_all('div', class_='res-list')
+        data_order_num = 0
+        for data in data_list:
+            if self.domain in data.get_text():
+                data_url = data.attrs.get('data-pcurl')
+                print('data_url -----------> ',data_url, data_order_num)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+            data_order_num += 1
 
 
         # if self.fugai_chaxun:
@@ -147,15 +124,5 @@ class Baidu_Zhidao_yuming_mobile(object):
             database_create_data.operDB(insert_sql, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
             database_create_data.operDB(update_sql, 'update')
-                # print('mobile ==fugai')
-
-
-if __name__ == '__main__':
-    keyword = '去马来西亚做试管婴儿吸引你的不止是低价'
-    domain = '马来西亚'
-    detail_id = 22
-    yinqing = 1
-    tid = 1
-    Baidu_Zhidao_yuming_mobile(keyword,domain)
 
 
