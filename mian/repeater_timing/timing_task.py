@@ -8,6 +8,8 @@ from my_db import database_create_data
 from time import sleep
 # from threading_task_pc import mobile_fugai_pipei_baidu, mobile_url_accurate_baidu, pc_url_accurate_baidu, pc_fugai_pipei_baidu
 from mian.threading_task_pc.pc_baidu import mobile_fugai_pipei_baidu, mobile_url_accurate_baidu, pc_fugai_pipei_baidu, pc_url_accurate_baidu
+
+
 # 线程池
 class ThreadPool(object):
     def __init__(self, max_num=5):
@@ -32,63 +34,28 @@ class ThreadPool(object):
 pool = ThreadPool(5)
 # 重点词监控 - 多线程部署
 def thread_pcurl(detail_id, keywords, domain, ):
-    # print('进入线程--thread_pcurl--> ', ' pc端 有链接', keywords, domain, detail_id, threading.active_count())
+    print('进入线程--thread_pcurl--> ', ' pc端 有链接', keywords, domain, detail_id, threading.active_count())
     pc_url_accurate_baidu.Baidu_Zhidao_URL_PC(detail_id, keywords, domain)
     pool.add_thread()
 
 def thread_mobileurl(detail_id, keywords, domain ):
-    # print('进入线程--thread_mobileurl--> ', ' 移动端 有链接', keywords, domain, detail_id,  threading.active_count())
+    print('进入线程--thread_mobileurl--> ', ' 移动端 有链接', keywords, domain, detail_id,  threading.active_count())
     mobile_url_accurate_baidu.Baidu_Zhidao_URL_MOBILE(detail_id, keywords, domain)
     pool.add_thread()
 
 def thread_pcmohupipei(search_engine, detail_id, keywords, domain):
-    # print('进入线程--thread_pcmohupipei--> ',' pc端 无链接',keywords, domain, detail_id, threading.active_count())
+    print('进入线程--thread_pcmohupipei--> ',' pc端 无链接',keywords, domain, detail_id, threading.active_count())
     pc_fugai_pipei_baidu.Baidu_Zhidao_yuming_pc(search_engine, keywords, domain, detail_id)
     pool.add_thread()
 
 def thread_mobilemohupipei(search_engine, detail_id, keywords, domain):
-    # print('进入线程--thread_mobilemohupipei--> ','移动端 无链接',keywords, domain, detail_id, threading.active_count())
+    print('进入线程--thread_mobilemohupipei--> ','移动端 无链接',keywords, domain, detail_id, threading.active_count())
     mobile_fugai_pipei_baidu.Baidu_Zhidao_yuming_mobile(search_engine, keywords, domain, detail_id)
     pool.add_thread()
 
 
-# 启动程序 - 重点词监控
-# def func(detail_id, lianjie, keywords, search_engine, mohupipei,):
-#     # print('启动程序---------------------> ',detail_id, lianjie, keywords, search_engine, mohupipei)
-#     # 去线程池里那一个线程，如果有，则池子里拿，如果没有，等直到有人归还线程到线程池
-#     # print('当前线程数量 --------=========================>',threading.active_count())
-#     thread_obj = pool.get_thread()
-#     if lianjie:
-#         if search_engine == '4':
-#             # print('进入线程----> ','移动端 有链接',keywords)
-#             thread_mobile_url = thread_obj(target=thread_mobileurl, args=(detail_id, keywords,lianjie))
-#             thread_mobile_url.start()
-#
-#
-#         if search_engine == '1':
-#             # print('进入线程----')
-#             thread_pc_url = thread_obj(target=thread_pcurl, args=(detail_id, keywords,lianjie))
-#             thread_pc_url.start()
-#
-#     else:
-#         if search_engine == '4':
-#             # print('进入线程----> ','移动端 无链接',keywords)
-#             thread_mobile_mohupipei = thread_obj(target=thread_mobilemohupipei, args=(search_engine, detail_id, keywords,mohupipei))
-#             thread_mobile_mohupipei.start()
-#
-#         else:
-#             # print('进入线程----> ',' pc端 无链接',keywords)
-#             thread_pc_mohupipei = thread_obj(target=thread_pcmohupipei, args=(search_engine,detail_id, keywords,mohupipei))
-#             thread_pc_mohupipei.start()
-
-
-
 
 # 定时器一
-
-
-
-
 def get_task_list(data=None):
     # print('执行 get_task_list')
     xiaoyu_dengyu_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')
@@ -160,28 +127,27 @@ def dingshi_timer():
                 database_create_data.operDB(sql, 'update')
                 is_run_flag = True
             if is_run_flag:
-                print('time_stamp_obj --------- <> ',time_stamp_obj, 'detail_id =======> ',detail_id)
                 thread_obj = pool.get_thread()
                 if lianjie:
                     if search_engine == '4':
-                        print('进入线程----> ','移动端 有链接',keywords)
+                        # print('进入线程----> ','移动端 有链接',keywords)
                         thread_mobile_url = thread_obj(target=thread_mobileurl, args=(detail_id, keywords, lianjie))
                         thread_mobile_url.start()
 
                     if search_engine == '1':
-                        print('进入线程----','移动端 有链接',keywords)
+                        # print('进入线程----','移动端 有链接',keywords)
                         thread_pc_url = thread_obj(target=thread_pcurl, args=(detail_id, keywords, lianjie))
                         thread_pc_url.start()
 
                 else:
                     if search_engine == '4':
-                        print('进入线程----> ','移动端 无链接',keywords, detail_id)
+                        # print('进入线程----> ','移动端 无链接',keywords, detail_id)
                         thread_mobile_mohupipei = thread_obj(target=thread_mobilemohupipei,
                             args=(search_engine, detail_id, keywords, mohupipei))
                         thread_mobile_mohupipei.start()
 
                     else:
-                        print('进入线程----> ',' pc端 无链接',keywords, detail_id)
+                        # print('进入线程----> ',' pc端 无链接',keywords, detail_id)
                         thread_pc_mohupipei = thread_obj(target=thread_pcmohupipei,
                             args=(search_engine, detail_id, keywords, mohupipei))
                         thread_pc_mohupipei.start()

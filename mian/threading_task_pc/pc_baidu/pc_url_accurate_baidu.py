@@ -1,13 +1,13 @@
 from bs4 import BeautifulSoup
 from time import sleep
 from urllib.request import urlopen
-from my_db import database_create_data
+from mian.my_db import database_create_data
 import random
 import datetime
 import chardet
 import requests
-from threading_task_pc.public import shouluORfugaiChaxun
-
+from mian.threading_task_pc.public import shouluORfugaiChaxun
+from mian.threading_task_pc.public import getpageinfo, shouluORfugaiChaxun
 pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 5.1; rv:6.0.2) Gecko/20100101 Firefox/6.0.2',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17',
@@ -30,7 +30,8 @@ pcRequestHeader = [
 
 class Baidu_Zhidao_URL_PC():
 
-    def __init__(self, detail_id,keyword, domain):
+    def __init__(self, detail_id, keyword, domain):
+    # def __init__(self,  keyword, domain):
         self.data_base_list = []
         self.keyword = keyword
         self.domain = domain
@@ -39,42 +40,52 @@ class Baidu_Zhidao_URL_PC():
             'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
         self.zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword='{}')
         data_list = self.get_keywords()
-        self.set_data(data_list)
+        # self.set_data(data_list)
 
     def get_keywords(self):
         # 调用查询收录
         rank_num = 0
         resultObj = shouluORfugaiChaxun.baiduShouLuPC(self.domain)
-        ret = requests.get(self.zhidao_url.format(self.keyword), headers=self.headers)
+        ret = requests.get(self.zhidao_url.format(self.keyword), headers=self.headers, timeout=10)
         soup = BeautifulSoup(ret.text, 'lxml')
         div_tags = soup.find_all('div', class_='result c-container ')
         data_list = []
+        yuming = ''
+        panduan_url = ''
         for div_tag in div_tags:
+            if div_tags and div_tag.attrs.get('id'):
+                panduan_url = div_tag.find('a').attrs['href']
             div_13 = div_tag.find('div', class_='f13')
-            yuming = ''
-            if div_13 and div_13.find('a', target="_blank"):
-                yuming = div_13.find('a', target="_blank").get_text()[:-4]
-                if yuming in self.domain or yuming == self.domain:
-                    rank_num = div_tag.attrs.get('id')  # 排名
-                    # print('rank_num----------> ',rank_num)
-                    # abstract = div_tag.find('div', class_='c-abstract').get_text()  # 文本内容
-                    # title_tag = div_tag.find('div', class_='c-tools')['data-tools']
-                    # dict_title = eval(title_tag)
-                    # str_title = dict_title['title']  # 标题
-                    # url_title = dict_title['url']  # 标题链接
+            if div_13.find('a'):
+                yuming = div_13.find('a').get_text()[:-5].split('/')[0]  # 获取域名
+                status_code, title, ret_two_url = getpageinfo.getPageInfo(panduan_url)
+                print('ret_two_url, self.domain=======> ',ret_two_url, self.domain)
+                if yuming in self.domain:
+                    if self.domain in ret_two_url:
+                        rank_num = div_tag.attrs.get('id')
+                        # break
+        print('pc端--===> ',rank_num)
+        # data_list.append({
+        #     'order':int(rank_num),
+        #     'shoulu': resultObj['shoulu']
+        # })
+        # print(data_list)
+        # return data_list
 
-        data_list.append({
-            'order':int(rank_num),
-            'shoulu': resultObj['shoulu']
-        })
-        return data_list
+
 
     def set_data(self, data_list):
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'], shoulu=data['shoulu'], detail_id=self.detail_id, date_time=date_time)
-            # print('insert_sql----> ',insert_sql, 'Baidu_Zhidao_URL_PC')
+            print(insert_sql)
             database_create_data.operDB(insert_sql, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
+            print(update_sql)
             database_create_data.operDB(update_sql, 'update')
+# detail_id = '0'
+# keyword = '天津医博肛泰医院黑么 舒适住院条件 普通收费标准'
+# domain = 'http://m.chinabyte.com/381/14372881_mi.shtml'
+#
+# Baidu_Zhidao_URL_PC(detail_id, keyword, domain)

@@ -65,7 +65,7 @@ class Baidu_Zhidao_yuming_mobile(object):
 
     def get_keyword(self):
         zhidao_url = self.zhidao_url.format(self.keyword)
-        ret = requests.get(zhidao_url)
+        ret = requests.get(zhidao_url, headers=self.headers,timeout=10)
         soup_browser = BeautifulSoup(ret.text, 'lxml')
         content_list_order = []
         title = ''

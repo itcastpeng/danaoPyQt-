@@ -5,6 +5,9 @@ import datetime
 import chardet
 from my_db import database_create_data
 from threading_task_pc.public import shouluORfugaiChaxun, getpageinfo
+
+
+
 pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 5.1; rv:6.0.2) Gecko/20100101 Firefox/6.0.2',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17',
@@ -40,27 +43,26 @@ class Baidu_Zhidao_yuming_pc():
 
 
     def get_keywords(self):
-        ret = requests.get(self.zhidao_url.format(self.keyword) ,headers=self.headers)
+        ret = requests.get(self.zhidao_url.format(self.keyword) ,headers=self.headers, timeout=10)
         soup = BeautifulSoup(ret.text, 'lxml')
         div_tags = soup.find_all('div', class_='result c-container ')
         data_list = []
-        ret_two_url = ''
-        title = ''
-        shoulu = 0
+        str_order = ''
         order_list = []
-        str_order = 0
+        ret_two_url = ''
+        shoulu = 0
+        rank_num = ''
         for div_tag in div_tags:
-            rank_num = div_tag.attrs.get('id')
-            if not rank_num:
-                continue
             tiaojian_chaxun = div_tag.get_text()
             panduan_url = div_tag.find('h3',class_='t').find('a').attrs['href']
             status_code, title, ret_two_url = getpageinfo.getPageInfo(panduan_url)  # 获取对应页面的标题
             for mohu_pipei in self.mohu_pipei_list:
                 if mohu_pipei in tiaojian_chaxun:  # 表示有覆盖
+                    rank_num = div_tag.attrs.get('id')
                     order_list.append(int(rank_num))
                     str_order = ",".join(str(i) for i in order_list)
-                    # break
+                    result = shouluORfugaiChaxun.baiduShouLuPC(ret_two_url)
+                    shoulu = result['shoulu']
 
         data_list.append({
             'paiming_detail': str_order,

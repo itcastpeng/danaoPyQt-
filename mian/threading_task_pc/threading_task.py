@@ -119,12 +119,12 @@ def shoulu_func(huoqu_shoulu_time_stamp, set_url_data):
         count_objs = database_create_data.operDB(count_sql, 'select')
         if count_objs['data'][0][0] == set_url_data - 1:
             break
-        sleep(0.2)
 
 
 # 运行程序 - 覆盖查询
 def fugai_func(huoqu_fugai_time_stamp, set_keyword_data):
     while True:
+        # print('覆盖查询-----',threading.active_count())
         now_time = int(time.time())
         time_stamp = now_time + 30
         sql = """select * from fugai_Linshi_List where is_zhixing = '0' and time_stamp='{huoqu_fugai_time_stamp}' and (shijianchuo < '{time_stamp}' or  shijianchuo is NULL) limit 1;""".format(
@@ -154,4 +154,4 @@ def fugai_func(huoqu_fugai_time_stamp, set_keyword_data):
         count_objs = database_create_data.operDB(count_sql, 'select')
         if count_objs['data'][0][0] == set_keyword_data:
             break
-        sleep(0.2)
+

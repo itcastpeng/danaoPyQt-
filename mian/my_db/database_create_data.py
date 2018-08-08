@@ -2,7 +2,7 @@ import requests, random, sqlite3, os
 from time import sleep
 import sys
 sys.path.append(os.path.dirname(os.getcwd()))
-import settings
+from mian import settings
 import time
 # from mian import settings
 # lock_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'my_sqlite3.lock')
@@ -33,6 +33,7 @@ def operDB(sql, oper='select', batch_insert_flag=False, insert_sql_list=[]):
             result_obj['data'] = list(result_data)
     else:
         while True:
+            # print('进入')
             if not os.path.exists(settings.lock_file):
                 with open(settings.lock_file, 'w') as f:
                     f.write('1')
@@ -51,7 +52,7 @@ def operDB(sql, oper='select', batch_insert_flag=False, insert_sql_list=[]):
                 conn.close()
                 break
             else:
-                # print('-----数据库锁被占用等待....-----')
+                # pri nt('-----数据库锁被占用等待....-----')
                 continue
         if os.path.exists(settings.lock_file):
             try:

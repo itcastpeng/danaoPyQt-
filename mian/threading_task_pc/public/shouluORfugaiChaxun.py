@@ -1,7 +1,7 @@
 import requests
 import random
 from bs4 import BeautifulSoup
-from threading_task_pc.public.getpageinfo import getPageInfo
+from mian.threading_task_pc.public.getpageinfo import getPageInfo
 
 pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 5.1; rv:6.0.2) Gecko/20100101 Firefox/6.0.2',
@@ -42,7 +42,7 @@ def baiduShouLuPC(domain):
     domain = domain.strip()
     zhidao_url = 'http://www.baidu.com/s?wd={domain}'.format(domain=domain)
     headers = {'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
-    ret_domain = requests.get(zhidao_url, headers=headers)
+    ret_domain = requests.get(zhidao_url, headers=headers, timeout=10)
     soup_domain = BeautifulSoup(ret_domain.text, 'lxml')
     if soup_domain.find('div', class_='content_none'):
         pass
@@ -66,7 +66,6 @@ def baiduShouLuPC(domain):
                         resultObj["shoulu"] = 1
     return resultObj
 
-
 # 百度移动端收录查询
 def baiduShouLuMobeil(domain):
     resultObj = {
@@ -79,7 +78,7 @@ def baiduShouLuMobeil(domain):
     zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'.format(domain)
     headers = {
         'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
-    ret_domain = requests.get(zhidao_url, headers=headers)
+    ret_domain = requests.get(zhidao_url, headers=headers, timeout=10)
     soup_domain = BeautifulSoup(ret_domain.text, 'lxml')
     if not soup_domain.find_all('div', class_='result c-result'):
         pass
@@ -102,7 +101,7 @@ def baiduFuGaiPC(keyword, mohu_pipei_list):
     order_list = []
     headers = {'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)], }
     zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword=keyword)
-    ret = requests.get(zhidao_url, headers=headers)
+    ret = requests.get(zhidao_url, headers=headers, timeout=10)
     soup = BeautifulSoup(ret.text, 'lxml')
     div_tags = soup.find_all('div', class_='result c-container ')
     for mohu_pipei in mohu_pipei_list.split(','):
@@ -112,25 +111,25 @@ def baiduFuGaiPC(keyword, mohu_pipei_list):
                 continue
             tiaojian_chaxun = div_tag.get_text()
             panduan_url = div_tag.find('h3', class_='t').find('a').attrs['href']
-            status_code, title, ret_two_url = getPageInfo(panduan_url)  # 获取对应页面的标题
+            # status_code, title, ret_two_url = getPageInfo(panduan_url)  # 获取对应页面的标题
+            title = div_tag.find('h3', class_='t').get_text()
             if mohu_pipei in tiaojian_chaxun:  # 表示有覆盖
                 order_list.append({
                     'paiming': int(rank_num),
                     'title': title,
-                    'title_url': ret_two_url,
+                    'title_url': panduan_url,
                     'sousuo_guize': mohu_pipei,
-                    'status_code': status_code
                 })
     return order_list
-
 
 # 百度移动端覆盖查询
 def baiduFuGaiMOBIEL(keyword, mohu_pipei_list):
     headers = {
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
-    zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
+    # zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
+    zhidao_url = 'https://m.baidu.com/s?word={}'
     zhidao_url = zhidao_url.format(keyword)
-    ret = requests.get(zhidao_url)
+    ret = requests.get(zhidao_url, headers=headers, timeout=10)
     soup_browser = BeautifulSoup(ret.text, 'lxml')
     content_list_order = []
     div_tags = soup_browser.find_all('div', class_='result c-result')
@@ -140,6 +139,7 @@ def baiduFuGaiMOBIEL(keyword, mohu_pipei_list):
     for div_tag in div_tags:
         content_list_order.append(div_tag)
     order_list = []
+    title = ''
     for mohu_pipei in mohu_pipei_list.split(','):
         for data in content_list_order:
             if data['data-log']:
@@ -147,18 +147,24 @@ def baiduFuGaiMOBIEL(keyword, mohu_pipei_list):
                 url_title = dict_data['mu']  # 标题链接
                 order = dict_data['order']  # 排名
                 pipei_tiaojian = data.get_text()
-                if url_title.strip():
-                    status_code, title, ret_two_url = getPageInfo(url_title)  # 获取对应页面的标题
-                    if mohu_pipei in pipei_tiaojian:
-                        order_list.append({
-                            'paiming': int(order),
-                            'title': title,
-                            'title_url': ret_two_url,
-                            'sousuo_guize': mohu_pipei,
-                            'status_code': status_code
-                        })
-
+                if mohu_pipei in pipei_tiaojian:
+                    if data.find('div', class_='c-container').find('a'):
+                        title = data.find('div', class_='c-container').find('a').get_text()
+                    order_list.append({
+                        'paiming': int(order),
+                        'title': title,
+                        'title_url': url_title,
+                        'sousuo_guize': mohu_pipei,
+                    })
     return order_list
+
+
+
+
+
+
+
+
 
 # 360pc端收录查询
 # def pcShoulu360(domain):

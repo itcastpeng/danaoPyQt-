@@ -29,7 +29,7 @@ pcRequestHeader = [
 def getPageInfo(url):
     headers = {'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
     try:
-        ret_two = requests.get(url, headers=headers, timeout=5)
+        ret_two = requests.get(url, headers=headers, timeout=10)
         ret_two_url = ret_two.url
         status_code = ret_two.status_code
         encode_ret = ret_two.apparent_encoding

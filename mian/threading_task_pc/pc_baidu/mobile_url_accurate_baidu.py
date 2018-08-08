@@ -15,17 +15,17 @@ class Baidu_Zhidao_URL_MOBILE(object):
         self.domain = domain
         self.zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
         data_list = self.get_keywords()
-        self.set_data(data_list)
+        # self.set_data(data_list)
 
     def get_keywords(self):
         data_list = []
         shoulu = ''
-        paiming_order = ''
+        paiming_order = '0'
         headers = {
             'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
         resultObj = shouluORfugaiChaxun.baiduShouLuMobeil(self.domain)
         url = self.zhidao_url.format(self.keyword)
-        ret_two = requests.get(url, headers=headers)
+        ret_two = requests.get(url, headers=headers, timeout=10)
         soup_two = BeautifulSoup(ret_two.text, 'lxml')
         content_list_order = []
         div_tags = soup_two.find_all('div', class_='result c-result')
@@ -37,17 +37,18 @@ class Baidu_Zhidao_URL_MOBILE(object):
         for obj_tag in content_list_order:
             dict_data_clog = eval(obj_tag.attrs.get('data-log'))
             url = dict_data_clog['mu']
-            if url:
-                status_code, title, ret_two_url = getpageinfo.getPageInfo(url)
+            status_code, title, ret_two_url = getpageinfo.getPageInfo(url)
+            print(ret_two_url, self.domain)
+            if ret_two_url == self.domain or self.domain in ret_two_url:
                 paiming_order = dict_data_clog['order']
-                if url == ret_two_url:
-                    shoulu = '1'
+                # break
 
-        data_list.append({
-                'order': int(paiming_order),
-                'shoulu':shoulu,
-                })
-        return data_list
+        print('移动端 ----- > ', paiming_order)
+        # data_list.append({
+        #         'order': int(paiming_order),
+        #         'shoulu':resultObj['shoulu'],
+        #         })
+        # return data_list
 
     def set_data(self, data_list):
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
