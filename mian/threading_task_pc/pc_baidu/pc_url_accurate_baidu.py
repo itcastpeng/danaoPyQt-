@@ -55,14 +55,15 @@ class Baidu_Zhidao_URL_PC():
             if div_tags and div_tag.attrs.get('id'):
                 panduan_url = div_tag.find('a').attrs['href']
             div_13 = div_tag.find('div', class_='f13')
-            if div_13.find('a'):
-                yuming = div_13.find('a').get_text()[:-5].split('/')[0]  # 获取域名
-                status_code, title, ret_two_url = getpageinfo.getPageInfo(panduan_url)
-                print('ret_two_url, self.domain=======> ',ret_two_url, self.domain)
-                if yuming in self.domain:
-                    if self.domain in ret_two_url:
-                        rank_num = div_tag.attrs.get('id')
-                        break
+            if div_13:
+                if div_13.find('a'):
+                    yuming = div_13.find('a').get_text()[:-5].split('/')[0]  # 获取域名
+                    status_code, title, ret_two_url = getpageinfo.getPageInfo(panduan_url)
+                    # print('ret_two_url, self.domain=======> ',ret_two_url, self.domain)
+                    if yuming in self.domain:
+                        if self.domain in ret_two_url:
+                            rank_num = div_tag.attrs.get('id')
+                            break
         data_list = {
             'order':int(rank_num),
             'shoulu': resultObj['shoulu']

@@ -44,7 +44,10 @@ def operDB(sql, oper='select', batch_insert_flag=False, insert_sql_list=[]):
                     conn.execute("BEGIN TRANSACTION")
                     start_time = int(time.time())
                     for sql in insert_sql_list:
-                        result_data = cursor.execute(sql)
+                        try:
+                            result_data = cursor.execute(sql)
+                        except Exception as e:
+                            print('错误--------> ',sql)
                     conn.execute("COMMIT")
                 else:
                     result_data = cursor.execute(sql)

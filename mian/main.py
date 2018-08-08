@@ -24,7 +24,7 @@ from mian.threading_task_pc.threading_task import shoulu_func, fugai_func
 import sqlite3, os, json, time, datetime, tkinter.messagebox, threading, sys, requests, queue
 from mian import settings
 from mian.backend import insert_databse
-
+import subprocess
 
 class Danao_Inter_Action(QObject):
     def __init__(self):
@@ -48,6 +48,7 @@ class Danao_Inter_Action(QObject):
         self.panduan = '0'
         self.process_fugai = multiprocessing.Process()
         self.process_shoulu = multiprocessing.Process()
+
     # 占位 助手
     def zhanwei_zhushou(self):
         pass
@@ -184,11 +185,12 @@ class Danao_Inter_Action(QObject):
                 # search_engine, mohupipei, zhixing, next_datetime, keywords
             )
             sql = """insert into Task_List (qiyong_status, task_name, task_jindu, task_start_time, search_engine, mohupipei, zhixing, next_datetime) values {values};""".format(
-            # sql = """insert into Task_List (qiyong_status, task_name, task_jindu, task_start_time, search_engine, mohupipei, zhixing, next_datetime, keywords) values {values};""".format(
+                # sql = """insert into Task_List (qiyong_status, task_name, task_jindu, task_start_time, search_engine, mohupipei, zhixing, next_datetime, keywords) values {values};""".format(
                 values=values)
             database_create_data.operDB(sql, 'insert')
             shibiecanshu = 'zhongdianci'
-            insert_databse.insert_into(data,0, shibiecanshu)
+            insert_databse.insert_into(data, 0, shibiecanshu)
+
     # 重点词监控 - 查询修改前数据 获取修改任务列表id
     def set_zhongdianci_update_task_list_value(self, data):
         print('获取修改任务列表id ----------- > ', data)
@@ -686,8 +688,8 @@ class Danao_Inter_Action(QObject):
     # 收录查询 - 退出清空查询结果
     def set_shoulu_delete_all_values(self, data):
         if data == 'delete_all_shoulu':
-            # print('退出 清空 收录查询')
-            os.system('taskkill /PID %s /F' % self.process_shoulu.pid)
+            process_shoulu = os.popen('taskkill /PID %s /F' % self.process_shoulu.pid)
+            subprocess.Popen(process_shoulu, shell=True)
             delete_sql = """delete from shoulu_Linshi_List;"""
             database_create_data.operDB(delete_sql, 'delete')
 
@@ -706,7 +708,8 @@ class Danao_Inter_Action(QObject):
         if json_data['searchEngineModel'] and json_data['fugai_tiaojian']:
             insert_databse.insert_into(json_data, self.huoqu_fugai_time_stamp, shibiecanshu)
             sleep(1)
-            self.process_fugai = multiprocessing.Process(target=fugai_func, args=(self.huoqu_fugai_time_stamp, set_keyword_data))
+            self.process_fugai = multiprocessing.Process(target=fugai_func,
+                args=(self.huoqu_fugai_time_stamp, set_keyword_data))
             self.process_fugai.start()
 
     # 覆盖查询 - 接收页码数
@@ -762,7 +765,6 @@ class Danao_Inter_Action(QObject):
                 )
                 objs = database_create_data.operDB(sql, 'select')
                 for obj in objs['data']:
-                    print('obj[0]---------------------------> ',obj[0])
                     detaile_data_sql = """select * from fugai_Linshi_List where tid = '{tid}';""".format(
                         tid=obj[0])
                     detaile_objs = database_create_data.operDB(detaile_data_sql, 'select')
@@ -813,8 +815,7 @@ class Danao_Inter_Action(QObject):
                          'whether_complete': whether_complete,  # 全部完成 传True
                          'yiwancheng_obj': yiwancheng_obj  # 当前完成数量
                          }
-            # print('exit_dict  -------->',json.dumps(exit_dict))
-            # print('whether_complete======================> ',whether_complete)
+            print('exit_dict  -------->',json.dumps(exit_dict))
             return json.dumps(exit_dict)
 
     # 覆盖查询 - 导出excel表
@@ -962,14 +963,21 @@ class Danao_Inter_Action(QObject):
     # 查询覆盖 - 退出清空查询结果
     def set_fugai_delete_all_values(self, data):
         if data == 'delete_all_fugai':
-            os.system('taskkill /PID %s /F' % self.process_fugai.pid)
+            process_fugai = os.popen('taskkill /PID %s /F' % self.process_fugai.pid)
+            subprocess.Popen(process_fugai, shell=True)
             delete_sql = """delete from fugai_Linshi_List;"""
             database_create_data.operDB(delete_sql, 'delete')
 
     # 退出停止进程
     def __del__(self):
         if 'win' in sys.platform:
-            os.system('taskkill /PID %s /F' % self.process.pid)
+            process = os.popen('taskkill /PID %s /F' % self.process.pid)
+            subprocess.Popen(process, shell=True)
+            process_shoulu = os.popen('taskkill /PID %s /F' % self.process_shoulu.pid)
+            subprocess.Popen(process_shoulu, shell=True)
+            process_fugai = os.popen('taskkill /PID %s /F' % self.process_fugai.pid)
+            subprocess.Popen(process_fugai, shell=True)
+
 
     loginValue = pyqtProperty(str, fget=get_Loginvalue, fset=set_Loginvalue)
     # 重点词监护 - 增加任务
@@ -1207,6 +1215,8 @@ class DaNao(object):
             """
             database_create_data.operDB(fugai_Linshi_List_sql, 'create')
 
+        initDatabase = os.popen('taskkill /PID %s /F' % self.initDatabase.pid)
+        subprocess.Popen(initDatabase, shell=True)
     # 主体 函数
     def main_body(self):
         win32_width = win32api.GetSystemMetrics(0) * 0.8
@@ -1216,10 +1226,8 @@ class DaNao(object):
         win = QWidget()
         win.resize(win32_width, win32_height)
         win.setWindowTitle('诸葛大脑')
-        # app.setWindowIcon(QIcon('128.ico'))
-        # print('os.path.join(os.getcwd(),==============> ',os.path.join(os.getcwd(), '128.ico'))
-        # print('os.path.join(os.getcwd() ===================> ',os.path.join(os.getcwd(), '128.ico'))
-        app.setWindowIcon(QIcon(os.path.join(os.getcwd(), '128.ico')))
+        app.setWindowIcon(QIcon('./128.ico'))
+        # app.setWindowIcon(QIcon(os.path.join(os.getcwd(), '128.ico')))
 
         # 创建垂直布局
         layout = QVBoxLayout()
@@ -1227,9 +1235,6 @@ class DaNao(object):
         win.setLayout(layout)
 
         view = QWebEngineView()
-        # view.load(QUrl('https://www.cnblogs.com/wangshoul'))
-        # view.load(QUrl('http://192.168.10.240:8080'))
-        # view.load(QUrl('http://192.168.10.252:8080'))
         # view.load(QUrl('http://wenda.zhugeyingxiao.com'))
         # view.load(QUrl('http://192.168.10.240:8080'))
         view.load(QUrl('http://zhugedanao1.zhugeyingxiao.com'))
@@ -1255,11 +1260,6 @@ class DaNao(object):
         win.show()
 
         sys.exit(app.exec_())
-
-    # 退出停止进程
-    def __del__(self):
-        if 'win' in sys.platform:
-            os.system('taskkill /PID %s /F' % self.initDatabase.pid)
 
 
 if __name__ == '__main__':

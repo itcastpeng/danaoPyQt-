@@ -104,7 +104,7 @@ def dingshi_timer():
         for obj in objs_list['data']:
             detail_id = obj[0]
             tid = obj[1]
-            print('tid --------------------------------- > ',tid )
+            # print('tid --------------------------------- > ',tid )
             search_engine = obj[2]
             lianjie = obj[3]
             keywords = obj[4]

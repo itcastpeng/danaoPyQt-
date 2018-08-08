@@ -56,16 +56,15 @@ def fugaiChaxun(tid, search, keyword, mohu_pipei, huoqu_fugai_time_stamp=None):
         sql_list = []
         for result in resultObj:
             order_list.append(result['paiming'])
-            insert_sql = """insert into fugai_Linshi_List (keyword, paiming_detail, search_engine, title, title_url, sousuo_guize, time_stamp, tid) values ('{keyword}', '{paiming_detail}', '{search_engine}', '{title}', '{title_url}', '{sousuo_guize}', '{time_stamp}','{tid}');""".format(
+            insert_sql = """insert into fugai_Linshi_List (keyword, paiming_detail, search_engine, title, title_url, sousuo_guize, time_stamp, tid) values ("{keyword}", "{paiming_detail}", "{search_engine}", "{title}", "{title_url}", "{sousuo_guize}", "{time_stamp}","{tid}");""".format(
                 keyword=keyword, paiming_detail=result['paiming'], search_engine=search,
-                title=result['title'], title_url=result['title_url'], sousuo_guize=result['sousuo_guize'],
+                title=result['title'].replace('\'','').replace('"',''), title_url=result['title_url'], sousuo_guize=result['sousuo_guize'],
                 time_stamp=None, tid=tid)
             sql_list.append(insert_sql)
         database_create_data.operDB('', 'insert', True, sql_list)
+        str_order = '0'
         if order_list:
             str_order = ','.join(str(i) for i in order_list)
-        else:
-            str_order = '0'
         sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', chaxun_status='1', is_zhixing='{is_zhixing}' where id = '{id}';""".format(
             paiming_detail=str_order, is_zhixing='1', id=tid)
         database_create_data.operDB(sql_two, 'update')

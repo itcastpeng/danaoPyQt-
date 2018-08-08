@@ -4,7 +4,7 @@ from time import sleep
 import datetime
 import chardet
 from my_db import database_create_data
-from mian.threading_task_pc.public import getpageinfo, shouluORfugaiChaxun
+from threading_task_pc.public import getpageinfo, shouluORfugaiChaxun
 
 
 class Baidu_Zhidao_URL_MOBILE(object):
@@ -36,7 +36,7 @@ class Baidu_Zhidao_URL_MOBILE(object):
             dict_data_clog = eval(obj_tag.attrs.get('data-log'))
             url = dict_data_clog['mu']
             status_code, title, ret_two_url = getpageinfo.getPageInfo(url)
-            print(ret_two_url, self.domain)
+            # print(ret_two_url, self.domain)
             if ret_two_url == self.domain or self.domain in ret_two_url:
                 paiming_order = dict_data_clog['order']
                 break
@@ -48,9 +48,8 @@ class Baidu_Zhidao_URL_MOBILE(object):
 
     def set_data(self, data_list):
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
-        for data in data_list:
-            insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
-                order=data['order'], shoulu=data['shoulu'], detail_id=self.detail_id, date_time=date_time)
-            database_create_data.operDB(insert_sql, 'insert')
-            update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-            database_create_data.operDB(update_sql, 'update')
+        insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
+            order=data_list['order'], shoulu=data_list['shoulu'], detail_id=self.detail_id, date_time=date_time)
+        database_create_data.operDB(insert_sql, 'insert')
+        update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
+        database_create_data.operDB(update_sql, 'update')

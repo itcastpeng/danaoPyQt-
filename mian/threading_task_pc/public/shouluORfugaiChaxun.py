@@ -23,14 +23,6 @@ pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:2.0b13pre) Gecko/20110307 Firefox/4.0b13'
 ]
 
-resultObj = {
-    "shoulu": 0,
-    "kuaizhao_time": '',
-    "title": '',
-    "status_code": ''
-}
-
-
 # 百度pc端收录查询
 def baiduShouLuPC(domain):
     resultObj = {
@@ -76,8 +68,7 @@ def baiduShouLuMobeil(domain):
     }
     domain = domain.strip()
     zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'.format(domain)
-    headers = {
-        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
+    headers = {'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
     ret_domain = requests.get(zhidao_url, headers=headers, timeout=10)
     soup_domain = BeautifulSoup(ret_domain.text, 'lxml')
     if not soup_domain.find_all('div', class_='result c-result'):
@@ -110,7 +101,6 @@ def baiduFuGaiPC(keyword, mohu_pipei_list):
             if not rank_num:
                 continue
             tiaojian_chaxun = div_tag.get_text()
-            print(tiaojian_chaxun)
             panduan_url = div_tag.find('h3', class_='t').find('a').attrs['href']
             title = div_tag.find('h3', class_='t').get_text()
             if mohu_pipei in tiaojian_chaxun:  # 表示有覆盖
@@ -141,7 +131,6 @@ def baiduFuGaiMOBIEL(keyword, mohu_pipei_list):
     order_list = []
     title = ''
     for mohu_pipei in mohu_pipei_list.split(','):
-        print('mohu_pipei==========> ',mohu_pipei)
         for data in content_list_order:
             if data['data-log']:
                 dict_data = eval(data['data-log'])
