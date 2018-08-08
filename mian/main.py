@@ -1231,8 +1231,8 @@ class DaNao(object):
         # view.load(QUrl('http://192.168.10.240:8080'))
         # view.load(QUrl('http://192.168.10.252:8080'))
         # view.load(QUrl('http://wenda.zhugeyingxiao.com'))
-        view.load(QUrl('http://192.168.10.240:8080'))
-        # view.load(QUrl('zhugedanao1.zhugeyingxiao.com'))
+        # view.load(QUrl('http://192.168.10.240:8080'))
+        view.load(QUrl('http://zhugedanao1.zhugeyingxiao.com'))
 
         # 简单理解就是将这个控件(QWidget)的几何内容(宽高位置等)，赋值给qr
         qr = view.frameGeometry()

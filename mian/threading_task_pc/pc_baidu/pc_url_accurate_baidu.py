@@ -31,7 +31,6 @@ pcRequestHeader = [
 class Baidu_Zhidao_URL_PC():
 
     def __init__(self, detail_id, keyword, domain):
-    # def __init__(self,  keyword, domain):
         self.data_base_list = []
         self.keyword = keyword
         self.domain = domain
@@ -40,7 +39,7 @@ class Baidu_Zhidao_URL_PC():
             'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
         self.zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword='{}')
         data_list = self.get_keywords()
-        # self.set_data(data_list)
+        self.set_data(data_list)
 
     def get_keywords(self):
         # 调用查询收录
@@ -63,29 +62,21 @@ class Baidu_Zhidao_URL_PC():
                 if yuming in self.domain:
                     if self.domain in ret_two_url:
                         rank_num = div_tag.attrs.get('id')
-                        # break
-        print('pc端--===> ',rank_num)
-        # data_list.append({
-        #     'order':int(rank_num),
-        #     'shoulu': resultObj['shoulu']
-        # })
-        # print(data_list)
-        # return data_list
-
-
+                        break
+        data_list = {
+            'order':int(rank_num),
+            'shoulu': resultObj['shoulu']
+        }
+        print(data_list)
+        return data_list
 
     def set_data(self, data_list):
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
-        for data in data_list:
-            insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
-                order=data['order'], shoulu=data['shoulu'], detail_id=self.detail_id, date_time=date_time)
-            print(insert_sql)
-            database_create_data.operDB(insert_sql, 'insert')
-            update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-            print(update_sql)
-            database_create_data.operDB(update_sql, 'update')
-# detail_id = '0'
-# keyword = '天津医博肛泰医院黑么 舒适住院条件 普通收费标准'
-# domain = 'http://m.chinabyte.com/381/14372881_mi.shtml'
-#
-# Baidu_Zhidao_URL_PC(detail_id, keyword, domain)
+        # for data in data_list:
+        insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
+            order=data_list['order'], shoulu=data_list['shoulu'], detail_id=self.detail_id, date_time=date_time)
+        print(insert_sql)
+        database_create_data.operDB(insert_sql, 'insert')
+        update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
+        print(update_sql)
+        database_create_data.operDB(update_sql, 'update')

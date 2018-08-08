@@ -6,7 +6,6 @@ import threading
 import queue, schedule
 from my_db import database_create_data
 from time import sleep
-# from threading_task_pc import mobile_fugai_pipei_baidu, mobile_url_accurate_baidu, pc_url_accurate_baidu, pc_fugai_pipei_baidu
 from mian.threading_task_pc.pc_baidu import mobile_fugai_pipei_baidu, mobile_url_accurate_baidu, pc_fugai_pipei_baidu, pc_url_accurate_baidu
 
 
@@ -57,7 +56,6 @@ def thread_mobilemohupipei(search_engine, detail_id, keywords, domain):
 
 # 定时器一
 def get_task_list(data=None):
-    # print('执行 get_task_list')
     xiaoyu_dengyu_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')
     start_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
     task_id = ''
@@ -84,7 +82,6 @@ def get_task_list(data=None):
                 database_create_data.operDB(next_sql, 'update')
             # 修改 任务详情为 启用
             sql_status = """update task_Detail set is_perform = '1', task_start_time = '{time}' where tid = '{task_id}';""".format(time=start_time,task_id=data_id)
-            # print('sql_status===========> ',sql_status)
             database_create_data.operDB(sql_status, 'update')
         else:
             update_sql = """update task_List set qiyong_status = '0' where id = '{data_id}';""".format(data_id=data_id)
@@ -107,12 +104,11 @@ def dingshi_timer():
         for obj in objs_list['data']:
             detail_id = obj[0]
             tid = obj[1]
+            print('tid --------------------------------- > ',tid )
             search_engine = obj[2]
             lianjie = obj[3]
             keywords = obj[4]
             mohupipei = obj[5]
-            # create_time = obj[6]
-            # task_start_time = obj[7]
             time_stamp_obj = obj[8]
             shijianchuo = time.time()
             now_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')
@@ -164,7 +160,7 @@ def dingshi_timer():
 
 # 立即监控 多线程执行立即监控id
 def lijijiankong(json_data):
-    # print('立即监控id ---- >',json_data)
+    print('立即监控id ---- >',json_data)
     for data in json_data:
         if threading.active_count() <= 6:
             jiankong = threading.Thread(target=get_task_list, args=(data, ))

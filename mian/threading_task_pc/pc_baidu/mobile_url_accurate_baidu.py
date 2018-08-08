@@ -8,17 +8,15 @@ from mian.threading_task_pc.public import getpageinfo, shouluORfugaiChaxun
 
 
 class Baidu_Zhidao_URL_MOBILE(object):
-
     def __init__(self,detail_id, keyword, domain):
         self.keyword = keyword
         self.detail_id = detail_id
         self.domain = domain
         self.zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
         data_list = self.get_keywords()
-        # self.set_data(data_list)
+        self.set_data(data_list)
 
     def get_keywords(self):
-        data_list = []
         shoulu = ''
         paiming_order = '0'
         headers = {
@@ -41,26 +39,18 @@ class Baidu_Zhidao_URL_MOBILE(object):
             print(ret_two_url, self.domain)
             if ret_two_url == self.domain or self.domain in ret_two_url:
                 paiming_order = dict_data_clog['order']
-                # break
-
-        print('移动端 ----- > ', paiming_order)
-        # data_list.append({
-        #         'order': int(paiming_order),
-        #         'shoulu':resultObj['shoulu'],
-        #         })
-        # return data_list
+                break
+        data_list = {
+            'order': int(paiming_order),
+            'shoulu':resultObj['shoulu'],
+            }
+        return data_list
 
     def set_data(self, data_list):
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
         for data in data_list:
             insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
                 order=data['order'], shoulu=data['shoulu'], detail_id=self.detail_id, date_time=date_time)
-            # print('insert_sql------> ',insert_sql, 'Baidu_Zhidao_URL_MOBILE')
             database_create_data.operDB(insert_sql, 'insert')
             update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
             database_create_data.operDB(update_sql, 'update')
-
-
-# keyword = '大连新华美天周年庆变美抄底1折起  消费多少送多少'
-# domain = 'http://m.qiuyi.cn/newxw/xwDet/id/63922'
-# Baidu_Zhidao_URL_MOBILE(keyword, domain)

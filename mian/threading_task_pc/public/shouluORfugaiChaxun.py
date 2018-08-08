@@ -110,8 +110,8 @@ def baiduFuGaiPC(keyword, mohu_pipei_list):
             if not rank_num:
                 continue
             tiaojian_chaxun = div_tag.get_text()
+            print(tiaojian_chaxun)
             panduan_url = div_tag.find('h3', class_='t').find('a').attrs['href']
-            # status_code, title, ret_two_url = getPageInfo(panduan_url)  # 获取对应页面的标题
             title = div_tag.find('h3', class_='t').get_text()
             if mohu_pipei in tiaojian_chaxun:  # 表示有覆盖
                 order_list.append({
@@ -141,6 +141,7 @@ def baiduFuGaiMOBIEL(keyword, mohu_pipei_list):
     order_list = []
     title = ''
     for mohu_pipei in mohu_pipei_list.split(','):
+        print('mohu_pipei==========> ',mohu_pipei)
         for data in content_list_order:
             if data['data-log']:
                 dict_data = eval(data['data-log'])
