@@ -22,10 +22,8 @@ def baiDuShouLu(detail_id, keywords, domain, search_engine):
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
         insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{detail_id}', '{date_time}');""".format(
             order=data_list['order'], shoulu=data_list['shoulu'], detail_id=detail_id, date_time=date_time)
-        print(insert_sql)
         database_create_data.operDB(insert_sql, 'insert')
         update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(detail_id)
-        print(update_sql)
         database_create_data.operDB(update_sql, 'update')
 
 def baiDuFuGai(search_engine, keywords, domain, detail_id):
@@ -38,10 +36,8 @@ def baiDuFuGai(search_engine, keywords, domain, detail_id):
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
         insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{tid}', '{date_time}');""".format(
             order=str_order, shoulu=shoulu, tid=detail_id, date_time=date_time)
-        print('insert_sql------> ', insert_sql, 'Baidu_Zhidao_yuming_pc')
         database_create_data.operDB(insert_sql, 'insert')
         update_sql = """update task_Detail set is_perform = '0' where id = '{tid}'""".format(tid=detail_id)
-        print('update_sql======> ', update_sql)
         database_create_data.operDB(update_sql, 'update')
 
     if search_engine == '4':

@@ -76,7 +76,9 @@ def fugaiChaxun(tid, search, keyword, mohu_pipei, huoqu_fugai_time_stamp=None):
         sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', json_detail_data='{json_detail_data}', chaxun_status='1', is_zhixing='{is_zhixing}' where id = '{id}';""".format(
             paiming_detail=str_order, is_zhixing='1', id=tid,
             json_detail_data=json_data)
+        print('update before')
         database_create_data.operDB(sql_two, 'update')
+        print('update after')
     else:
         # 给点词监控返回 排名
         for result in resultObj:

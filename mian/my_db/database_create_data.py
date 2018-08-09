@@ -10,7 +10,7 @@ import time
 
 # db_file = os.path.join(os.getcwd(), 'my_db', 'my_sqlite.db')
 # lock_file = os.path.join(os.getcwd(), 'my_db', 'my_sqlite3.lock')
-
+from sqlite3 import OperationalError
 
 def operDB(sql, oper='select', batch_insert_flag=False, insert_sql_list=[]):
     """
@@ -28,9 +28,11 @@ def operDB(sql, oper='select', batch_insert_flag=False, insert_sql_list=[]):
         conn = sqlite3.connect(settings.db_file)
         cursor = conn.cursor()
         # print('数据库操作=====================> ',sql)
-        result_data = cursor.execute(sql)
-        if oper == 'select':
+        try:
+            result_data = cursor.execute(sql)
             result_obj['data'] = list(result_data)
+        except Exception:
+            pass
     else:
         while True:
             # print('sql==========> ',sql)

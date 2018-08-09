@@ -73,7 +73,5 @@ def insert_into(data, time_stamp, shibiecanshu):
                 keyword = keyword.strip()
                 insert_sql = """insert into fugai_Linshi_List (keyword, search_engine, sousuo_guize, time_stamp, is_zhixing) values ('{keyword}', '{search_engine}', '{sousuo_guize}', '{time_stamp}', '0');""".format(
                     keyword=keyword, search_engine=search, sousuo_guize=str_tiaojian, time_stamp=time_stamp)
-                print('insert_sql-----> ', insert_sql)
                 sql_list.append(insert_sql)
         database_create_data.operDB('', 'insert', True, sql_list)
-        print('---------------------------')
