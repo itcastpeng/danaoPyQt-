@@ -23,6 +23,7 @@ def shoulu_func(huoqu_shoulu_time_stamp, set_url_data):
         objs_data = database_create_data.operDB(sql, 'select')
         for obj_data in objs_data['data']:
             tid = obj_data[0]
+            # print('tid---------------------> ', tid)
             search = obj_data[5]
             lianjie = obj_data[1]
             huoqu_shoulu_time_stamp = obj_data[3]
@@ -46,7 +47,7 @@ def shoulu_func(huoqu_shoulu_time_stamp, set_url_data):
 # 运行程序 - 覆盖查询
 def fugai_func(huoqu_fugai_time_stamp, set_keyword_data):
     while True:
-        print('覆盖查询-----',threading.active_count())
+        # print('覆盖查询-----',threading.active_count())
         now_time = int(time.time())
         time_stamp = now_time + 30
         sql = """select * from fugai_Linshi_List where is_zhixing = '0' and time_stamp='{huoqu_fugai_time_stamp}' and (shijianchuo < '{time_stamp}' or  shijianchuo is NULL) limit 1;""".format(
@@ -57,7 +58,7 @@ def fugai_func(huoqu_fugai_time_stamp, set_keyword_data):
             tid = obj_data[0]
             search = obj_data[3]
             keyword = obj_data[1]
-            mohu_pipei = obj_data[6]
+            mohu_pipei = obj_data[4]
             if threading.active_count() <= 6:
                 # 更改数据库时间戳 二十秒可执行下一次
                 sql = """update fugai_Linshi_List set shijianchuo ='{time_stamp}' where id = '{id}';""".format(

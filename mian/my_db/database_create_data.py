@@ -33,7 +33,7 @@ def operDB(sql, oper='select', batch_insert_flag=False, insert_sql_list=[]):
             result_obj['data'] = list(result_data)
     else:
         while True:
-            # print('进入')
+            # print('sql==========> ',sql)
             if not os.path.exists(settings.lock_file):
                 with open(settings.lock_file, 'w') as f:
                     f.write('1')

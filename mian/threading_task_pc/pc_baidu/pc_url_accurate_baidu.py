@@ -28,28 +28,21 @@ pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:2.0b13pre) Gecko/20110307 Firefox/4.0b13'
 ]
 
-class Baidu_Zhidao_URL_PC():
 
-    def __init__(self, detail_id, keyword, domain):
-        self.data_base_list = []
-        self.keyword = keyword
-        self.domain = domain
-        self.detail_id = detail_id
-        self.headers = {
-            'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
-        self.zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword='{}')
-        data_list = self.get_keywords()
-        self.set_data(data_list)
 
-    def get_keywords(self):
-        # 调用查询收录
-        rank_num = 0
-        resultObj = shouluORfugaiChaxun.baiduShouLuPC(self.domain)
-        ret = requests.get(self.zhidao_url.format(self.keyword), headers=self.headers, timeout=10)
+data_base_list = []
+headers = {
+    'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
+zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword='{}')
+
+def Baidu_Zhidao_URL_PC(detail_id, keyword, domain):
+    # 调用查询收录
+    rank_num = 0
+    resultObj = shouluORfugaiChaxun.baiduShouLuPC(domain)
+    if resultObj['shoulu'] == 1:
+        ret = requests.get(zhidao_url.format(keyword), headers=headers, timeout=10)
         soup = BeautifulSoup(ret.text, 'lxml')
         div_tags = soup.find_all('div', class_='result c-container ')
-        data_list = []
-        yuming = ''
         panduan_url = ''
         for div_tag in div_tags:
             if div_tags and div_tag.attrs.get('id'):
@@ -59,25 +52,23 @@ class Baidu_Zhidao_URL_PC():
                 if div_13.find('a'):
                     yuming = div_13.find('a').get_text()[:-5].split('/')[0]  # 获取域名
                     status_code, title, ret_two_url = getpageinfo.getPageInfo(panduan_url)
-                    # print('ret_two_url, self.domain=======> ',ret_two_url, self.domain)
-                    if yuming in self.domain:
-                        if self.domain in ret_two_url:
+                    if yuming in domain:
+                        if domain in ret_two_url:
                             rank_num = div_tag.attrs.get('id')
                             break
-        data_list = {
-            'order':int(rank_num),
-            'shoulu': resultObj['shoulu']
-        }
-        print(data_list)
-        return data_list
+    data_list = {
+        'order':int(rank_num),
+        'shoulu': resultObj['shoulu']
+    }
+    return data_list
 
-    def set_data(self, data_list):
-        date_time = datetime.datetime.today().strftime('%Y-%m-%d')
-        # for data in data_list:
-        insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
-            order=data_list['order'], shoulu=data_list['shoulu'], detail_id=self.detail_id, date_time=date_time)
-        print(insert_sql)
-        database_create_data.operDB(insert_sql, 'insert')
-        update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-        print(update_sql)
-        database_create_data.operDB(update_sql, 'update')
+    # def set_data(self, data_list):
+    #     date_time = datetime.datetime.today().strftime('%Y-%m-%d')
+    #     # for data in data_list:
+    #     insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
+    #         order=data_list['order'], shoulu=data_list['shoulu'], detail_id=self.detail_id, date_time=date_time)
+    #     # print(insert_sql)
+    #     database_create_data.operDB(insert_sql, 'insert')
+    #     update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
+    #     # print(update_sql)
+    #     database_create_data.operDB(update_sql, 'update')

@@ -47,7 +47,6 @@ def baiduShouLuPC(domain):
                 yuming = f13_div.find('a').get_text()[:-5].split('/')[0]  # 获取域名
                 status_code, title, ret_two_url = getPageInfo(panduan_url)
                 if yuming in domain:
-                    # print(domain , '=============', ret_two_url, title, status_code)
                     if domain in ret_two_url:
                         if div_tags[0].find('span', class_='newTimeFactor_before_abs'):
                             resultObj["kuaizhao_time"] = div_tags[0].find('span',

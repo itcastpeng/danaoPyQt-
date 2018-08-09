@@ -7,7 +7,7 @@ import queue, schedule
 from my_db import database_create_data
 from time import sleep
 from mian.threading_task_pc.pc_baidu import mobile_fugai_pipei_baidu, mobile_url_accurate_baidu, pc_fugai_pipei_baidu, pc_url_accurate_baidu
-
+from . import zhongDianCiZhongZhuanQi
 
 # 线程池
 class ThreadPool(object):
@@ -32,24 +32,13 @@ class ThreadPool(object):
 
 pool = ThreadPool(5)
 # 重点词监控 - 多线程部署
-def thread_pcurl(detail_id, keywords, domain, ):
-    print('进入线程--thread_pcurl--> ', ' pc端 有链接', keywords, domain, detail_id, threading.active_count())
-    pc_url_accurate_baidu.Baidu_Zhidao_URL_PC(detail_id, keywords, domain)
+def thread_url_shoulu(detail_id, keywords, domain, search_engine):
+    zhongDianCiZhongZhuanQi.baiDuShouLu(detail_id, keywords, domain, search_engine)
     pool.add_thread()
 
-def thread_mobileurl(detail_id, keywords, domain ):
-    print('进入线程--thread_mobileurl--> ', ' 移动端 有链接', keywords, domain, detail_id,  threading.active_count())
-    mobile_url_accurate_baidu.Baidu_Zhidao_URL_MOBILE(detail_id, keywords, domain)
-    pool.add_thread()
-
-def thread_pcmohupipei(search_engine, detail_id, keywords, domain):
-    print('进入线程--thread_pcmohupipei--> ',' pc端 无链接',keywords, domain, detail_id, threading.active_count())
+def thread_pcmohupipei_fugai(search_engine, detail_id, keywords, domain):
     pc_fugai_pipei_baidu.Baidu_Zhidao_yuming_pc(search_engine, keywords, domain, detail_id)
-    pool.add_thread()
-
-def thread_mobilemohupipei(search_engine, detail_id, keywords, domain):
-    print('进入线程--thread_mobilemohupipei--> ','移动端 无链接',keywords, domain, detail_id, threading.active_count())
-    mobile_fugai_pipei_baidu.Baidu_Zhidao_yuming_mobile(search_engine, keywords, domain, detail_id)
+    zhongDianCiZhongZhuanQi.baiDuFuGai(search_engine, keywords, domain, detail_id)
     pool.add_thread()
 
 
@@ -62,6 +51,8 @@ def get_task_list(data=None):
     sql = ''
     if data:
         sql = """select id,next_datetime from task_List where qiyong_status = '1' and id = '{}';""".format(data)
+        update_sql = """update task_Detail set time_stamp='' where tid = '{}'""".format(data)
+        database_create_data.operDB(update_sql, 'update')
     else:
         sql = """select id,next_datetime from task_List where next_datetime <='{xiaoyu_dengyu_date}' and qiyong_status = '1' limit 1;""".format(
         xiaoyu_dengyu_date=xiaoyu_dengyu_date)
@@ -71,8 +62,9 @@ def get_task_list(data=None):
         select_sql = """select id from task_Detail where tid='{data}'""".format(data=data_id)
         select_objs = database_create_data.operDB(select_sql, 'select')
         if select_objs['data']:
-            next_time = objs['data'][0][1]
+            next_time = str(objs['data'][0][1])
             next_datetime = datetime.datetime.strptime(next_time, '%Y-%m-%d %H:%M:%S')
+            # print('next_datetime-----------> ',next_datetime, type(next_datetime))
             update_status_sql = """update task_List set task_status = '0', zhixing = '1' where id = '{}'""".format(data_id)
             database_create_data.operDB(update_status_sql, 'update')
             if next_datetime.strftime('%Y-%m-%d') <= datetime.datetime.today().strftime('%Y-%m-%d'):
@@ -91,7 +83,6 @@ timer_flag = False
 
 # 定时器二
 def dingshi_timer():
-    # print('执行 dingshi_timer')
     global timer_flag
     if timer_flag:
         return
@@ -104,7 +95,6 @@ def dingshi_timer():
         for obj in objs_list['data']:
             detail_id = obj[0]
             tid = obj[1]
-            # print('tid --------------------------------- > ',tid )
             search_engine = obj[2]
             lianjie = obj[3]
             keywords = obj[4]
@@ -125,28 +115,16 @@ def dingshi_timer():
             if is_run_flag:
                 thread_obj = pool.get_thread()
                 if lianjie:
-                    if search_engine == '4':
-                        # print('进入线程----> ','移动端 有链接',keywords)
-                        thread_mobile_url = thread_obj(target=thread_mobileurl, args=(detail_id, keywords, lianjie))
-                        thread_mobile_url.start()
-
-                    if search_engine == '1':
-                        # print('进入线程----','移动端 有链接',keywords)
-                        thread_pc_url = thread_obj(target=thread_pcurl, args=(detail_id, keywords, lianjie))
-                        thread_pc_url.start()
-
+                    print('收录查询 -0---- 重点词监控')
+                    thread_mobile_url = thread_obj(target=thread_url_shoulu,
+                        args=(detail_id, keywords, lianjie, search_engine))
+                    thread_mobile_url.start()
                 else:
-                    if search_engine == '4':
-                        # print('进入线程----> ','移动端 无链接',keywords, detail_id)
-                        thread_mobile_mohupipei = thread_obj(target=thread_mobilemohupipei,
-                            args=(search_engine, detail_id, keywords, mohupipei))
-                        thread_mobile_mohupipei.start()
+                    print('覆盖查询----======== 重点词监控')
+                    thread_mobile_mohupipei = thread_obj(target=thread_pcmohupipei_fugai,
+                        args=(search_engine, detail_id, keywords, mohupipei))
+                    thread_mobile_mohupipei.start()
 
-                    else:
-                        # print('进入线程----> ',' pc端 无链接',keywords, detail_id)
-                        thread_pc_mohupipei = thread_obj(target=thread_pcmohupipei,
-                            args=(search_engine, detail_id, keywords, mohupipei))
-                        thread_pc_mohupipei.start()
 
     # 所有线程执行完毕 只剩主线程 则退出
     while True:
@@ -165,15 +143,21 @@ def lijijiankong(json_data):
         if threading.active_count() <= 6:
             jiankong = threading.Thread(target=get_task_list, args=(data, ))
             jiankong.start()
+            select_sql = """select id from task_Detail where tid='{}'""".format(data)
+            objs = database_create_data.operDB(select_sql, 'select')
+            sql_data_list = []
+            for obj in objs['data']:
+                delete_sql = """delete from task_Detail_Data where tid='{}'""".format(obj[0])
+                sql_data_list.append(delete_sql)
+            database_create_data.operDB('', 'delete', True, sql_data_list)
         else:
             continue
 
 
-
 # 启动定时器
 def run():
-    schedule.every(30).seconds.do(get_task_list)
-    schedule.every(10).seconds.do(dingshi_timer)
+    schedule.every(10).seconds.do(get_task_list)
+    schedule.every(5).seconds.do(dingshi_timer)
     while True:
         schedule.run_pending()
 

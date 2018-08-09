@@ -28,72 +28,9 @@ from threading_task_pc import zhongzhuanqi
 # ]
 
 
-class Baidu_Zhidao_yuming_pc():
-    def __init__(self, yinqing, keyword, mohu_pipei, detail_id):
-        self.keyword = keyword
-        self.detail_id = detail_id
-        self.mohu_pipei_list = mohu_pipei.split(',')
-        self.yinqing = yinqing
-        # self.headers = {
-        #     'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)],}
-        # self.zhidao_url = 'https://www.baidu.com/s?wd={keyword}'.format(keyword='{}')
-        data_list = self.get_keywords()
-
-    def get_keywords(self):
-        str_order = '0'
-        shoulu = '0'
-        result = zhongzhuanqi.fugaiChaxun(self.detail_id, self.yinqing, self.keyword, ','.join(self.mohu_pipei_list))
-        if result:
-            str_order = ",".join(str(i) for i in result)
-            date_time = datetime.datetime.today().strftime('%Y-%m-%d')
-            insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{tid}', '{date_time}');""".format(
-                order=str_order, shoulu=shoulu, tid=self.detail_id, date_time=date_time)
-            print('insert_sql------> ', insert_sql, 'Baidu_Zhidao_yuming_pc')
-            database_create_data.operDB(insert_sql, 'insert')
-            update_sql = """update task_Detail set is_perform = '0' where id = '{tid}'""".format(tid=self.detail_id)
-            print('update_sql======> ', update_sql)
-            database_create_data.operDB(update_sql, 'update')
-
-
-
-
-
-
-
-
-
-    #     ret = requests.get(self.zhidao_url.format(self.keyword) ,headers=self.headers, timeout=10)
-    #     print('self.zhidao_url---------------> ',self.zhidao_url)
-    #     soup = BeautifulSoup(ret.text, 'lxml')
-    #     div_tags = soup.find_all('div', class_='result c-container ')
-    #     data_list = []
-    #     str_order = ''
-    #     order_list = []
-    #     ret_two_url = ''
-    #     shoulu = 0
-    #     rank_num = ''
-    #     for div_tag in div_tags:
-    #         tiaojian_chaxun = div_tag.get_text()
-    #         panduan_url = div_tag.find('h3',class_='t').find('a').attrs['href']
-    #         print('panduan_url-----> ',panduan_url)
-    #         status_code, title, ret_two_url = getpageinfo.getPageInfo(panduan_url)  # 获取对应页面的标题
-    #         for mohu_pipei in self.mohu_pipei_list:
-    #             if mohu_pipei in tiaojian_chaxun:  # 表示有覆盖
-    #                 rank_num = div_tag.attrs.get('id')
-    #
-    #                 order_list.append(int(rank_num))
-    #
-    #                 result = shouluORfugaiChaxun.baiduShouLuPC(ret_two_url)
-    #                 shoulu = result['shoulu']
-
-
-    # def set_data(self,data_list):
-    #     date_time = datetime.datetime.today().strftime('%Y-%m-%d')
-    #     insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{tid}', '{date_time}');""".format(
-    #         order=data_list['paiming_detail'],shoulu=data_list['shoulu'],tid=self.detail_id,date_time=date_time)
-    #     print('insert_sql------> ',insert_sql, 'Baidu_Zhidao_yuming_pc')
-    #     database_create_data.operDB(insert_sql, 'insert')
-    #     update_sql = """update task_Detail set is_perform = '0' where id = '{tid}'""".format(tid = self.detail_id)
-    #     print('update_sql======> ',update_sql)
-    #     database_create_data.operDB(update_sql, 'update')
-
+def Baidu_Zhidao_yuming_pc(yinqing, keyword, mohu_pipei, detail_id):
+    str_order = '0'
+    mohu_pipei_list = mohu_pipei.split(',')
+    result = zhongzhuanqi.fugaiChaxun(detail_id, yinqing, keyword, ','.join(mohu_pipei_list))
+    if result:
+        return result

@@ -39,7 +39,6 @@ def insert_into(data, time_stamp, shibiecanshu):
                         sql_list.append(sql_three)
         database_create_data.operDB('', 'insert', True, sql_list)
 
-
     if shibiecanshu == 'shoulu':
         json_data_list = json.loads(data)
         data_url_list = json_data_list['editor_content'].replace('\r\n', '').strip().split('http')
@@ -54,8 +53,10 @@ def insert_into(data, time_stamp, shibiecanshu):
                         lianjie = url_data.strip().replace('\t', '')
                         insert_sql = """insert into shoulu_Linshi_List (url, time_stamp, search, is_zhixing) values('{url}', '{time_stamp}', '{search}', '{is_zhixing}');""".format(
                             url=lianjie, time_stamp=time_stamp, search=search, is_zhixing='0')
+
                         sql_list.append(insert_sql)
             database_create_data.operDB('', 'insert', True, sql_list)
+
 
     if shibiecanshu == 'fugai':
         tiaojian_list = []
@@ -70,7 +71,9 @@ def insert_into(data, time_stamp, shibiecanshu):
         for search in json_data_list['searchEngineModel']:
             for keyword in set(json_data_list['editor_content'].strip().split('\n')):
                 keyword = keyword.strip()
-                insert_sql = """insert into fugai_Linshi_List (keyword,  search_engine, title, title_url, sousuo_guize, time_stamp, is_zhixing) values ('{keyword}', '{search_engine}', '', '', '{sousuo_guize}', '{time_stamp}', '0');""".format(
+                insert_sql = """insert into fugai_Linshi_List (keyword, search_engine, sousuo_guize, time_stamp, is_zhixing) values ('{keyword}', '{search_engine}', '{sousuo_guize}', '{time_stamp}', '0');""".format(
                     keyword=keyword, search_engine=search, sousuo_guize=str_tiaojian, time_stamp=time_stamp)
+                print('insert_sql-----> ', insert_sql)
                 sql_list.append(insert_sql)
         database_create_data.operDB('', 'insert', True, sql_list)
+        print('---------------------------')
