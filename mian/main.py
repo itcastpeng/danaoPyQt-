@@ -82,6 +82,7 @@ class Danao_Inter_Action(QObject):
 
     # 重点词监控 - 获取任务列表数据
     def get_zhongdianci_create_task_list_value(self):
+        print('展示数据--重点词')
         sql = """select * from task_List;"""
         objs = database_create_data.operDB(sql, 'select')
         data_list = []
@@ -474,6 +475,16 @@ class Danao_Inter_Action(QObject):
             row = 5
             for obj in objs_two['data']:
                 tid = obj[0]
+                if str(obj[2]) == '1':
+                    yinqing = '百度'
+                elif  str(obj[2]) == '4':
+                    yinqing = '手机百度'
+                elif str(obj[2]) == '3':
+                    yinqing = '360'
+                elif str(obj[2]) == '6':
+                    yinqing = '手机360'
+                else:
+                    yinqing = ''
                 sql = 'select * from task_Detail_Data where tid = {} order by create_time desc limit 3  ;'.format(tid)
                 objs = database_create_data.operDB(sql, 'select')
                 if objs:
@@ -481,22 +492,19 @@ class Danao_Inter_Action(QObject):
                     for obj_data in objs['data']:
                         create_time = obj_data[4]
                         paiming = obj_data[1]
-                        # print('paiming--------------> ', paiming)
                         ws.cell(row=3, column=column_p, value="{create_time}".format(create_time=create_time))
                         ws.cell(row=row, column=column_p, value="{paiming}".format(paiming=paiming))
                         column_p += 1
                 ws.cell(row=2, column=2, value="任务名")
                 ws.cell(row=row, column=1, value="{keywords}".format(keywords=obj[4]))
-                ws.cell(row=row, column=3, value="{search_engine}".format(search_engine=obj[2]))
+                ws.cell(row=row, column=3, value="{search_engine}".format(search_engine=yinqing))
                 ws.cell(row=row, column=2, value="{lianjie}".format(lianjie=obj[3]))
                 row += 1
             root = Tk()
             root.withdraw()  # 隐藏
             root.iconbitmap('./128.ico')
             dirname = askdirectory(parent=root, initialdir="/", title='选择导出路径 !')
-            # print(dirname)
             if dirname:
-                print('==================================')
                 if dirname == 'C:/':
                     tkinter.messagebox.showerror('错误', '请选择路径 !')
                     # tkinter.messagebox.showwarning('警告', '请选择路径 !')
@@ -658,10 +666,16 @@ class Danao_Inter_Action(QObject):
                     is_shoulu = '已收录'
                 else:
                     is_shoulu = '未收录'
-                if obj[3] == 1:
-                    search = '百度'
+                if str(obj[3]) == '1':
+                    yinqing = '百度'
+                elif  str(obj[3]) == '4':
+                    yinqing = '手机百度'
+                elif str(obj[3]) == '3':
+                    yinqing = '360'
+                elif str(obj[3]) == '6':
+                    yinqing = '手机360'
                 else:
-                    search = '手机百度'
+                    yinqing = ''
                 ws.cell(row=row, column=1, value="{title}".format(title=obj[2]))
                 ws.cell(row=row, column=2, value="{url}".format(url=obj[0]))
                 ws.cell(row=row, column=3, value="{search}".format(search=search))
@@ -901,10 +915,16 @@ class Danao_Inter_Action(QObject):
             row = 9
             row_two = 4
             for obj in objs['data']:
-                if obj[2] == '1':
-                    search = '百度'
+                if str(obj[2]) == '1':
+                    yinqing = '百度'
+                elif  str(obj[2]) == '4':
+                    yinqing = '手机百度'
+                elif str(obj[2]) == '3':
+                    yinqing = '360'
+                elif str(obj[2]) == '6':
+                    yinqing = '手机360'
                 else:
-                    search = '手机百度'
+                    yinqing = ''
                 paiming_detail = obj[1].split(',')
                 paming_num = 0
                 for paiming in paiming_detail:

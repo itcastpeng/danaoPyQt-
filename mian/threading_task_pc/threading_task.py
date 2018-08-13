@@ -1,7 +1,6 @@
 from multiprocessing import Queue
 import sqlite3, os, sys, json, re, time
-from threading_task_pc.pc_baidu import mobile_fugai_pipei_baidu, mobile_url_accurate_baidu, pc_url_accurate_baidu, \
-    pc_fugai_pipei_baidu
+from threading_task_pc.pc_baidu import  mobile_url_accurate_baidu, pc_url_accurate_baidu
 from time import sleep
 import threading
 from my_db import database_create_data

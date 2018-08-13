@@ -2,7 +2,7 @@ import requests
 import random
 from bs4 import BeautifulSoup
 from mian.threading_task_pc.public.getpageinfo import getPageInfo
-import json
+import json, time
 
 pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 5.1; rv:6.0.2) Gecko/20100101 Firefox/6.0.2',
@@ -235,19 +235,28 @@ def pcFugai360(keyword, mohu_pipei_list):
 # 360移动端覆盖查询
 def mobielFugai360(keyword, mohu_pipei_list):
     PC_360_url = 'https://m.so.com/s?src=3600w&q={}'.format(keyword)
+    order_list = []
     headers = {
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
     ret = requests.get(PC_360_url, headers=headers, timeout=10)
     soup_browser = BeautifulSoup(ret.text, 'lxml')
     div_tags = soup_browser.find_all('div', class_=" g-card res-list og ")
+    order_num = 0
     for mohu_pipei in mohu_pipei_list.split(','):
         for div_tag in div_tags:
+            order_num += 1
             zongti_fugai = div_tag.get_text()
             if mohu_pipei in zongti_fugai:
-                print(div_tag)
-                print(div_tag.attrs.get('data-url'))
-                print(div_tag.find('data-url'))
-
+                a_tag = div_tag.find('a', class_='alink')
+                title = a_tag.find('h3').get_text()
+                panduan_url = a_tag.attrs['href']
+                order_list.append({
+                        'paiming': int(order_num),
+                        'title': title,
+                        'title_url': panduan_url,
+                        'sousuo_guize': mohu_pipei,
+                    })
+    return order_list
 
 
 

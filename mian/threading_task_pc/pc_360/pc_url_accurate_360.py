@@ -1,13 +1,7 @@
 import requests, random
+import time
 from bs4 import BeautifulSoup
-from time import sleep
-import datetime
-import chardet
-from mian.my_db import database_create_data
-import json
 from mian.threading_task_pc.public import shouluORfugaiChaxun
-from mian.threading_task_pc.public.getpageinfo import getPageInfo
-
 pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 5.1; rv:6.0.2) Gecko/20100101 Firefox/6.0.2',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17',
@@ -31,11 +25,7 @@ headers = {'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) 
 
 def PC_360_URL_PC(detail_id, keyword, domain):
     pc_360url = """https://so.com/s?src=3600w&q={keyword}""".format(keyword=keyword)
-    data_list = []
     order = 0
-    status_code = ''
-    title = ''
-    ret_two_url = ''
     resultObj = shouluORfugaiChaxun.pcShoulu360(domain)
     ret_domain = requests.get(pc_360url, headers=headers)
     soup = BeautifulSoup(ret_domain.text, 'lxml')
@@ -56,8 +46,8 @@ def PC_360_URL_PC(detail_id, keyword, domain):
                 yuming = yuming_canshu.find('cite').get_text()
                 yuming_deal = yuming.split('/')[0].rstrip('...').split('>')[0]
                 if yuming_deal in domain:
-                    status_code, title, ret_two_url = getPageInfo(data_url)
-                    if domain in ret_two_url:
+                    ret_two_url = requests.get(data_url, headers=headers, timeout=10)
+                    if domain in ret_two_url.url:
                         order = order_num
                         break
     data_list = {

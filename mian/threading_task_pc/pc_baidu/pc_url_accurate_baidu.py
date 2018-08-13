@@ -1,12 +1,7 @@
 from bs4 import BeautifulSoup
-from time import sleep
-from urllib.request import urlopen
-from mian.my_db import database_create_data
+import time
 import random
-import datetime
-import chardet
 import requests
-from mian.threading_task_pc.public import shouluORfugaiChaxun
 from mian.threading_task_pc.public import getpageinfo, shouluORfugaiChaxun
 pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 5.1; rv:6.0.2) Gecko/20100101 Firefox/6.0.2',
@@ -51,9 +46,9 @@ def Baidu_Zhidao_URL_PC(detail_id, keyword, domain):
             if div_13:
                 if div_13.find('a'):
                     yuming = div_13.find('a').get_text()[:-5].split('/')[0]  # 获取域名
-                    status_code, title, ret_two_url = getpageinfo.getPageInfo(panduan_url)
+                    ret_two_url = requests.get(panduan_url, headers=headers, timeout=10)
                     if yuming in domain:
-                        if domain in ret_two_url:
+                        if domain in ret_two_url.url:
                             rank_num = div_tag.attrs.get('id')
                             break
     data_list = {

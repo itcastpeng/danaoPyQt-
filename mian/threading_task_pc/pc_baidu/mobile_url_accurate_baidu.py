@@ -6,7 +6,7 @@ import chardet
 from my_db import database_create_data
 from threading_task_pc.public import getpageinfo, shouluORfugaiChaxun
 
-
+import time
 
 zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
 
@@ -30,10 +30,15 @@ def Baidu_Zhidao_URL_MOBILE(detail_id, keyword, domain):
         for obj_tag in content_list_order:
             dict_data_clog = eval(obj_tag.attrs.get('data-log'))
             url = dict_data_clog['mu']
-            status_code, title, ret_two_url = getpageinfo.getPageInfo(url)
-            if ret_two_url == domain or domain in ret_two_url:
-                paiming_order = dict_data_clog['order']
-                break
+            if url:
+                ret_two_url = ''
+                try:
+                    ret_two_url = requests.get(url, headers=headers, timeout=10)
+                except Exception:
+                    pass
+                if ret_two_url.url == domain or domain in ret_two_url.url:
+                    paiming_order = dict_data_clog['order']
+                    break
     data_list = {
         'order': int(paiming_order),
         'shoulu':resultObj['shoulu'],

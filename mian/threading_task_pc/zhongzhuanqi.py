@@ -44,16 +44,19 @@ def fugaiChaxun(tid, search, keyword, mohu_pipei, huoqu_fugai_time_stamp=None):
     order_list = []
     # pc端百度
     if str(search) == '1':
+        print('pc端 -- 覆盖百度', int(time.time()))
         resultObj = shouluORfugaiChaxun.baiduFuGaiPC(keyword, mohu_pipei)
     # 移动端百度
     elif str(search) == '4':
+        print('移动端 -- 覆盖百度', int(time.time()))
         resultObj = shouluORfugaiChaxun.baiduFuGaiMOBIEL(keyword, mohu_pipei)
     # pc360
     elif str(search) == '3':
+        print('pc端 -- 覆盖360', int(time.time()))
         resultObj = shouluORfugaiChaxun.pcFugai360(keyword, mohu_pipei)
     # # 移动端360
     elif str(search) == '6':
-        print('移动端 360 覆盖')
+        print('移动端 -- 覆盖360 ', int(time.time()))
         resultObj = shouluORfugaiChaxun.mobielFugai360(keyword, mohu_pipei)
 
     if resultObj:

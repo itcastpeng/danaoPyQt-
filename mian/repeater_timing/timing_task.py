@@ -6,7 +6,6 @@ import threading
 import queue, schedule
 from my_db import database_create_data
 from time import sleep
-from mian.threading_task_pc.pc_baidu import mobile_fugai_pipei_baidu, mobile_url_accurate_baidu, pc_fugai_pipei_baidu, pc_url_accurate_baidu
 from . import zhongDianCiZhongZhuanQi
 
 # 线程池
@@ -37,7 +36,6 @@ def thread_url_shoulu(detail_id, keywords, domain, search_engine):
     pool.add_thread()
 
 def thread_pcmohupipei_fugai(search_engine, detail_id, keywords, domain):
-    pc_fugai_pipei_baidu.Baidu_Zhidao_yuming_pc(search_engine, keywords, domain, detail_id)
     zhongDianCiZhongZhuanQi.FuGai(search_engine, keywords, domain, detail_id)
     pool.add_thread()
 
@@ -113,12 +111,12 @@ def dingshi_timer():
             if is_run_flag:
                 thread_obj = pool.get_thread()
                 if lianjie:
-                    print('收录查询 ---- 重点词监控')
+                    print('定时器二  线程启动 收录pc端',int(time.time()))
                     thread_mobile_url = thread_obj(target=thread_url_shoulu,
                         args=(detail_id, keywords, lianjie, search_engine))
                     thread_mobile_url.start()
                 else:
-                    print('覆盖查询----======== 重点词监控')
+                    print('定时器二  线程启动 收录移动端',int(time.time()))
                     thread_mobile_mohupipei = thread_obj(target=thread_pcmohupipei_fugai,
                         args=(search_engine, detail_id, keywords, mohupipei))
                     thread_mobile_mohupipei.start()
