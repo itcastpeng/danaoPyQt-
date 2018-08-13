@@ -2,6 +2,7 @@ import requests
 import random
 from bs4 import BeautifulSoup
 from mian.threading_task_pc.public.getpageinfo import getPageInfo
+import json
 
 pcRequestHeader = [
     'Mozilla/5.0 (Windows NT 5.1; rv:6.0.2) Gecko/20100101 Firefox/6.0.2',
@@ -56,7 +57,6 @@ def baiduShouLuPC(domain):
                         resultObj["title"] = title
                         resultObj["shoulu"] = 1
     return resultObj
-
 # 百度移动端收录查询
 def baiduShouLuMobeil(domain):
     resultObj = {
@@ -110,14 +110,11 @@ def baiduFuGaiPC(keyword, mohu_pipei_list):
                     'sousuo_guize': mohu_pipei,
                 })
     return order_list
-
 # 百度移动端覆盖查询
 def baiduFuGaiMOBIEL(keyword, mohu_pipei_list):
     headers = {
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
-    # zhidao_url = 'https://m.baidu.com/from=844b/pu=sz@1320_2001/s?tn=iphone&usm=2&word={}'
-    zhidao_url = 'https://m.baidu.com/s?word={}'
-    zhidao_url = zhidao_url.format(keyword)
+    zhidao_url = 'https://m.baidu.com/s?word={}'.format(keyword)
     ret = requests.get(zhidao_url, headers=headers, timeout=10)
     soup_browser = BeautifulSoup(ret.text, 'lxml')
     content_list_order = []
@@ -148,53 +145,109 @@ def baiduFuGaiMOBIEL(keyword, mohu_pipei_list):
     return order_list
 
 
-
-
-
-
-
-
-
 # 360pc端收录查询
-# def pcShoulu360(domain):
-#     global resultObj, pcRequestHeader
-#     resultObj['shoulu'] = '0'
-#     headers = {'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
-#     pc_360url = 'https://so.com/s?src=3600w&q={keyword}'.format(keyword=domain)
-#     ret_domain = requests.get(pc_360url, headers=headers)
-#     soup = BeautifulSoup(ret_domain.text, 'lxml')
-#     if soup.find('div', class_='so-toptip'):
-#         resultObj['shoulu'] = '0'
-#     else:
-#         li_tags = soup.find_all('li', class_='res-list')
-#         for li_tag in li_tags:
-#             if li_tag.find('p', class_='res-linkinfo'):
-#                 zongti_xinxi = li_tag.find('a', target='_blank')            # 获取order -- title -- title_url
-#                 yuming_canshu = li_tag.find('p', class_='res-linkinfo')    # 域名参数
-#                 data_res = eval(zongti_xinxi.attrs.get('data-res'))
-#                 order = data_res['pos']
-#                 if li_tag.find('a').attrs.get('data-url'):
-#                     data_url = li_tag.find('a').attrs.get('data-url')
-#                 else:
-#                     data_url = zongti_xinxi.attrs['href']
-#                 yuming = yuming_canshu.find('cite').get_text()
-#                 yuming_deal = yuming.split('/')[0].rstrip('...').split('>')[0]
-#                 if yuming_deal in domain:
-#                     status_code, title, ret_two_url = getPageInfo(data_url)
-#                     resultObj["status_code"] = status_code
-#                     resultObj["title"] = title
-#                     if ret_two_url == domain:
-#                         resultObj['shoulu'] = '1'
-#     return resultObj
-
+def pcShoulu360(domain):
+    resultObj = {
+        "shoulu": 0,
+        "kuaizhao_time": '',
+        "title": '',
+        "status_code": '',
+        "rank_num":0
+    }
+    headers = {'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)]}
+    pc_360url = 'https://so.com/s?src=3600w&q={domain}'.format(domain=domain)
+    ret_domain = requests.get(pc_360url, headers=headers)
+    soup = BeautifulSoup(ret_domain.text, 'lxml')
+    if soup.find('div', class_='so-toptip'):
+        resultObj['shoulu'] = '0'
+    else:
+        li_tags = soup.find_all('li', class_='res-list')
+        if li_tags[0].find('p', class_='res-linkinfo'):
+            zongti_xinxi = li_tags[0].find('a', target='_blank')            # 获取order -- title -- title_url
+            yuming_canshu = li_tags[0].find('p', class_='res-linkinfo')    # 域名参数
+            if li_tags[0].find('a').attrs.get('data-url'):
+                data_url = li_tags[0].find('a').attrs.get('data-url')
+            else:
+                data_url = zongti_xinxi.attrs['href']
+            yuming = yuming_canshu.find('cite').get_text()
+            yuming_deal = yuming.split('/')[0].rstrip('...').split('>')[0]
+            if yuming_deal in domain:
+                status_code, title, ret_two_url = getPageInfo(data_url)
+                resultObj["status_code"] = status_code
+                resultObj["title"] = title
+                if domain in ret_two_url:
+                    resultObj['shoulu'] = '1'
+    return resultObj
 # 360移动端收录查询
-# def mobielShoulu360(domain):
-#     pass
-#
-# # 360pc端覆盖查询
-# def pcFugai360():
-#     pass
-#
-# # 360移动端覆盖查询
-# def mobielFugai360():
-#     pass
+def mobielShoulu360(domain):
+    resultObj = {
+        "shoulu": 0,
+        "kuaizhao_time": '',
+        "title": '',
+        "status_code": '',
+        "rank_num": 0
+    }
+    PC_360_url = 'https://m.so.com/s?src=3600w&q={}'.format(domain)
+    headers = {
+        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
+    ret = requests.get(PC_360_url, headers=headers)
+    soup = BeautifulSoup(ret.text, 'lxml')
+    if soup.find('div', class_='mso-url2link'):
+        resultObj['shoulu'] = '0'
+    else:
+        div_tags = soup.find_all('div', class_=' g-card res-list og ')
+        if div_tags[0].attrs.get('data-pcurl'):
+            url_data = div_tags[0].attrs.get('data-pcurl')
+            status_code, title, ret_two_url = getPageInfo(url_data)
+            resultObj["status_code"] = status_code
+            resultObj["title"] = title
+            if domain in ret_two_url:
+                resultObj['shoulu'] = '1'
+    return resultObj
+
+
+# 360pc端覆盖查询
+def pcFugai360(keyword, mohu_pipei_list):
+    order_list = []
+    headers = {'User-Agent': pcRequestHeader[random.randint(0, len(pcRequestHeader) - 1)], }
+    pc_360url = 'https://so.com/s?src=3600w&q={keyword}'.format(keyword=keyword)
+    ret = requests.get(pc_360url, headers=headers, timeout=10)
+    soup = BeautifulSoup(ret.text, 'lxml')
+    div_tags = soup.find_all('li', class_='res-list')
+    for mohu_pipei in mohu_pipei_list.split(','):
+        for div_tag in div_tags:
+            zongti_fugai = div_tag.get_text()
+            if mohu_pipei in zongti_fugai:
+                if div_tag.find('a').attrs.get('data-res'):
+                    data_res = div_tag.find('a')
+                    paiming = data_res.attrs.get('data-res')
+                    dict_data_res = json.loads(paiming)
+                    panduan_url = data_res.attrs['href']
+                    title = data_res.get_text()
+                    order_list.append({
+                        'paiming': int(dict_data_res['pos']),
+                        'title': title,
+                        'title_url': panduan_url,
+                        'sousuo_guize': mohu_pipei,
+                    })
+    return order_list
+
+# 360移动端覆盖查询
+def mobielFugai360(keyword, mohu_pipei_list):
+    PC_360_url = 'https://m.so.com/s?src=3600w&q={}'.format(keyword)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'}
+    ret = requests.get(PC_360_url, headers=headers, timeout=10)
+    soup_browser = BeautifulSoup(ret.text, 'lxml')
+    div_tags = soup_browser.find_all('div', class_=" g-card res-list og ")
+    for mohu_pipei in mohu_pipei_list.split(','):
+        for div_tag in div_tags:
+            zongti_fugai = div_tag.get_text()
+            if mohu_pipei in zongti_fugai:
+                print(div_tag)
+                print(div_tag.attrs.get('data-url'))
+                print(div_tag.find('data-url'))
+
+
+
+

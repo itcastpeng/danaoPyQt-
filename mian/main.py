@@ -145,6 +145,7 @@ class Danao_Inter_Action(QObject):
                  6 手机360
                  7 神马"""
             json_data = json.loads(data)
+            print('json_data ------------------- > ', json_data )
             qiyong_status = json_data['qiyong_status']
             task_name = json_data['task_name']
             task_jindu = json_data['task_jindu']
@@ -334,7 +335,6 @@ class Danao_Inter_Action(QObject):
             sql = """select id from task_Detail where tid = {}""".format(data)
             objs = database_create_data.operDB(sql, 'select')
             for obj in objs['data']:
-                # print('obj[0]------------>',obj[0])
                 sql_two = """delete from task_Detail_Data where tid = {}""".format(obj[0])
                 database_create_data.operDB(sql_two, 'delete')
             sql_three = """delete from task_Detail where tid = {};""".format(data)

@@ -33,12 +33,12 @@ class ThreadPool(object):
 pool = ThreadPool(5)
 # 重点词监控 - 多线程部署
 def thread_url_shoulu(detail_id, keywords, domain, search_engine):
-    zhongDianCiZhongZhuanQi.baiDuShouLu(detail_id, keywords, domain, search_engine)
+    zhongDianCiZhongZhuanQi.ShouLu(detail_id, keywords, domain, search_engine)
     pool.add_thread()
 
 def thread_pcmohupipei_fugai(search_engine, detail_id, keywords, domain):
     pc_fugai_pipei_baidu.Baidu_Zhidao_yuming_pc(search_engine, keywords, domain, detail_id)
-    zhongDianCiZhongZhuanQi.baiDuFuGai(search_engine, keywords, domain, detail_id)
+    zhongDianCiZhongZhuanQi.FuGai(search_engine, keywords, domain, detail_id)
     pool.add_thread()
 
 

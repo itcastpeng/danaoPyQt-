@@ -61,14 +61,3 @@ def Baidu_Zhidao_URL_PC(detail_id, keyword, domain):
         'shoulu': resultObj['shoulu']
     }
     return data_list
-
-    # def set_data(self, data_list):
-    #     date_time = datetime.datetime.today().strftime('%Y-%m-%d')
-    #     # for data in data_list:
-    #     insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
-    #         order=data_list['order'], shoulu=data_list['shoulu'], detail_id=self.detail_id, date_time=date_time)
-    #     # print(insert_sql)
-    #     database_create_data.operDB(insert_sql, 'insert')
-    #     update_sql = """update task_Detail set is_perform = '0' where id = '{}'""".format(self.detail_id)
-    #     # print(update_sql)
-    #     database_create_data.operDB(update_sql, 'update')
