@@ -56,9 +56,9 @@ def fugai_func(huoqu_fugai_time_stamp, set_keyword_data):
         objs_data = database_create_data.operDB(sql, 'select')
         for obj_data in objs_data['data']:
             tid = obj_data[0]
-            search = obj_data[3]
-            keyword = obj_data[1]
-            mohu_pipei = obj_data[4]
+            search = obj_data[2]
+            mohu_pipei = obj_data[3]
+            keyword = obj_data[10]
             if threading.active_count() <= 6:
                 # 更改数据库时间戳 二十秒可执行下一次
                 sql = """update fugai_Linshi_List set shijianchuo ='{time_stamp}' where id = '{id}';""".format(
@@ -66,7 +66,7 @@ def fugai_func(huoqu_fugai_time_stamp, set_keyword_data):
                 database_create_data.operDB(sql, 'update')
                 # 启动线程
                 fugai_thread4 = threading.Thread(target=zhongzhuanqi.fugaiChaxun,
-                    args=(tid, search, keyword, mohu_pipei, huoqu_fugai_time_stamp))
+                        args=(tid, search, keyword, mohu_pipei, huoqu_fugai_time_stamp))
                 fugai_thread4.start()
             else:
                 sleep(0.5)

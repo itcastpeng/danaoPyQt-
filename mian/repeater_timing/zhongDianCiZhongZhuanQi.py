@@ -8,7 +8,6 @@ from mian.threading_task_pc.pc_baidu import mobile_fugai_pipei_baidu, mobile_url
 
 def baiDuShouLu(detail_id, keywords, domain, search_engine):
     if search_engine == '1':
-        print('进入pc端')
         data_list = pc_url_accurate_baidu.Baidu_Zhidao_URL_PC(detail_id, keywords, domain)
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')
         insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
@@ -31,6 +30,7 @@ def baiDuFuGai(search_engine, keywords, domain, detail_id):
         shoulu = '0'
         str_order = '0'
         result = pc_fugai_pipei_baidu.Baidu_Zhidao_yuming_pc(search_engine, keywords, domain, detail_id)
+        print('result--------> ',result)
         if len(result):
             str_order = ",".join(str(i) for i in result)
         date_time = datetime.datetime.today().strftime('%Y-%m-%d')

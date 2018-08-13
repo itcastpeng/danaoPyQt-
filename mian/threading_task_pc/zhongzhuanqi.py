@@ -54,16 +54,20 @@ def fugaiChaxun(tid, search, keyword, mohu_pipei, huoqu_fugai_time_stamp=None):
     #     resultObj = shouluORfugaiChaxun.mobielFugai360()
     if huoqu_fugai_time_stamp:
         sql_list = []
-        # fugai_num = 0
         json_detail_data = []
         for result in resultObj:
             order_list.append(result['paiming'])
+            zhanwei = 0
+            if result['paiming']:
+                zhanwei = 1
             json_detail_data.append({
-                'paiming_detail':result['paiming'],
+                'rank':result['paiming'],
                 'title':result['title'].replace('\'','').replace('"',''),
-                'title_url':result['title_url'],
+                'url':result['title_url'],
                 'guize':result['sousuo_guize'],
                 'keyword':keyword,
+                'zhanwei':zhanwei,
+                'search_engine':search
             })
         json_data = ''
         if len(json_detail_data):
@@ -76,9 +80,9 @@ def fugaiChaxun(tid, search, keyword, mohu_pipei, huoqu_fugai_time_stamp=None):
         sql_two = """update fugai_Linshi_List set paiming_detail='{paiming_detail}', json_detail_data='{json_detail_data}', chaxun_status='1', is_zhixing='{is_zhixing}' where id = '{id}';""".format(
             paiming_detail=str_order, is_zhixing='1', id=tid,
             json_detail_data=json_data)
-        print('update before')
+        # print('update before')
         database_create_data.operDB(sql_two, 'update')
-        print('update after')
+        # print('update after')
     else:
         # 给点词监控返回 排名
         for result in resultObj:

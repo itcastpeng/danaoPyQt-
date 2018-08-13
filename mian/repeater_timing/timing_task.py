@@ -46,16 +46,14 @@ def thread_pcmohupipei_fugai(search_engine, detail_id, keywords, domain):
 # 定时器一
 def get_task_list(data=None):
     xiaoyu_dengyu_date = datetime.datetime.today().strftime('%Y-%m-%d 23-59-59')
-    start_time = datetime.datetime.today().strftime('%Y-%m-%d %H-%M-%S')
-    task_id = ''
-    sql = ''
+    start_time = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:59')
     if data:
         sql = """select id,next_datetime from task_List where qiyong_status = '1' and id = '{}';""".format(data)
         update_sql = """update task_Detail set time_stamp='' where tid = '{}'""".format(data)
         database_create_data.operDB(update_sql, 'update')
     else:
-        sql = """select id,next_datetime from task_List where next_datetime <='{xiaoyu_dengyu_date}' and qiyong_status = '1' limit 1;""".format(
-        xiaoyu_dengyu_date=xiaoyu_dengyu_date)
+        sql = """select id,next_datetime from task_List where next_datetime <='{start_time}' and qiyong_status = '1' limit 1;""".format(
+            start_time=start_time)
     objs = database_create_data.operDB(sql, 'select')
     if objs['data']:
         data_id = objs['data'][0][0]
@@ -115,7 +113,7 @@ def dingshi_timer():
             if is_run_flag:
                 thread_obj = pool.get_thread()
                 if lianjie:
-                    print('收录查询 -0---- 重点词监控')
+                    print('收录查询 ---- 重点词监控')
                     thread_mobile_url = thread_obj(target=thread_url_shoulu,
                         args=(detail_id, keywords, lianjie, search_engine))
                     thread_mobile_url.start()

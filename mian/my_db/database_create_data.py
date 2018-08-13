@@ -52,6 +52,7 @@ def operDB(sql, oper='select', batch_insert_flag=False, insert_sql_list=[]):
                             print('错误--------> ',sql)
                     conn.execute("COMMIT")
                 else:
+                    # print('sql===========> ', sql)
                     result_data = cursor.execute(sql)
                 conn.commit()
                 conn.close()
