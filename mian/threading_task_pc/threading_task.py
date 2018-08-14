@@ -22,7 +22,7 @@ def shoulu_func(huoqu_shoulu_time_stamp, set_url_data):
         objs_data = database_create_data.operDB(sql, 'select')
         for obj_data in objs_data['data']:
             tid = obj_data[0]
-            # print('tid---------------------> ', tid)
+            print('tid==========> ',tid)
             search = obj_data[5]
             lianjie = obj_data[1]
             huoqu_shoulu_time_stamp = obj_data[3]
@@ -55,6 +55,7 @@ def fugai_func(huoqu_fugai_time_stamp, set_keyword_data):
         objs_data = database_create_data.operDB(sql, 'select')
         for obj_data in objs_data['data']:
             tid = obj_data[0]
+            # print('tid---------> ',tid)
             search = obj_data[2]
             mohu_pipei = obj_data[3]
             keyword = obj_data[10]
@@ -74,6 +75,8 @@ def fugai_func(huoqu_fugai_time_stamp, set_keyword_data):
             huoqu_fugai_time_stamp=huoqu_fugai_time_stamp
         )
         count_objs = database_create_data.operDB(count_sql, 'select')
+        # print('set_keyword_data==> ',set_keyword_data, " count_objs['data'][0][0]======> ", count_objs['data'][0][0])
         if count_objs['data'][0][0] == set_keyword_data:
+            print('break======>break ')
             break
 

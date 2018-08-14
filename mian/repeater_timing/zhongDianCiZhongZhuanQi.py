@@ -29,7 +29,7 @@ def ShouLu(detail_id, keywords, domain, search_engine):
     if search_engine == '6':
         # print('中转--覆盖--移动端360',int(time.time()))
         data_list =  mobile_url_accurate_360.PC_360_URL_MOBILE(detail_id, keywords, domain)
-    # print('入库-------> ', int(time.time()))
+
     insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ({order}, {shoulu}, {detail_id}, '{date_time}');""".format(
         order=data_list['order'], shoulu=data_list['shoulu'], detail_id=detail_id, date_time=date_time)
     database_create_data.operDB(insert_sql, 'insert')
@@ -40,11 +40,10 @@ def ShouLu(detail_id, keywords, domain, search_engine):
 def FuGai(search_engine, keyword, domain, detail_id):
     shoulu = '0'
     str_order = '0'
-    print('发出任务=-===> ',int(time.time()))
     result = zhongzhuanqi.fugaiChaxun(detail_id, search_engine, keyword, ','.join(domain.split(',')))
-    print('入库-------> ',int(time.time()))
+    print('result------->? ',result )
     if len(result):
-        str_order = ",".join(str(i) for i in result)
+        str_order = ",".join(str(i) for i in set(result))
     date_time = datetime.datetime.today().strftime('%Y-%m-%d')
     insert_sql = """insert into task_Detail_Data (paiming, is_shoulu, tid, create_time) values ('{order}', '{shoulu}', '{tid}', '{date_time}');""".format(
         order=str_order, shoulu=shoulu, tid=detail_id, date_time=date_time)

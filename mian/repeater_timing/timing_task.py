@@ -111,12 +111,12 @@ def dingshi_timer():
             if is_run_flag:
                 thread_obj = pool.get_thread()
                 if lianjie:
-                    print('定时器二  线程启动 收录pc端',int(time.time()))
+                    # print('定时器二  线程启动 收录pc端',int(time.time()))
                     thread_mobile_url = thread_obj(target=thread_url_shoulu,
                         args=(detail_id, keywords, lianjie, search_engine))
                     thread_mobile_url.start()
                 else:
-                    print('定时器二  线程启动 收录移动端',int(time.time()))
+                    # print('定时器二  线程启动 收录移动端',int(time.time()))
                     thread_mobile_mohupipei = thread_obj(target=thread_pcmohupipei_fugai,
                         args=(search_engine, detail_id, keywords, mohupipei))
                     thread_mobile_mohupipei.start()

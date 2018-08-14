@@ -9,12 +9,6 @@ from openpyxl.styles import Font, Alignment
 from openpyxl import Workbook
 from tkinter import *
 from tkinter.filedialog import askdirectory
-# from my_db import database_create_data
-# from repeater_timing import timing_task
-# import multiprocessing
-# from threading_task_pc.threading_task import shoulu_func, fugai_func
-# import sqlite3, os, json, time, datetime, tkinter.messagebox, threading, sys, requests, queue, settings
-# from backend import insert_databse
 from time import sleep
 from PyQt5 import sip
 from mian.my_db import database_create_data
@@ -82,7 +76,6 @@ class Danao_Inter_Action(QObject):
 
     # 重点词监控 - 获取任务列表数据
     def get_zhongdianci_create_task_list_value(self):
-        print('展示数据--重点词')
         sql = """select * from task_List;"""
         objs = database_create_data.operDB(sql, 'select')
         data_list = []
@@ -146,7 +139,7 @@ class Danao_Inter_Action(QObject):
                  6 手机360
                  7 神马"""
             json_data = json.loads(data)
-            print('json_data ------------------- > ', json_data )
+            # print('json_data ------------------- > ', json_data )
             qiyong_status = json_data['qiyong_status']
             task_name = json_data['task_name']
             task_jindu = json_data['task_jindu']
@@ -544,6 +537,7 @@ class Danao_Inter_Action(QObject):
         if self.huoqu_shoulu_time_stamp:
             data_list = []
             exit_dict = {}
+            count_obj = 0
             if self.shoulu_chaxun_page:
                 shoulu_page = json.loads(self.shoulu_chaxun_page)
                 count_sql = """select count(id) from shoulu_Linshi_List where time_stamp = '{time_stamp}';""".format(
@@ -560,10 +554,6 @@ class Danao_Inter_Action(QObject):
                     start_page=start_page,
                     stop_page=int(self.tiaoshu))
                 objs = database_create_data.operDB(limit_sql, 'select')
-                # panduan_sql = """select count(id) from shoulu_Linshi_List where time_stamp = '{time_stamp}' and is_shoulu != '';""".format(
-                #     time_stamp=self.huoqu_shoulu_time_stamp)
-                # panduan_objs = database_create_data.operDB(panduan_sql, 'select')
-                # panduan_count = panduan_objs['data'][0][0]
                 shoulushu_sql = """select count(id) from shoulu_Linshi_List where time_stamp = '{time_stamp}' and is_shoulu='1'; """.format(
                     time_stamp=self.huoqu_shoulu_time_stamp)
                 shoulushu_objs = database_create_data.operDB(shoulushu_sql, 'select')
@@ -589,18 +579,25 @@ class Danao_Inter_Action(QObject):
                         shoulu_status = True
                     else:
                         shoulu_status = ''
-                    search_engine = '手机百度'
                     if str(obj[5]) == '1':
-                        search_engine = '百度'
+                        yinqing = '百度'
+                    elif str(obj[5]) == '4':
+                        yinqing = '手机百度'
+                    elif str(obj[5]) == '3':
+                        yinqing = '360'
+                    elif str(obj[5]) == '6':
+                        yinqing = '手机360'
+                    else:
+                        yinqing = ''
                     data_list.append({
                         'website': obj[1],
                         'shoulu_status': shoulu_status,
                         'title': obj[4],
-                        'search_engine': search_engine,
+                        'search_engine': yinqing,
                         'kuaizhao_date': obj[6],
                         'statusCode': obj[7],
                     })
-                print('----收录---------收录-------------------收录----------收录-=================收录=====> ',yiwancheng_obj)
+                print('----收录---------收录----> ',yiwancheng_obj)
                 exit_dict = {
                     'data': data_list,
                     'shoulushu': shoulushu,
@@ -678,7 +675,7 @@ class Danao_Inter_Action(QObject):
                     yinqing = ''
                 ws.cell(row=row, column=1, value="{title}".format(title=obj[2]))
                 ws.cell(row=row, column=2, value="{url}".format(url=obj[0]))
-                ws.cell(row=row, column=3, value="{search}".format(search=search))
+                ws.cell(row=row, column=3, value="{search}".format(search=yinqing))
                 ws.cell(row=row, column=4, value="{is_shoulu}".format(is_shoulu=is_shoulu))
                 ws.cell(row=row, column=5, value="{kuaizhao_time}".format(kuaizhao_time=obj[4]))
                 row += 1
@@ -770,18 +767,23 @@ class Danao_Inter_Action(QObject):
                 if select_objs['data']:
                     for detail_obj in select_objs['data']:
                         otherData = []
-                        if detail_obj[9] == '0' or None:
-                            rank_info = '_'
                         rank_num = 0
-                        if detail_obj[1] and detail_obj[1] != '0':
+                        if detail_obj[1]:
                             rank_info = detail_obj[1]
                             rank_num = len(rank_info.split(','))
-                        if detail_obj[2] == '1':
-                            search = '百度'
-                        elif detail_obj[2] == '4':
-                            search = '手机百度'
+                        if detail_obj[1] == '0' or None:
+                            rank_info = '_'
+                            rank_num = 0
+                        if str(detail_obj[2]) == '1':
+                            yinqing = '百度'
+                        elif str(detail_obj[2]) == '4':
+                            yinqing = '手机百度'
+                        elif str(detail_obj[2]) == '3':
+                            yinqing = '360'
+                        elif str(detail_obj[2]) == '6':
+                            yinqing = '手机360'
                         else:
-                            search = ''
+                            yinqing = ''
                         detail_obj_json = ''
                         if detail_obj[8]:
                             detail_obj_json = json.loads(detail_obj[8])
@@ -789,7 +791,7 @@ class Danao_Inter_Action(QObject):
                             'id': detail_obj[0],
                             'keyword': detail_obj[10],
                             'rank_info': rank_info,  # 排名情况  为空为查询中  无排名为-
-                            'search_engine': search,  # 搜索引擎
+                            'search_engine': yinqing,  # 搜索引擎
                             'rank_num': rank_num,  # 排名个数
                             'otherData':detail_obj_json
                         })
@@ -811,6 +813,7 @@ class Danao_Inter_Action(QObject):
                     if fugai_num != 0 and fugai_num:
                         fugailv = int((int(fugai_num) / int(self.fugai_number * 10)) * 100)
                 whether_complete = True
+        # print('覆盖当前已完成----------------------------------> ',yiwancheng_obj)
         exit_dict = {'data': data_list,
                      'total_data_num': self.fugai_number,  # 数据总数
                      'fugailv': fugailv,  # 覆盖率
@@ -932,7 +935,7 @@ class Danao_Inter_Action(QObject):
                 ws.cell(row=row, column=1, value="{keyword}".format(keyword=obj[10]))
                 ws.cell(row=row, column=2, value="{paming_num}".format(paming_num=paming_num))
                 ws.cell(row=row, column=3, value="{paiming_detail}".format(paiming_detail=obj[1]))
-                ws.cell(row=row, column=4, value="{search}".format(search=search))
+                ws.cell(row=row, column=4, value="{search}".format(search=yinqing))
                 row += 1
                 if obj[8]:
                     json_detail = json.loads(obj[8])

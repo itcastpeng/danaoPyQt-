@@ -47,14 +47,14 @@ def baiduShouLuPC(domain):
             if f13_div.find('a'):
                 yuming = f13_div.find('a').get_text()[:-5].split('/')[0]  # 获取域名
                 status_code, title, ret_two_url = getPageInfo(panduan_url)
+                resultObj["title"] = title
+                resultObj["status_code"] = status_code
+                if div_tags[0].find('span', class_='newTimeFactor_before_abs'):
+                    resultObj["kuaizhao_time"] = div_tags[0].find('span',
+                        class_='newTimeFactor_before_abs').get_text().strip().replace('-', '').replace('年',
+                        '-').replace('月', '-').replace('日', '').strip()
                 if yuming in domain:
                     if domain in ret_two_url:
-                        if div_tags[0].find('span', class_='newTimeFactor_before_abs'):
-                            resultObj["kuaizhao_time"] = div_tags[0].find('span',
-                                class_='newTimeFactor_before_abs').get_text().strip().replace('-', '').replace('年',
-                                '-').replace('月', '-').replace('日', '').strip()
-                        resultObj["status_code"] = status_code
-                        resultObj["title"] = title
                         resultObj["shoulu"] = 1
     return resultObj
 # 百度移动端收录查询
@@ -79,9 +79,9 @@ def baiduShouLuMobeil(domain):
             url = dict_data_clog['mu']
             if url.strip():
                 status_code, title, ret_two_url = getPageInfo(url)
+                resultObj["status_code"] = status_code
+                resultObj["title"] = title
                 if domain == url or url[:-1] == domain:
-                    resultObj["status_code"] = status_code
-                    resultObj["title"] = title
                     resultObj["shoulu"] = 1
     return resultObj
 
@@ -103,8 +103,9 @@ def baiduFuGaiPC(keyword, mohu_pipei_list):
             panduan_url = div_tag.find('h3', class_='t').find('a').attrs['href']
             title = div_tag.find('h3', class_='t').get_text()
             if mohu_pipei in tiaojian_chaxun:  # 表示有覆盖
+                order_num = int(rank_num)
                 order_list.append({
-                    'paiming': int(rank_num),
+                    'paiming': order_num,
                     'title': title,
                     'title_url': panduan_url,
                     'sousuo_guize': mohu_pipei,
@@ -125,7 +126,6 @@ def baiduFuGaiMOBIEL(keyword, mohu_pipei_list):
     for div_tag in div_tags:
         content_list_order.append(div_tag)
     order_list = []
-    title = ''
     for mohu_pipei in mohu_pipei_list.split(','):
         for data in content_list_order:
             if data['data-log']:
@@ -136,12 +136,13 @@ def baiduFuGaiMOBIEL(keyword, mohu_pipei_list):
                 if mohu_pipei in pipei_tiaojian:
                     if data.find('div', class_='c-container').find('a'):
                         title = data.find('div', class_='c-container').find('a').get_text()
-                    order_list.append({
-                        'paiming': int(order),
-                        'title': title,
-                        'title_url': url_title,
-                        'sousuo_guize': mohu_pipei,
-                    })
+                        order_num = int(order)
+                        order_list.append({
+                            'paiming': order_num,
+                            'title': title,
+                            'title_url': url_title,
+                            'sousuo_guize': mohu_pipei,
+                        })
     return order_list
 
 
@@ -162,7 +163,7 @@ def pcShoulu360(domain):
         resultObj['shoulu'] = '0'
     else:
         li_tags = soup.find_all('li', class_='res-list')
-        if li_tags[0].find('p', class_='res-linkinfo'):
+        if len(li_tags) > 0:
             zongti_xinxi = li_tags[0].find('a', target='_blank')            # 获取order -- title -- title_url
             yuming_canshu = li_tags[0].find('p', class_='res-linkinfo')    # 域名参数
             if li_tags[0].find('a').attrs.get('data-url'):
@@ -171,10 +172,10 @@ def pcShoulu360(domain):
                 data_url = zongti_xinxi.attrs['href']
             yuming = yuming_canshu.find('cite').get_text()
             yuming_deal = yuming.split('/')[0].rstrip('...').split('>')[0]
+            status_code, title, ret_two_url = getPageInfo(data_url)
+            resultObj["status_code"] = status_code
+            resultObj["title"] = title
             if yuming_deal in domain:
-                status_code, title, ret_two_url = getPageInfo(data_url)
-                resultObj["status_code"] = status_code
-                resultObj["title"] = title
                 if domain in ret_two_url:
                     resultObj['shoulu'] = '1'
     return resultObj
@@ -196,7 +197,7 @@ def mobielShoulu360(domain):
         resultObj['shoulu'] = '0'
     else:
         div_tags = soup.find_all('div', class_=' g-card res-list og ')
-        if div_tags[0].attrs.get('data-pcurl'):
+        if len(div_tags) > 0:
             url_data = div_tags[0].attrs.get('data-pcurl')
             status_code, title, ret_two_url = getPageInfo(url_data)
             resultObj["status_code"] = status_code
@@ -224,14 +225,14 @@ def pcFugai360(keyword, mohu_pipei_list):
                     dict_data_res = json.loads(paiming)
                     panduan_url = data_res.attrs['href']
                     title = data_res.get_text()
+                    order_num = int(dict_data_res['pos'])
                     order_list.append({
-                        'paiming': int(dict_data_res['pos']),
+                        'paiming': order_num,
                         'title': title,
                         'title_url': panduan_url,
                         'sousuo_guize': mohu_pipei,
                     })
     return order_list
-
 # 360移动端覆盖查询
 def mobielFugai360(keyword, mohu_pipei_list):
     PC_360_url = 'https://m.so.com/s?src=3600w&q={}'.format(keyword)
@@ -241,21 +242,22 @@ def mobielFugai360(keyword, mohu_pipei_list):
     ret = requests.get(PC_360_url, headers=headers, timeout=10)
     soup_browser = BeautifulSoup(ret.text, 'lxml')
     div_tags = soup_browser.find_all('div', class_=" g-card res-list og ")
-    order_num = 0
+    order = 0
     for mohu_pipei in mohu_pipei_list.split(','):
         for div_tag in div_tags:
-            order_num += 1
+            order += 1
             zongti_fugai = div_tag.get_text()
             if mohu_pipei in zongti_fugai:
                 a_tag = div_tag.find('a', class_='alink')
                 title = a_tag.find('h3').get_text()
                 panduan_url = a_tag.attrs['href']
+                order_num = int(order)
                 order_list.append({
-                        'paiming': int(order_num),
-                        'title': title,
-                        'title_url': panduan_url,
-                        'sousuo_guize': mohu_pipei,
-                    })
+                    'paiming': order_num,
+                    'title': title,
+                    'title_url': panduan_url,
+                    'sousuo_guize': mohu_pipei,
+                })
     return order_list
 
 
