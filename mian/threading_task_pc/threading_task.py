@@ -1,10 +1,7 @@
-from multiprocessing import Queue
 import sqlite3, os, sys, json, re, time
-from threading_task_pc.pc_baidu import  mobile_url_accurate_baidu, pc_url_accurate_baidu
 from time import sleep
 import threading
 from my_db import database_create_data
-import queue
 from repeater_timing import timing_task
 from threading_task_pc import zhongzhuanqi
 
@@ -22,7 +19,7 @@ def shoulu_func(huoqu_shoulu_time_stamp, set_url_data):
         objs_data = database_create_data.operDB(sql, 'select')
         for obj_data in objs_data['data']:
             tid = obj_data[0]
-            print('tid==========> ',tid)
+            print('tid========> ',tid)
             search = obj_data[5]
             lianjie = obj_data[1]
             huoqu_shoulu_time_stamp = obj_data[3]
@@ -39,14 +36,13 @@ def shoulu_func(huoqu_shoulu_time_stamp, set_url_data):
             huoqu_shoulu_time_stamp=huoqu_shoulu_time_stamp
         )
         count_objs = database_create_data.operDB(count_sql, 'select')
-        if count_objs['data'][0][0] == set_url_data - 1:
+        if count_objs['data'][0][0] == set_url_data:
             break
 
 
 # 运行程序 - 覆盖查询
 def fugai_func(huoqu_fugai_time_stamp, set_keyword_data):
     while True:
-        # print('覆盖查询-----',threading.active_count())
         now_time = int(time.time())
         time_stamp = now_time + 30
         sql = """select * from fugai_Linshi_List where is_zhixing = '0' and time_stamp='{huoqu_fugai_time_stamp}' and (shijianchuo < '{time_stamp}' or  shijianchuo is NULL) limit 1;""".format(
@@ -55,7 +51,6 @@ def fugai_func(huoqu_fugai_time_stamp, set_keyword_data):
         objs_data = database_create_data.operDB(sql, 'select')
         for obj_data in objs_data['data']:
             tid = obj_data[0]
-            # print('tid---------> ',tid)
             search = obj_data[2]
             mohu_pipei = obj_data[3]
             keyword = obj_data[10]
@@ -75,8 +70,6 @@ def fugai_func(huoqu_fugai_time_stamp, set_keyword_data):
             huoqu_fugai_time_stamp=huoqu_fugai_time_stamp
         )
         count_objs = database_create_data.operDB(count_sql, 'select')
-        # print('set_keyword_data==> ',set_keyword_data, " count_objs['data'][0][0]======> ", count_objs['data'][0][0])
         if count_objs['data'][0][0] == set_keyword_data:
-            print('break======>break ')
             break
 

@@ -1,10 +1,7 @@
-import time
 import datetime
-from mian.threading_task_pc.public import shouluORfugaiChaxun
-from mian.threading_task_pc.public import getpageinfo, shouluORfugaiChaxun
 from mian.my_db import database_create_data
-from mian.threading_task_pc.pc_baidu import  mobile_url_accurate_baidu,  pc_url_accurate_baidu
-from mian.threading_task_pc.pc_360 import pc_url_accurate_360,   mobile_url_accurate_360
+from mian.repeater_timing.pc_baidu import  mobile_url_accurate_baidu,  pc_url_accurate_baidu
+from mian.repeater_timing.pc_360 import pc_url_accurate_360, mobile_url_accurate_360
 from mian.threading_task_pc import zhongzhuanqi
 
 def ShouLu(detail_id, keywords, domain, search_engine):

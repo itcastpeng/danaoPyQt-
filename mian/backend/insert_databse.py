@@ -41,21 +41,23 @@ def insert_into(data, time_stamp, shibiecanshu):
 
     if shibiecanshu == 'shoulu':
         json_data_list = json.loads(data)
-        data_url_list = json_data_list['editor_content'].replace('\r\n', '').strip().split('http')
+        data_url_list = json_data_list['editor_content'].strip().split('\n')
+        sql_list = []
         if json_data_list['searchEngineModel']:
-            sql_list = []
-            print(json_data_list['searchEngineModel'])
+            print('引擎----> ', json_data_list['searchEngineModel'])
             for search in json_data_list['searchEngineModel']:
                 for dataurl in set(data_url_list):
-                    if dataurl:
-                        data_url = dataurl.replace('\n', '')
-                        url_data = 'http' + data_url
-                        lianjie = url_data.strip().replace('\t', '')
-                        insert_sql = """insert into shoulu_Linshi_List (url, time_stamp, search, is_zhixing) values('{url}', '{time_stamp}', '{search}', '{is_zhixing}');""".format(
-                            url=lianjie, time_stamp=time_stamp, search=search, is_zhixing='0')
+                    data_url = dataurl.replace('\n', '')
+                    if 'http' in dataurl:
+                        url_data = data_url
+                    else:
+                        url_data = 'http://' + data_url
+                    lianjie = url_data.strip().replace('\t', '')
+                    insert_sql = """insert into shoulu_Linshi_List (url, time_stamp, search, is_zhixing) values('{url}', '{time_stamp}', '{search}', '{is_zhixing}');""".format(
+                        url=lianjie, time_stamp=time_stamp, search=search, is_zhixing='0')
 
-                        sql_list.append(insert_sql)
-            database_create_data.operDB('', 'insert', True, sql_list)
+                    sql_list.append(insert_sql)
+        database_create_data.operDB('', 'insert', True, sql_list)
 
 
     if shibiecanshu == 'fugai':

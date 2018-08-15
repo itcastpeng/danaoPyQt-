@@ -42,15 +42,19 @@ def Baidu_Zhidao_URL_PC(detail_id, keyword, domain):
         for div_tag in div_tags:
             if div_tags and div_tag.attrs.get('id'):
                 panduan_url = div_tag.find('a').attrs['href']
-            div_13 = div_tag.find('div', class_='f13')
-            if div_13:
-                if div_13.find('a'):
-                    yuming = div_13.find('a').get_text()[:-5].split('/')[0]  # 获取域名
+                try:
+                    # print('panduan_url----> ',panduan_url)
                     ret_two_url = requests.get(panduan_url, headers=headers, timeout=10)
-                    if yuming in domain:
-                        if domain in ret_two_url.url:
-                            rank_num = div_tag.attrs.get('id')
-                            break
+                    div_13 = div_tag.find('div', class_='f13')
+                    if div_13:
+                        if div_13.find('a'):
+                            # yuming = div_13.find('a').get_text()[:-5].split('/')[0]  # 获取域名
+                            # if yuming in domain:
+                            if domain in ret_two_url.url:
+                                rank_num = div_tag.attrs.get('id')
+                                break
+                except Exception:
+                    pass
     data_list = {
         'order':int(rank_num),
         'shoulu': resultObj['shoulu']

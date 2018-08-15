@@ -54,9 +54,9 @@ class Danao_Inter_Action(QObject):
         # 查询数据库 返回用户信息
         sql = """select message from Login_message;"""
         objs = database_create_data.operDB(sql, 'select')
-        if objs['data']:
+        # if objs['data']:
             # print('objs====================> ',objs)
-            return objs['data'][0][0]
+            # return objs['data'][0][0]
 
     # 登录 - 获取登录参数 保存数据库
     def set_Loginvalue(self, data):
@@ -91,7 +91,7 @@ class Danao_Inter_Action(QObject):
                 if objs_three['data']:
                     wancheng_obj = int(objs_three['data'][0][0])
                     if count_obj != 0:
-                        baifenbi = wancheng_obj / count_obj * 100
+                        baifenbi = (wancheng_obj / count_obj) * 100
                         if wancheng_obj == count_obj:
                             sql = """update task_List set task_status='1', zhixing = '0' where id='{}'""".format(id)
                             database_create_data.operDB(sql, 'update')
@@ -519,9 +519,10 @@ class Danao_Inter_Action(QObject):
         data_dict = json.loads(data)
         shibiecanshu = 'shoulu'
         insert_databse.insert_into(data, self.huoqu_shoulu_time_stamp, shibiecanshu)
-        data_url_list = data_dict['editor_content'].replace('\r\n', '').strip().split('http')
+        data_url_list = data_dict['editor_content'].strip().split('\n')
         len_url_data = (len(data_url_list) * len(data_dict['searchEngineModel']))
         set_url_data = (len(set(data_url_list)) * len(data_dict['searchEngineModel']))
+        print('set_url_data----> ',set_url_data)
         self.shoulu_chongfu = len_url_data - set_url_data
         sleep(1)
         self.process_shoulu = multiprocessing.Process(target=shoulu_func,
@@ -538,6 +539,7 @@ class Danao_Inter_Action(QObject):
             data_list = []
             exit_dict = {}
             count_obj = 0
+            query_progress = 0
             if self.shoulu_chaxun_page:
                 shoulu_page = json.loads(self.shoulu_chaxun_page)
                 count_sql = """select count(id) from shoulu_Linshi_List where time_stamp = '{time_stamp}';""".format(
@@ -561,7 +563,6 @@ class Danao_Inter_Action(QObject):
                 shoululv = 0
                 if shoulushu and count_obj != 0:
                     shoululv = int((shoulushu / count_obj) * 100)
-
                 yiwancheng_obj = '0'
                 yiwancheng_sql = """select count(id) from shoulu_Linshi_List where time_stamp='{time_stamp}' and is_zhixing='1';""".format(
                     time_stamp=self.huoqu_shoulu_time_stamp)
@@ -569,6 +570,10 @@ class Danao_Inter_Action(QObject):
                 if yiwancheng_objs['data']:
                     yiwancheng_obj = yiwancheng_objs['data'][0][0]
                     # 判断 是否全部执行完毕
+                # print(yiwancheng_obj , count_obj)
+                if yiwancheng_obj and count_obj:
+                    query_progress = int((yiwancheng_obj / count_obj) * 100)
+                # print('完成')
                 whether_complete = False
                 if yiwancheng_obj == count_obj:
                     whether_complete = True
@@ -597,7 +602,7 @@ class Danao_Inter_Action(QObject):
                         'kuaizhao_date': obj[6],
                         'statusCode': obj[7],
                     })
-                print('----收录---------收录----> ',yiwancheng_obj)
+                # print('----收录---------收录----> ',query_progress)
                 exit_dict = {
                     'data': data_list,
                     'shoulushu': shoulushu,
@@ -605,7 +610,8 @@ class Danao_Inter_Action(QObject):
                     'chongfu_num': self.shoulu_chongfu,
                     'whether_complete': whether_complete,  # 全部完成 传True
                     'count_obj': count_obj,  # 数据总数
-                    'yiwancheng_obj': yiwancheng_obj  # 当前完成数量
+                    'yiwancheng_obj': yiwancheng_obj,  # 当前完成数量
+                    'query_progress':query_progress    # 进度条
                 }
             return json.dumps(exit_dict)
 
@@ -738,6 +744,7 @@ class Danao_Inter_Action(QObject):
         paiming_num = 0
         yiwancheng_obj = 0
         whether_complete = False
+        query_progress = 0
         if self.huoqu_fugai_time_stamp:
             if not self.fugai_number:
                 # 查询总数
@@ -752,7 +759,8 @@ class Danao_Inter_Action(QObject):
             yiwancheng_objs = database_create_data.operDB(yiwancheng_sql, 'select')
             if yiwancheng_objs['data']:
                 yiwancheng_obj = yiwancheng_objs['data'][0][0]
-
+            if yiwancheng_obj and self.fugai_number:
+                query_progress = int((yiwancheng_obj / self.fugai_number) * 100)
             if self.fugai_chaxun_page:
                 if self.fugai_chaxun_page == 1:
                     start_page = 0
@@ -813,7 +821,7 @@ class Danao_Inter_Action(QObject):
                     if fugai_num != 0 and fugai_num:
                         fugailv = int((int(fugai_num) / int(self.fugai_number * 10)) * 100)
                 whether_complete = True
-        # print('覆盖当前已完成----------------------------------> ',yiwancheng_obj)
+        # print('覆盖当前已完成----------------------------------> ',query_progress)
         exit_dict = {'data': data_list,
                      'total_data_num': self.fugai_number,  # 数据总数
                      'fugailv': fugailv,  # 覆盖率
@@ -821,7 +829,8 @@ class Danao_Inter_Action(QObject):
                      'paiming_num': paiming_num,  # 排名数
                      'chongfu_num': self.fugai_chongfu_num,  # 重复数
                      'whether_complete': whether_complete,  # 全部完成 传True
-                     'yiwancheng_obj': yiwancheng_obj  # 当前完成数量
+                     'yiwancheng_obj': yiwancheng_obj,  # 当前完成数量
+                     'query_progress':query_progress       # 进度条
                      }
         return json.dumps(exit_dict)
 
@@ -1288,6 +1297,7 @@ class DaNao(object):
         win.show()          # 普通窗口
 
         sys.exit(app.exec_())
+
 
 
 if __name__ == '__main__':

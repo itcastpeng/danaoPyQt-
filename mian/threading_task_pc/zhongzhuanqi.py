@@ -14,17 +14,22 @@ def shouluChaxun(lianjie, tid, search):
         resultObj = shouluORfugaiChaxun.baiduShouLuPC(lianjie)
     # 移动端百度
     elif str(search) == '4':
-        # print('移动端---------')
         resultObj = shouluORfugaiChaxun.baiduShouLuMobeil(lianjie)
     # pc360
     elif str(search) == '3':
         resultObj = shouluORfugaiChaxun.pcShoulu360(lianjie)
-    # # 移动端360
+    # 移动端360
     elif str(search) == '6':
         resultObj = shouluORfugaiChaxun.mobielShoulu360(lianjie)
-
+    # pc搜狗
+    elif str(search) == '2':
+        # print('搜狗pc---------')
+        resultObj = shouluORfugaiChaxun.sougouShouLuPC(lianjie)
+    # 移动端搜狗
     else:
-        pass
+        # print('搜狗 mobile =--------')
+        resultObj = shouluORfugaiChaxun.sougouShouLuMOBILE(lianjie)
+    # print('resultObj-----> ',resultObj)
     sql = """update shoulu_Linshi_List set is_shoulu='{shoulu}', title='{title}', kuaizhao_time='{kuaizhao}', status_code='{status_code}', is_zhixing='{is_zhixing}' where id ={id};""".format(
         shoulu=resultObj['shoulu'],
         title=resultObj['title'],
@@ -33,7 +38,6 @@ def shouluChaxun(lianjie, tid, search):
         id=tid,
         is_zhixing='1'
     )
-
     database_create_data.operDB(sql, 'update')
 
 def fugaiChaxun(tid, search, keyword, mohu_pipei, huoqu_fugai_time_stamp=None):
@@ -63,7 +67,7 @@ def fugaiChaxun(tid, search, keyword, mohu_pipei, huoqu_fugai_time_stamp=None):
         resultObj = shouluORfugaiChaxun.mobielFugai360(keyword, mohu_pipei)
     else:
         pass
-    print('resultObj-------> ',resultObj)
+    # print('resultObj-------> ',resultObj)
     if huoqu_fugai_time_stamp:
         json_detail_data = []
         for result in resultObj:
